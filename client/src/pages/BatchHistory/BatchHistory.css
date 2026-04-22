@@ -1,0 +1,273 @@
+/* Animations */
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes listItemIn {
+  from {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Batch History Page */
+.batch-history-page {
+  padding: 16px;
+  padding-bottom: calc(80px + 24px);
+  animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Page Header */
+.page-header {
+  margin-bottom: 20px;
+}
+
+.page-header h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: #1A2E1A;
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Search Wrapper */
+.search-wrapper {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9CA99F;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.search-input {
+  width: 100%;
+  height: 46px;
+  background: white;
+  border: 1.5px solid #E0EBE0;
+  border-radius: 9999px;
+  padding: 0 16px 0 42px;
+  font-size: 14px;
+  outline: none;
+  box-shadow: 0 1px 3px rgba(27, 107, 58, 0.08);
+  transition: border-color 250ms ease, box-shadow 250ms ease;
+  font-family: inherit;
+  color: #1A2E1A;
+}
+
+.search-input::placeholder {
+  color: #9CA99F;
+}
+
+.search-input:focus {
+  border-color: #1B6B3A;
+  box-shadow: 0 4px 12px rgba(27, 107, 58, 0.12);
+}
+
+/* Summary Banner */
+.summary-banner {
+  background: linear-gradient(135deg, #0F3D20 0%, #1B6B3A 100%);
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+  box-shadow: 0 4px 12px rgba(27, 107, 58, 0.15);
+}
+
+.summary-banner-value {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  color: white;
+  animation: countUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+  margin: 0;
+  line-height: 1;
+}
+
+/* Batch List Item */
+.batch-list-item {
+  background: white;
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(27, 107, 58, 0.08);
+  border: 1px solid #E0EBE0;
+  cursor: pointer;
+  transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+  animation: listItemIn 0.4s ease both;
+}
+
+.batch-list-item:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.batch-list-item:nth-child(2) {
+  animation-delay: 0.06s;
+}
+
+.batch-list-item:nth-child(3) {
+  animation-delay: 0.12s;
+}
+
+.batch-list-item:nth-child(4) {
+  animation-delay: 0.18s;
+}
+
+.batch-list-item:nth-child(5) {
+  animation-delay: 0.24s;
+}
+
+.batch-list-item:nth-child(6) {
+  animation-delay: 0.30s;
+}
+
+.batch-list-item:nth-child(7) {
+  animation-delay: 0.36s;
+}
+
+.batch-list-item:nth-child(n+8) {
+  animation-delay: 0.42s;
+}
+
+.batch-list-item:hover {
+  box-shadow: 0 4px 12px rgba(27, 107, 58, 0.12);
+  transform: translateY(-2px);
+}
+
+.batch-list-item:active {
+  transform: scale(0.98);
+}
+
+/* Batch Item Left */
+.batch-item-left {
+  flex: 1;
+}
+
+/* Batch Item Kg */
+.batch-item-kg {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1B6B3A;
+  margin: 0 0 4px;
+  line-height: 1;
+}
+
+/* Done Badge */
+.done-badge {
+  background: rgba(34, 197, 94, 0.12);
+  color: #22C55E;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  white-space: nowrap;
+  display: inline-block;
+}
+
+/* Load More Button */
+.load-more-btn {
+  width: 100%;
+  padding: 13px;
+  background: transparent;
+  border: 1.5px dashed #E0EBE0;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #5A7A5A;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: border-color 250ms ease, color 250ms ease, background 250ms ease;
+  font-family: inherit;
+}
+
+.load-more-btn:hover {
+  border-color: #1B6B3A;
+  color: #1B6B3A;
+  background: rgba(27, 107, 58, 0.03);
+}
+
+.load-more-btn:active {
+  transform: scale(0.98);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .batch-history-page {
+    padding: 12px;
+    padding-bottom: calc(80px + 20px);
+  }
+
+  .page-header h1 {
+    font-size: 20px;
+  }
+
+  .search-input {
+    height: 42px;
+    font-size: 13px;
+    padding: 0 14px 0 36px;
+  }
+
+  .summary-banner {
+    padding: 16px 18px;
+  }
+
+  .summary-banner-value {
+    font-size: 22px;
+  }
+
+  .batch-list-item {
+    padding: 12px 14px;
+  }
+
+  .batch-item-kg {
+    font-size: 15px;
+  }
+}

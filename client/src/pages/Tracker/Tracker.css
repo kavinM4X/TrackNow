@@ -1,0 +1,236 @@
+/* Animations */
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes movingPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+  }
+}
+
+@keyframes idlePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes skeletonPulse {
+  0% {
+    background: rgba(0, 0, 0, 0.06);
+  }
+  50% {
+    background: rgba(0, 0, 0, 0.12);
+  }
+  100% {
+    background: rgba(0, 0, 0, 0.06);
+  }
+}
+
+/* Tracker Page */
+.tracker-page {
+  padding: 16px;
+  padding-bottom: calc(80px + 24px);
+  animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Map Container */
+.tracker-map-container {
+  height: 260px;
+  border-radius: 24px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(27, 107, 58, 0.12);
+  border: 2px solid #E0EBE0;
+  background: #EEF3EE;
+  animation: scaleIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+}
+
+/* Map Placeholder */
+.tracker-map-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 20px;
+  text-align: center;
+  color: #9CA99F;
+}
+
+/* Status Card */
+.tracker-status-card {
+  background: white;
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 3px rgba(27, 107, 58, 0.08);
+  border: 1px solid #E0EBE0;
+  margin-bottom: 14px;
+  animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+}
+
+/* Status Row */
+.tracker-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Moving Badge */
+.moving-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(34, 197, 94, 0.12);
+  color: #22C55E;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+/* Idle Badge */
+.idle-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(245, 158, 11, 0.12);
+  color: #F59E0B;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+/* Status Dot */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background: currentColor;
+  border-radius: 50%;
+}
+
+.moving-badge .status-dot {
+  animation: movingPulse 1.2s ease-in-out infinite;
+}
+
+.idle-badge .status-dot {
+  animation: idlePulse 1.2s ease-in-out infinite;
+}
+
+/* Disabled State */
+.tracker-disabled-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  text-align: center;
+  animation: fadeIn 0.45s ease both;
+}
+
+.tracker-disabled-icon {
+  width: 80px;
+  height: 80px;
+  background: #F7F9F7;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  font-size: 32px;
+  border: 2px dashed #E0EBE0;
+}
+
+.tracker-disabled-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1A2E1A;
+  margin: 0 0 12px;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.tracker-disabled-msg {
+  font-size: 14px;
+  color: #9CA99F;
+  margin: 0 0 20px;
+  line-height: 1.5;
+  max-width: 300px;
+}
+
+.tracker-contact-note {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1B6B3A;
+  background: rgba(27, 107, 58, 0.08);
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(27, 107, 58, 0.15);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .tracker-page {
+    padding: 12px;
+    padding-bottom: calc(80px + 20px);
+  }
+
+  .tracker-map-container {
+    height: 240px;
+    border-radius: 20px;
+  }
+
+  .tracker-status-card {
+    padding: 16px;
+  }
+
+  .tracker-disabled-wrap {
+    padding: 48px 20px;
+  }
+
+  .tracker-disabled-icon {
+    width: 68px;
+    height: 68px;
+    font-size: 28px;
+  }
+
+  .tracker-disabled-title {
+    font-size: 18px;
+  }
+}
