@@ -16,7 +16,7 @@ const seedAdmin = async () => {
     await User.deleteOne({ email: 'admin@tracknow.com' });
 
     // Check if admin already exists by phone
-    const adminExists = await User.findOne({ phone: '9999999999' });
+    const adminExists = await User.findOne({ phone: '7373144189' });
     
     if (adminExists) {
       console.log('Admin user already exists with phone');
