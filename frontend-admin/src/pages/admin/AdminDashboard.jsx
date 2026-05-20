@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
-import api from '../../api/client';
+import api, { clearSession } from '../../api/client';
 import { formatDateDayMonth } from '../../utils/format';
 
 function ensure12Months(data = []) {
@@ -64,7 +65,8 @@ function BarChart({ data }) {
   );
 }
 
-export default function AdminDashboard() {
+export default function AdminDashboard({ onLogout }) {
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [chart, setChart] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -86,6 +88,13 @@ export default function AdminDashboard() {
   }, []);
 
   const today = formatDateDayMonth(new Date().toISOString().split('T')[0]);
+
+  const logout = () => {
+    if (!window.confirm('Are you sure you want to logout?')) return;
+    clearSession();
+    onLogout?.();
+    navigate('/admin/login', { replace: true });
+  };
 
   return (
     <AppShell title="Admin Dashboard" headerRight={<span style={{ fontSize: 12, opacity: 0.8 }}>{today}</span>}>
@@ -141,6 +150,10 @@ export default function AdminDashboard() {
               </span>
             </div>
           ))}
+
+          <button type="button" className="btn-danger" onClick={logout} style={{ marginTop: 8 }}>
+            Logout
+          </button>
         </>
       )}
     </AppShell>

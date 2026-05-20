@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import AppShell from '../../components/layout/AppShell';
 import Spinner from '../../components/common/Spinner';
-import api, { clearSession } from '../../api/client';
+import api, { clearSession, getStoredUser, getToken, setSession } from '../../api/client';
 import { initials, shortUserId } from '../../utils/format';
 
 export default function Settings({ onLogout }) {
@@ -37,11 +37,8 @@ export default function Settings({ onLogout }) {
     try {
       const res = await api.put('/auth/profile', data);
       setUser(res.data.user);
-      const stored = JSON.parse(localStorage.getItem('silktrack_user') || '{}');
-      localStorage.setItem(
-        'silktrack_user',
-        JSON.stringify({ ...stored, ...res.data.user })
-      );
+      const stored = getStoredUser() || {};
+      setSession(getToken(), { ...stored, ...res.data.user });
       setProfileMsg('✓ Profile updated');
     } catch (err) {
       setProfileErr(err.response?.data?.message || 'Update failed');

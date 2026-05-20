@@ -10,7 +10,6 @@ const {
   todayISO,
   activeUntilForBooking,
   isInActiveWindow,
-  isExpired,
   normalizeTrackerDay,
   expireStaleTrackerDays,
   syncTrackerConfigForToday,

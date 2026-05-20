@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import api, { getStoredUser, setSession } from '../../api/client';
+import api, { getStoredUser, getToken, setSession } from '../../api/client';
 import styles from './AdminLogin.module.css';
 
 export default function AdminLogin({ onLogin }) {
@@ -12,7 +12,7 @@ export default function AdminLogin({ onLogin }) {
 
   useEffect(() => {
     const user = getStoredUser();
-    if (user?.role === 'admin' && localStorage.getItem('silktrack_token')) {
+    if (user?.role === 'admin' && getToken()) {
       navigate('/admin/dashboard', { replace: true });
     }
   }, [navigate]);
@@ -51,7 +51,7 @@ export default function AdminLogin({ onLogin }) {
       <div className={styles.inner}>
         <div className={styles.logo}>🔒</div>
         <h1>Admin Portal</h1>
-        <p className={styles.sub}>SilkTrack Administration</p>
+        <p className={styles.sub}>TrackNow Administration</p>
         <form className={styles.card} onSubmit={handleSubmit(onSubmit)}>
           <label className="field-label">Phone</label>
           <input className="field-input" type="tel" {...register('phone', { required: true })} />

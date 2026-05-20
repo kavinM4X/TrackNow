@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
-import api from '../../api/client';
+import api, { getStoredUser } from '../../api/client';
 import { formatDateShort, initials } from '../../utils/format';
 import styles from './Bookings.module.css';
 
@@ -111,7 +111,7 @@ export default function Bookings() {
     const id = bookingIdStr(booking);
     if (!id) return;
 
-    const user = JSON.parse(localStorage.getItem('silktrack_user') || '{}');
+    const user = getStoredUser() || {};
     if (user.role !== 'admin') {
       alert('Admin login required. Open Admin Portal and log in again.');
       return;

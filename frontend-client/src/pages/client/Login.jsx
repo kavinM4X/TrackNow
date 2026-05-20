@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import api, { getStoredUser, setSession } from '../../api/client';
+import api, { getStoredUser, getToken, setSession } from '../../api/client';
 import styles from './Login.module.css';
 
 export default function Login({ onLogin }) {
@@ -17,7 +17,7 @@ export default function Login({ onLogin }) {
   } = useForm();
 
   useEffect(() => {
-    const token = localStorage.getItem('silktrack_token');
+    const token = getToken();
     const user = getStoredUser();
     if (token && user && user.role !== 'admin') {
       navigate('/dashboard', { replace: true });
@@ -75,7 +75,7 @@ export default function Login({ onLogin }) {
             <circle cx="9" cy="9" r="1.5" fill="#2E7D52" />
           </svg>
         </div>
-        <h1 className={styles.brand}>SilkTrack</h1>
+        <h1 className={styles.brand}>TrackNow</h1>
         <p className={styles.tagline}>Sericulture Management</p>
 
         <form className={styles.card} onSubmit={handleSubmit(onSubmit)}>

@@ -8,7 +8,7 @@ import BatchHistory from './pages/client/BatchHistory';
 import BatchDetail from './pages/client/BatchDetail';
 import Tracker from './pages/client/Tracker';
 import Settings from './pages/client/Settings';
-import './styles/silktrack.css';
+import './styles/tracknow.css';
 
 function App() {
   const [user, setUser] = useState(null);
