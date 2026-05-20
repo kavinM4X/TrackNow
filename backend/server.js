@@ -8,8 +8,9 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// Middleware — set CORS_ORIGIN on Render (comma-separated frontend URLs)
+const corsOrigins = process.env.CORS_ORIGIN?.split(',').map((o) => o.trim()).filter(Boolean);
+app.use(cors(corsOrigins.length ? { origin: corsOrigins } : {}));
 app.use(express.json());
 app.use(morgan('dev'));
 
@@ -57,12 +58,20 @@ app.use('/api/admin/tracker', trackerRouter);
 app.use('/api/logs', require('./routes/logs'));
 app.use('/api/admin', require('./routes/admin'));
 
-// Health Check
+app.get('/', (req, res) => {
+  res.json({
+    name: 'TrackNow API',
+    status: 'running',
+    health: '/api/health',
+    docs: 'Use /api/* endpoints from the admin or client app'
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'TrackNow API is running' });
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
