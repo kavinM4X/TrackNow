@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import api, { getStoredUser, getToken, setSession } from '../../api/client';
+import BrandLogo from '../../components/common/BrandLogo';
 import styles from './AdminLogin.module.css';
 
 export default function AdminLogin({ onLogin }) {
@@ -48,8 +49,8 @@ export default function AdminLogin({ onLogin }) {
 
   return (
     <div className={styles.page}>
+      <BrandLogo className={styles.brandMark} />
       <div className={styles.inner}>
-        <div className={styles.logo}>🔒</div>
         <h1>Admin Portal</h1>
         <p className={styles.sub}>TrackNow Administration</p>
         <form className={styles.card} onSubmit={handleSubmit(onSubmit)}>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import api, { getStoredUser, getToken, setSession } from '../../api/client';
+import BrandLogo from '../../components/common/BrandLogo';
 import styles from './Login.module.css';
 
 export default function Login({ onLogin }) {
@@ -67,14 +68,8 @@ export default function Login({ onLogin }) {
 
   return (
     <div className={styles.page}>
+      <BrandLogo className={styles.brandMark} />
       <div className={styles.inner}>
-        <div className={styles.logo}>
-          <svg width="36" height="36" viewBox="0 0 18 18" aria-hidden>
-            <ellipse cx="9" cy="9" rx="4" ry="6.5" fill="none" stroke="#2E7D52" strokeWidth="1.5" />
-            <path d="M5 9h8M9 2.5v13" stroke="#2E7D52" strokeWidth="1" opacity="0.5" />
-            <circle cx="9" cy="9" r="1.5" fill="#2E7D52" />
-          </svg>
-        </div>
         <h1 className={styles.brand}>TrackNow</h1>
         <p className={styles.tagline}>Sericulture Management</p>
 
