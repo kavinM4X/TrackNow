@@ -16,19 +16,30 @@ app.use(morgan('dev'));
 // Database Connection
 const { runCleanup } = require('./utils/cleanupIndexes');
 
+const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/tracknow';
+
 mongoose
-  .connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/tracknow', {
+  .connect(mongoUri, {
     useNewUrlParser: true,
     useUnifiedTopology: true
   })
   .then(async () => {
-    console.log('MongoDB Connected');
+    const host = mongoose.connection.host || 'unknown';
+    console.log(`MongoDB Connected (${host})`);
     await runCleanup(mongoose);
     const { expireStaleTrackerDays } = require('./utils/trackerExpiry');
     const n = await expireStaleTrackerDays();
     if (n > 0) console.log(`Auto-disabled ${n} expired tracker(s)`);
+
+    const { startMonthlyBackupScheduler } = require('./jobs/scheduleMonthlyBackup');
+    startMonthlyBackupScheduler();
   })
-  .catch((err) => console.log('MongoDB Connection Error:', err));
+  .catch((err) => {
+    console.error('MongoDB Connection Error:', err.message);
+    if (mongoUri.includes('mongodb+srv')) {
+      console.error('Atlas tip: check IP whitelist, username/password, and database name in MONGODB_URI.');
+    }
+  });
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));

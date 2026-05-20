@@ -68,6 +68,27 @@ function toCsv(rows) {
   return [header.join(','), ...lines].join('\n');
 }
 
+const { listBackups, backupRoot, runMonthlyBackup } = require('../utils/monthlyBackup');
+
+// GET /api/admin/backups (admin only)
+router.get('/backups', protect, adminOnly, async (req, res) => {
+  try {
+    res.json({ backups: listBackups(), backupDir: backupRoot() });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/admin/backups/run (admin only) — manual monthly backup
+router.post('/backups/run', protect, adminOnly, async (req, res) => {
+  try {
+    const result = await runMonthlyBackup({ reason: 'admin-manual' });
+    res.json({ message: 'Backup completed', result, backups: listBackups() });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET /api/admin/stats (admin only)
 router.get('/stats', protect, adminOnly, async (req, res) => {
   try {
