@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const TOKEN_KEY = 'silktrack_token';
 
-const api = axios.create({ baseURL: '/api' });
+const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || '/api' });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem(TOKEN_KEY);

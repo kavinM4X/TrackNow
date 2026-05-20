@@ -27,15 +27,15 @@ const seedAdmin = async () => {
     const admin = await User.create({
       name: 'Admin User',
       email: 'admin@tracknow.com',
-      phone: '9999999999',
-      password: 'admin123',
+      phone: '7373144189',
+      password: 'Senthil@33',
       role: 'admin',
       isActive: true
     });
 
     console.log('Admin user created successfully:');
-    console.log('Phone: 9999999999');
-    console.log('Password: admin123');
+    console.log('Phone: 7373144189');
+    console.log('Password: Senthil@33');
     console.log('Role: admin');
 
     process.exit(0);
