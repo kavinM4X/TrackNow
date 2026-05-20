@@ -34,9 +34,13 @@ export default function AdminLogin({ onLogin }) {
       onLogin(token, user);
       navigate('/admin/dashboard', { replace: true });
     } catch (err) {
-      setError(
-        err.response?.data?.message || 'Invalid credentials'
-      );
+      if (err.code === 'ERR_NETWORK' || !err.response) {
+        setError(
+          'Cannot reach API server. Start backend (npm start) or set VITE_API_URL in frontend-admin/.env to your Render URL.'
+        );
+      } else {
+        setError(err.response?.data?.message || err.response?.data?.error || 'Invalid credentials');
+      }
     } finally {
       setLoading(false);
     }

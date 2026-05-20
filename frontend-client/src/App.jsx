@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { getStoredUser } from './api/client';
+import { clearSession, getStoredUser } from './api/client';
 import Login from './pages/client/Login';
 import Dashboard from './pages/client/Dashboard';
 import Booking from './pages/client/Booking';
@@ -20,7 +20,10 @@ function App() {
   }, []);
 
   const handleLogin = (_token, userData) => setUser(userData);
-  const handleLogout = () => setUser(null);
+  const handleLogout = () => {
+    clearSession();
+    setUser(null);
+  };
 
   if (loading) {
     return <div className="app-loading">Loading…</div>;
@@ -42,7 +45,7 @@ function App() {
         {user ? (
           <>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<Dashboard user={user} />} />
+            <Route path="/dashboard" element={<Dashboard user={user} onLogout={handleLogout} />} />
             <Route path="/booking" element={<Booking />} />
             <Route path="/batch-history" element={<BatchHistory />} />
             <Route path="/batch-history/:batchId" element={<BatchDetail />} />
