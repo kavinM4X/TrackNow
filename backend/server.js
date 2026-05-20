@@ -9,7 +9,10 @@ dotenv.config();
 const app = express();
 
 // Middleware — set CORS_ORIGIN on Render (comma-separated frontend URLs)
-const corsOrigins = process.env.CORS_ORIGIN?.split(',').map((o) => o.trim()).filter(Boolean);
+const corsOrigins = (process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
 app.use(cors(corsOrigins.length ? { origin: corsOrigins } : {}));
 app.use(express.json());
 app.use(morgan('dev'));
