@@ -1,0 +1,46 @@
+.page {
+  min-height: 100vh;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.inner {
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+}
+
+.logo {
+  width: 56px;
+  height: 56px;
+  background: var(--blue-light);
+  border: 1px solid var(--blue-border);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px;
+  font-size: 24px;
+}
+
+.inner h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.sub {
+  color: #aaa;
+  font-size: 13px;
+  margin: 4px 0 20px;
+}
+
+.card {
+  background: #f0f4f9;
+  border: 1px solid #cadaeb;
+  border-radius: 10px;
+  padding: 16px;
+  text-align: left;
+}

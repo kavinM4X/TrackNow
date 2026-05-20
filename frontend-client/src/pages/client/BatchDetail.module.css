@@ -1,0 +1,156 @@
+.headerCard {
+  text-align: center;
+  padding: 16px;
+}
+
+.headerDate {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.headerLoc {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.headerTotal {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--green);
+  margin-top: 8px;
+}
+
+.headerTotal span {
+  font-size: 14px;
+}
+
+.headerSub {
+  font-size: 11px;
+  color: #bbb;
+  margin-top: 4px;
+}
+
+.breakdownTitle {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* One row: label | stretch bar | kg (bar never gets misplaced under label) */
+.breakdownRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.breakdownRow:last-child {
+  margin-bottom: 0;
+}
+
+.rowLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  flex-shrink: 0;
+  min-width: 6.5rem;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.dotGood {
+  background: var(--green);
+}
+
+.dotWaste {
+  background: #f5a623;
+}
+
+.dotDoubles {
+  background: #a0522d;
+}
+
+.barTrack {
+  flex: 1;
+  min-width: 0;
+  height: 8px;
+  background: #f0f0ee;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 4px;
+}
+
+.barFillGood {
+  background: var(--green);
+}
+
+.barFillWaste {
+  background: #f5a623;
+}
+
+.barFillDoubles {
+  background: #a0522d;
+}
+
+.kgGood {
+  color: var(--green);
+}
+
+.kgWaste {
+  color: #f5a623;
+}
+
+.kgDoubles {
+  color: #a0522d;
+}
+
+.kgValue {
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: right;
+  min-width: 3.75rem;
+}
+
+.valueRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 6px;
+  gap: 8px;
+}
+
+.valueRow span:first-child {
+  color: #888;
+}
+
+.estimated {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid #e5e5ea;
+  margin-top: 4px;
+}
+
+.readOnlyNote {
+  background: #f8f8f6;
+  border: 1px solid #e0e0dc;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  font-size: 11px;
+  color: #aaa;
+  margin-top: 8px;
+}

@@ -1,0 +1,163 @@
+.goodSilkBox {
+  background: var(--green-light);
+  border: 1px solid var(--green-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.goodSilkLabel {
+  font-size: 11px;
+  color: var(--green);
+  font-weight: 600;
+}
+
+.goodSilkSub {
+  font-size: 11px;
+  color: #888;
+}
+
+.goodSilkValue {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--green);
+}
+
+.ratesTitle {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.ratesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.rateCell {
+  background: #f8f8f6;
+  border: 1px solid #e0e0dc;
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+}
+
+.rateCellActive {
+  background: var(--blue-light);
+  border-color: var(--blue);
+}
+
+.rateMarket {
+  font-size: 10px;
+  color: #888;
+}
+
+.rateMarketActive {
+  color: var(--blue);
+  font-weight: 600;
+}
+
+.rateAmount {
+  font-size: 16px;
+  font-weight: 600;
+  color: #aaa;
+  margin-top: 2px;
+}
+
+.rateAmountActive {
+  color: var(--blue);
+}
+
+.estValue {
+  background: #f0f4f9;
+  border: 1px solid #b0cde8;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+
+.estValue strong {
+  font-size: 16px;
+  color: var(--blue);
+}
+
+.dateMarketRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.hint {
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 10px;
+}
+
+.weightRow {
+  border: 1px solid #e5e5ea;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+  background: #fafafa;
+}
+
+.weightRowTitle {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.weightRowGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  align-items: end;
+}
+
+.weightRowAmt {
+  font-size: 12px;
+  color: #666;
+  margin-top: 6px;
+  text-align: right;
+}
+
+.totalsCard {
+  background: #f0f4f9;
+  border: 1px solid #b0cde8;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.totalsRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.totalsRow strong {
+  color: var(--blue);
+}
+
+.rateCellClick {
+  cursor: pointer;
+  font: inherit;
+  width: 100%;
+}
+
+.subtle {
+  font-size: 10px;
+  color: #888;
+  margin-bottom: 8px;
+}

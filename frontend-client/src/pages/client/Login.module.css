@@ -1,0 +1,71 @@
+.page {
+  min-height: 100vh;
+  background: var(--page-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.inner {
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+}
+
+.logo {
+  width: 56px;
+  height: 56px;
+  background: var(--green-light);
+  border: 1px solid var(--green-border);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px;
+}
+
+.brand {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.tagline {
+  margin: 4px 0 20px;
+  font-size: 13px;
+  color: #aaa;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: left;
+}
+
+.passWrap {
+  position: relative;
+}
+
+.passWrap .field-input {
+  padding-right: 40px;
+}
+
+.eye {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.forgot {
+  margin-top: 16px;
+  font-size: 12px;
+  color: #ccc;
+}

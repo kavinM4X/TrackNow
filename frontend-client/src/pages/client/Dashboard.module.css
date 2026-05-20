@@ -1,0 +1,87 @@
+.rateStrip {
+  background: var(--green);
+  color: #fff;
+  border-radius: 6px;
+  padding: 6px 10px;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 11px;
+  margin-bottom: 10px;
+}
+
+.rateGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.rateCard {
+  background: #fff;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.rateLoc {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: block;
+}
+
+.rateVal {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--green);
+  display: block;
+}
+
+.rateUnit {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.upcoming {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.upLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.upMain {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.upSub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.batchRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.statNum {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.statLbl {
+  font-size: 11px;
+  color: var(--text-muted);
+}
