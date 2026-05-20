@@ -1,15 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/common/Badge';
 import Spinner from '../../components/common/Spinner';
 import ReminderModal from '../../components/common/ReminderModal';
-import api, { clearSession } from '../../api/client';
+import api from '../../api/client';
 import { formatDateDayMonth } from '../../utils/format';
 import styles from './Dashboard.module.css';
 
-export default function Dashboard({ user, onLogout }) {
-  const navigate = useNavigate();
+export default function Dashboard({ user }) {
   const [marketRate, setMarketRate] = useState(null);
   const [upcoming, setUpcoming] = useState(null);
   const [recentBatches, setRecentBatches] = useState([]);
@@ -62,13 +60,6 @@ export default function Dashboard({ user, onLogout }) {
   const reminderPending =
     Boolean(upcoming) &&
     localStorage.getItem(`reminder_ack_${upcoming.date}`) !== 'true';
-
-  const logout = () => {
-    if (!window.confirm('Are you sure you want to logout?')) return;
-    clearSession();
-    onLogout?.();
-    navigate('/login', { replace: true });
-  };
 
   return (
     <AppShell
@@ -171,10 +162,6 @@ export default function Dashboard({ user, onLogout }) {
               <div className={styles.statLbl}>Total Silk</div>
             </div>
           </div>
-
-          <button type="button" className="btn-danger" onClick={logout} style={{ marginTop: 8 }}>
-            Logout
-          </button>
         </>
       )}
 

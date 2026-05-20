@@ -45,7 +45,7 @@ function App() {
         {user ? (
           <>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<Dashboard user={user} onLogout={handleLogout} />} />
+            <Route path="/dashboard" element={<Dashboard user={user} />} />
             <Route path="/booking" element={<Booking />} />
             <Route path="/batch-history" element={<BatchHistory />} />
             <Route path="/batch-history/:batchId" element={<BatchDetail />} />
