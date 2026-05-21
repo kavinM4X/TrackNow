@@ -5,6 +5,7 @@ import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/common/Badge';
 import Spinner from '../../components/common/Spinner';
 import api from '../../api/client';
+import truckIcon from '../../assets/app-icon.svg';
 import styles from './Tracker.module.css';
 import 'leaflet/dist/leaflet.css';
 
@@ -70,7 +71,7 @@ export default function Tracker() {
         <Spinner />
       ) : !enabled ? (
         <div className={styles.disabled}>
-          <div className={styles.truckIcon}>🚛</div>
+          <img src={truckIcon} alt="" className={styles.truckIcon} aria-hidden />
           <h2>Tracking Not Enabled</h2>
           <p>Your admin has not enabled live tracking for your booking window.</p>
         </div>
