@@ -1,8 +1,53 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
 import api from '../../api/client';
 import { formatDateShort } from '../../utils/format';
+import styles from './MarketRates.module.css';
+
+const LOCS = [
+  { label: 'Coimbatore', key: 'coimbatore', avgKey: 'coimbatoreAvg', abbr: 'CBE' },
+  { label: 'Mamballi', key: 'mamballi', avgKey: 'mamballiAvg', abbr: 'MBL' },
+  { label: 'Ramnagar', key: 'ramnagar', avgKey: 'ramnagarAvg', abbr: 'RNG' },
+  { label: 'Dharmapuri', key: 'dharmapuri', avgKey: 'dharmapuriAvg', abbr: 'DHP' }
+];
+
+const SUMMARY_ROTATE_MS = 3000;
+
+function SummaryRotator({ latest }) {
+  const slides = useMemo(
+    () =>
+      LOCS.map((loc) => {
+        const rate = latest[loc.key];
+        const avg = latest[loc.avgKey];
+        return `${loc.label}: ₹${rate ?? '—'} · Avg: ₹${avg ?? '—'}`;
+      }),
+    [latest]
+  );
+
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setIndex((i) => (i + 1) % slides.length);
+    }, SUMMARY_ROTATE_MS);
+    return () => clearInterval(id);
+  }, [slides.length]);
+
+  const loc = LOCS[index];
+  const rate = latest[loc.key];
+  const avg = latest[loc.avgKey];
+
+  return (
+    <div className={styles.summaryRotator} aria-live="polite">
+      <div key={loc.key} className={styles.summarySlide}>
+        {loc.label}: <span className={styles.summaryRate}>₹{rate ?? '—'}</span>
+        {' · '}
+        <span className={styles.summaryAvg}>Avg: ₹{avg ?? '—'}</span>
+      </div>
+    </div>
+  );
+}
 
 export default function MarketRates() {
   const navigate = useNavigate();
@@ -34,13 +79,6 @@ export default function MarketRates() {
     };
   }, []);
 
-  const locs = [
-    ['Coimbatore', 'coimbatore', 'CBE'],
-    ['Mamballi', 'mamballi', 'MBL'],
-    ['Ramnagar', 'ramnagar', 'RNG'],
-    ['Dharmapuri', 'dharmapuri', 'DHP']
-  ];
-
   return (
     <AppShell
       title="Market Rates"
@@ -55,23 +93,16 @@ export default function MarketRates() {
       ) : (
         <>
           {latest ? (
-            <div
-              className="card"
-              style={{ background: 'var(--blue-light)', borderColor: 'var(--blue-border)' }}
-            >
-              <strong style={{ color: 'var(--blue)', fontSize: 12 }}>
-                Today · {formatDateShort(latest.date)}
-              </strong>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, margin: '8px 0', fontSize: 12 }}>
-                {locs.map(([label, key]) => (
-                  <span key={key}>
-                    {label}: <strong>₹{latest[key]}</strong>
+            <div className={styles.todayCard}>
+              <div className={styles.todayHead}>Today · {formatDateShort(latest.date)}</div>
+              <div className={styles.marketGrid}>
+                {LOCS.map((loc) => (
+                  <span key={loc.key}>
+                    {loc.label}: <strong>₹{latest[loc.key]}</strong>
                   </span>
                 ))}
               </div>
-              <div style={{ fontSize: 12, color: 'var(--blue)' }}>
-                Top: ₹{latest.topRate} ({latest.topMarket}) | Min Avg: ₹{latest.minAvg}
-              </div>
+              <SummaryRotator latest={latest} />
             </div>
           ) : (
             <p className="form-error" style={{ background: '#fef3cd', padding: 10, borderRadius: 8 }}>
@@ -94,8 +125,8 @@ export default function MarketRates() {
               }}
             >
               <span>Date</span>
-              {locs.map(([, , ab]) => (
-                <span key={ab}>{ab}</span>
+              {LOCS.map((loc) => (
+                <span key={loc.abbr}>{loc.abbr}</span>
               ))}
               <span />
             </div>
@@ -113,8 +144,8 @@ export default function MarketRates() {
                 }}
               >
                 <span>{formatDateShort(row.date)}</span>
-                {locs.map(([, key]) => (
-                  <span key={key}>₹{row[key]}</span>
+                {LOCS.map((loc) => (
+                  <span key={loc.key}>₹{row[loc.key]}</span>
                 ))}
                 <button
                   type="button"
