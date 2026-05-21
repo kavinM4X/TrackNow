@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import AppShell from '../../components/layout/AppShell';
+import Badge from '../../components/common/Badge';
 import Spinner from '../../components/common/Spinner';
 import api from '../../api/client';
 import { formatDateDayMonth } from '../../utils/format';
@@ -7,18 +8,21 @@ import styles from './Dashboard.module.css';
 
 export default function Dashboard({ user }) {
   const [marketRate, setMarketRate] = useState(null);
+  const [upcoming, setUpcoming] = useState(null);
   const [recentBatches, setRecentBatches] = useState([]);
   const [stats, setStats] = useState({ totalBatches: 0, totalKg: 0 });
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     try {
-      const [rateRes, recentRes, statsRes] = await Promise.all([
+      const [rateRes, upcomingRes, recentRes, statsRes] = await Promise.all([
         api.get('/market-rates/latest'),
+        api.get('/bookings/upcoming'),
         api.get('/batches/recent'),
         api.get('/batches/stats')
       ]);
       setMarketRate(rateRes.data);
+      setUpcoming(upcomingRes.data);
       setRecentBatches(recentRes.data || []);
       setStats(statsRes.data || { totalBatches: 0, totalKg: 0 });
     } catch (e) {
@@ -66,6 +70,19 @@ export default function Dashboard({ user }) {
                 ))}
               </div>
             </>
+          )}
+
+          {upcoming && (
+            <div className={`card ${styles.upcoming}`}>
+              <div>
+                <div className={styles.upLabel}>Next batch</div>
+                <div className={styles.upMain}>
+                  {formatDateDayMonth(upcoming.date)} · {upcoming.location}
+                </div>
+                <div className={styles.upSub}>{upcoming.quantityKg} kg</div>
+              </div>
+              <Badge status={upcoming.status} />
+            </div>
           )}
 
           {recentBatches.length > 0 && (

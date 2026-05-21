@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import api, { getStoredUser, getToken, setSession } from '../../api/client';
+import { hasUpcomingBooking } from '../../utils/bookingGate';
 import BrandLogo from '../../components/common/BrandLogo';
 import styles from './Login.module.css';
 
@@ -21,7 +22,9 @@ export default function Login({ onLogin }) {
     const token = getToken();
     const user = getStoredUser();
     if (token && user && user.role !== 'admin') {
-      navigate('/dashboard', { replace: true });
+      hasUpcomingBooking().then((has) =>
+        navigate(has ? '/dashboard' : '/booking-gate', { replace: true })
+      );
     }
   }, [navigate]);
 
@@ -52,7 +55,8 @@ export default function Login({ onLogin }) {
         /* ignore */
       }
       onLogin(token, user);
-      navigate('/dashboard', { replace: true });
+      const hasBooking = await hasUpcomingBooking();
+      navigate(hasBooking ? '/dashboard' : '/booking-gate', { replace: true });
     } catch (err) {
       const msg =
         err.response?.data?.message ||

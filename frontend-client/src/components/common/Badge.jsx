@@ -17,6 +17,12 @@ export default function Badge({ status, label }) {
   const key = (status || '').toLowerCase();
   const text =
     label ||
-    (status === 'completed' ? 'Done' : status ? status.charAt(0).toUpperCase() + status.slice(1) : '');
+    (status === 'completed'
+      ? 'Done'
+      : status === 'confirmed'
+        ? 'Booked'
+        : status
+          ? status.charAt(0).toUpperCase() + status.slice(1)
+          : '');
   return <span className={`${styles.badge} ${MAP[key] || styles.gray}`}>{text}</span>;
 }

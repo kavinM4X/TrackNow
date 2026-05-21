@@ -10,13 +10,13 @@ function todayISO() {
   return new Date().toISOString().split('T')[0];
 }
 
-// GET /api/bookings/upcoming — next pending booking on or after today
+// GET /api/bookings/upcoming — next pending/confirmed booking on or after today (login gate)
 router.get('/upcoming', protect, async (req, res) => {
   try {
     const today = todayISO();
     const booking = await Booking.findOne({
       userId: req.user._id,
-      status: 'pending',
+      status: { $in: ['pending', 'confirmed'] },
       date: { $gte: today }
     }).sort({ date: 1 });
     res.json(booking || null);
