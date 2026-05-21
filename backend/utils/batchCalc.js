@@ -105,10 +105,10 @@ function validateAdminBatchRates(body) {
   return null;
 }
 
+/** Same rules for history list and batch detail — must stay in sync */
 function isBatchVisibleToClient(batch) {
   if (!batch) return false;
   if (batch.visibleToClient === true) return true;
-  if (batch.visibleToClient === false) return false;
   return Boolean(batch.updatedBy) && Number(batch.estimatedValue) > 0;
 }
 
