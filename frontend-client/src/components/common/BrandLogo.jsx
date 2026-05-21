@@ -1,4 +1,4 @@
-import iconUrl from '../../assets/tracknow-icon.png';
+import iconUrl from '../../assets/app-icon.svg';
 import styles from './BrandLogo.module.css';
 
 export default function BrandLogo({ className = '' }) {
