@@ -22,14 +22,20 @@ function WeightRow({ label, kg, total, dotClass, barFillClass, kgClass }) {
   );
 }
 
+function displayRatePerKg(rate) {
+  if (rate == null || rate === '' || Number.isNaN(Number(rate))) return '—';
+  return `${formatINR(Number(rate))} / kg`;
+}
+
 function LineCost({ label, kg, rate, amount }) {
-  const hasLine = rate != null || amount != null;
+  const rateNum = rate == null || rate === '' ? null : Number(rate);
+  const amtNum = amount == null || amount === '' ? null : Number(amount);
   return (
     <div className={styles.valueRow}>
       <span>{label}</span>
       <span>
-        {kg} kg × {rate != null ? formatINR(rate) : '—'} / kg
-        {hasLine && amount != null ? ` → ${formatINR(amount)}` : ''}
+        {kg} kg × {displayRatePerKg(rateNum)}
+        {amtNum != null && !Number.isNaN(amtNum) ? ` → ${formatINR(amtNum)}` : ''}
       </span>
     </div>
   );
@@ -40,19 +46,35 @@ export default function BatchDetail() {
   const navigate = useNavigate();
   const [batch, setBatch] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
+    setLoadError('');
     api
       .get(`/batches/${batchId}`)
       .then((res) => setBatch(res.data.batch))
-      .catch(() => navigate('/batch-history', { replace: true }))
+      .catch((err) => {
+        const msg = err.response?.data?.error || 'Could not load batch details';
+        setLoadError(msg);
+        if (err.response?.status === 404) {
+          setTimeout(() => navigate('/batch-history', { replace: true }), 2500);
+        }
+      })
       .finally(() => setLoading(false));
   }, [batchId, navigate]);
 
-  if (loading || !batch) {
+  if (loading) {
     return (
       <AppShell title="Batch Detail" backPath="/batch-history">
         <Spinner />
+      </AppShell>
+    );
+  }
+
+  if (!batch) {
+    return (
+      <AppShell title="Batch Detail" backPath="/batch-history">
+        <p className="empty-text">{loadError || 'Batch not found'}</p>
       </AppShell>
     );
   }
@@ -62,11 +84,18 @@ export default function BatchDetail() {
   const waste = batch.wasteKg || 0;
   const doubles = batch.doubles || 0;
 
-  const hasLinePricing =
+  const showLineRates =
+    Boolean(batch.updatedBy) ||
+    batch.visibleToClient ||
     batch.goodSilkRatePerKg != null ||
     batch.wasteRatePerKg != null ||
     batch.doublesRatePerKg != null ||
-    batch.goodSilkAmount != null;
+    batch.goodSilkAmount != null ||
+    batch.ratePerKg != null;
+
+  const goodRate = batch.goodSilkRatePerKg ?? batch.ratePerKg;
+  const wasteRate = batch.wasteRatePerKg ?? 0;
+  const doublesRate = batch.doublesRatePerKg ?? 0;
 
   const value = batch.estimatedValue;
 
@@ -90,21 +119,17 @@ export default function BatchDetail() {
 
       <div className="card">
         <p className={styles.breakdownTitle}>Rates &amp; amounts</p>
-        {hasLinePricing ? (
+        {(value == null || value === 0) && showLineRates && (goodRate == null || goodRate === 0) && (
+          <p style={{ fontSize: 12, color: '#b45309', margin: '0 0 10px' }}>
+            Rates are not saved yet. Ask admin to open Batch Entry, enter Good silk / Waste / Doubles
+            rates, and save again.
+          </p>
+        )}
+        {showLineRates ? (
           <>
-            <LineCost
-              label="Good silk"
-              kg={good}
-              rate={batch.goodSilkRatePerKg ?? batch.ratePerKg}
-              amount={batch.goodSilkAmount}
-            />
-            <LineCost label="Waste" kg={waste} rate={batch.wasteRatePerKg} amount={batch.wasteAmount} />
-            <LineCost
-              label="Doubles"
-              kg={doubles}
-              rate={batch.doublesRatePerKg}
-              amount={batch.doublesAmount}
-            />
+            <LineCost label="Good silk" kg={good} rate={goodRate} amount={batch.goodSilkAmount} />
+            <LineCost label="Waste" kg={waste} rate={wasteRate} amount={batch.wasteAmount} />
+            <LineCost label="Doubles" kg={doubles} rate={doublesRate} amount={batch.doublesAmount} />
             <div className={styles.estimated}>
               <strong>Total amount</strong>
               <strong style={{ fontSize: 18, color: 'var(--green)' }}>

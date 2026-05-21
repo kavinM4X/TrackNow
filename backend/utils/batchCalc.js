@@ -65,17 +65,24 @@ function enrichBatch(batch, rateDoc) {
   }
 
   const legacyRate = doc.ratePerKg ?? marketRateForLocation(rateDoc, doc.location);
+  const goodSilkRatePerKg =
+    doc.goodSilkRatePerKg != null ? Number(doc.goodSilkRatePerKg) : legacyRate != null ? Number(legacyRate) : null;
+  const wasteRatePerKg = doc.wasteRatePerKg != null ? Number(doc.wasteRatePerKg) : 0;
+  const doublesRatePerKg = doc.doublesRatePerKg != null ? Number(doc.doublesRatePerKg) : 0;
 
   return {
     ...doc,
     totalWeightKg: totalKg,
     goodSilkKg: good,
     quantityKg: good,
+    goodSilkRatePerKg,
+    wasteRatePerKg,
+    doublesRatePerKg,
     goodSilkAmount,
     wasteAmount,
     doublesAmount,
     estimatedValue,
-    ratePerKg: gRate ?? legacyRate
+    ratePerKg: goodSilkRatePerKg ?? legacyRate
   };
 }
 
@@ -98,6 +105,13 @@ function validateAdminBatchRates(body) {
   return null;
 }
 
+function isBatchVisibleToClient(batch) {
+  if (!batch) return false;
+  if (batch.visibleToClient === true) return true;
+  if (batch.visibleToClient === false) return false;
+  return Boolean(batch.updatedBy) && Number(batch.estimatedValue) > 0;
+}
+
 /** Mongo filter: batches farmers may see in history, dashboard, detail */
 function clientVisibleBatchQuery(userId) {
   const uid = typeof userId === 'string' ? userId : userId;
@@ -106,19 +120,11 @@ function clientVisibleBatchQuery(userId) {
     $or: [
       { visibleToClient: true },
       {
-        visibleToClient: { $ne: false },
         updatedBy: { $exists: true, $ne: null },
         estimatedValue: { $gt: 0 }
       }
     ]
   };
-}
-
-function isBatchVisibleToClient(batch) {
-  if (!batch) return false;
-  if (batch.visibleToClient === true) return true;
-  if (batch.visibleToClient === false) return false;
-  return Boolean(batch.updatedBy) && Number(batch.estimatedValue) > 0;
 }
 
 module.exports = {

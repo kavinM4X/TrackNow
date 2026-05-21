@@ -4,7 +4,7 @@ import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/common/Badge';
 import Spinner from '../../components/common/Spinner';
 import api from '../../api/client';
-import { displayTotalKg, formatDateShort } from '../../utils/format';
+import { displayTotalKg, formatDateShort, formatINR } from '../../utils/format';
 
 export default function BatchHistory() {
   const navigate = useNavigate();
@@ -90,8 +90,13 @@ export default function BatchHistory() {
               <div style={{ fontSize: 12, color: '#888' }}>
                 {b.location} · {displayTotalKg(b)} kg
               </div>
-              <div style={{ fontSize: 11, color: 'var(--green)', marginTop: 4 }}>
-                Tap to view details →
+              {b.estimatedValue != null && b.estimatedValue > 0 && (
+                <div style={{ fontSize: 12, color: 'var(--green)', marginTop: 4, fontWeight: 600 }}>
+                  {formatINR(b.estimatedValue)}
+                </div>
+              )}
+              <div style={{ fontSize: 11, color: '#888', marginTop: 4 }}>
+                Tap to view rates &amp; details →
               </div>
             </div>
             <Badge status="done" label="Done" />
