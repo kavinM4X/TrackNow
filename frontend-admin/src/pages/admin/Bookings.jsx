@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
 import api, { getStoredUser } from '../../api/client';
@@ -9,7 +9,8 @@ const TABS = [
   { key: 'all', label: 'All', countKey: 'all', style: 'tabAll' },
   { key: 'pending', label: 'Pending', countKey: 'pending', style: 'tabPending' },
   { key: 'confirmed', label: 'Confirmed', countKey: 'confirmed', style: 'tabConfirmed' },
-  { key: 'completed', label: 'Done', countKey: 'completed', style: 'tabDone' }
+  { key: 'completed', label: 'Done', countKey: 'completed', style: 'tabDone' },
+  { key: 'cancelled', label: 'Cancelled', countKey: 'cancelled', style: 'tabCancelled' }
 ];
 
 function statusBadgeClass(status) {
@@ -23,6 +24,7 @@ function statusBadgeClass(status) {
 function statusLabel(status) {
   if (status === 'completed') return 'Done';
   if (status === 'confirmed') return 'Confirmed';
+  if (status === 'cancelled') return 'Cancelled';
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
@@ -30,7 +32,7 @@ export default function Bookings() {
   const navigate = useNavigate();
   const location = useLocation();
   const [flash, setFlash] = useState(location.state?.message || '');
-  const [bookings, setBookings] = useState([]);
+  const [allBookings, setAllBookings] = useState([]);
   const [counts, setCounts] = useState({ all: 0, pending: 0, confirmed: 0, completed: 0, cancelled: 0 });
   const [tab, setTab] = useState('all');
   const [search, setSearch] = useState('');
@@ -47,16 +49,13 @@ export default function Bookings() {
     };
   };
 
-  const buildCounts = (list, fromApi) => {
-    if (fromApi && fromApi.all !== undefined) return fromApi;
-    return {
-      all: list.length,
-      pending: list.filter((b) => b.status === 'pending').length,
-      confirmed: list.filter((b) => b.status === 'confirmed').length,
-      completed: list.filter((b) => b.status === 'completed').length,
-      cancelled: list.filter((b) => b.status === 'cancelled').length
-    };
-  };
+  const buildCounts = (list) => ({
+    all: list.length,
+    pending: list.filter((b) => b.status === 'pending').length,
+    confirmed: list.filter((b) => b.status === 'confirmed').length,
+    completed: list.filter((b) => b.status === 'completed').length,
+    cancelled: list.filter((b) => b.status === 'cancelled').length
+  });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -64,17 +63,16 @@ export default function Bookings() {
     try {
       const res = await api.get('/admin/bookings', {
         params: {
-          status: tab === 'all' ? undefined : tab,
           search: search.trim() || undefined,
           _t: Date.now()
         }
       });
       const { bookings: list, counts: apiCounts } = parseBookingsResponse(res.data);
-      setBookings(list);
-      setCounts(buildCounts(list, apiCounts));
+      setAllBookings(list);
+      setCounts(apiCounts?.all !== undefined ? apiCounts : buildCounts(list));
     } catch (e) {
       console.error(e);
-      setBookings([]);
+      setAllBookings([]);
       setLoadError(
         e.response?.data?.error ||
           e.response?.data?.message ||
@@ -83,7 +81,15 @@ export default function Bookings() {
     } finally {
       setLoading(false);
     }
-  }, [tab, search]);
+  }, [search]);
+
+  const bookings = useMemo(() => {
+    let list = allBookings;
+    if (tab !== 'all') {
+      list = list.filter((b) => b.status === tab);
+    }
+    return list;
+  }, [allBookings, tab]);
 
   useEffect(() => {
     if (location.state?.message) {

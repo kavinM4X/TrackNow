@@ -35,6 +35,11 @@
   color: var(--green);
 }
 
+.tabActive.tabCancelled {
+  background: #ededeb;
+  color: #555;
+}
+
 .cardHead {
   display: flex;
   align-items: center;
