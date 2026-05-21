@@ -3,12 +3,25 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { logClick } from '../../api/client';
 import styles from './AppShell.module.css';
 
+function NavIcon({ name }) {
+  const props = { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'currentColor', 'aria-hidden': true };
+  if (name === 'home') {
+    return (
+      <svg {...props}>
+        <path d="M12 3 2 12h3v8h5v-6h4v6h5v-8h3L12 3z" />
+      </svg>
+    );
+  }
+  const glyphs = { book: '◫', hist: '▤', track: '◎', set: '⚙' };
+  return <span className={styles.bnavGlyph}>{glyphs[name]}</span>;
+}
+
 const CLIENT_NAV = [
-  { to: '/dashboard', label: 'Home', icon: '⌂' },
-  { to: '/booking', label: 'Book', icon: '◫' },
-  { to: '/batch-history', label: 'Hist', icon: '▤' },
-  { to: '/tracker', label: 'Track', icon: '◎' },
-  { to: '/settings', label: 'Set', icon: '⚙' }
+  { to: '/dashboard', label: 'Home', icon: 'home', end: true },
+  { to: '/booking', label: 'Book', icon: 'book' },
+  { to: '/batch-history', label: 'Hist', icon: 'hist' },
+  { to: '/tracker', label: 'Track', icon: 'track' },
+  { to: '/settings', label: 'Set', icon: 'set', end: true }
 ];
 
 export default function AppShell({
@@ -55,12 +68,15 @@ export default function AppShell({
           <NavLink
             key={item.to}
             to={item.to}
+            end={item.end}
             className={({ isActive }) =>
-              `${styles.bnavItem} ${isActive ? styles.active : ''}`
+              `${styles.bnavItem} ${isActive ? styles.active : styles.inactive}`
             }
           >
-            <span className={styles.bnavIcon}>{item.icon}</span>
-            <span>{item.label}</span>
+            <span className={styles.bnavIcon}>
+              <NavIcon name={item.icon} />
+            </span>
+            <span className={styles.bnavLabel}>{item.label}</span>
           </NavLink>
         ))}
       </nav>

@@ -83,15 +83,36 @@
   align-items: center;
   gap: 2px;
   text-decoration: none;
-  color: #c0c0c0;
   font-size: 10px;
+  font-weight: 600;
 }
 
-.bnavItem.active {
+.bnavItem.inactive,
+.bnavItem.inactive:link,
+.bnavItem.inactive:visited {
+  color: #111;
+}
+
+.bnavItem.active,
+.bnavItem.active:link,
+.bnavItem.active:visited {
   color: var(--green);
 }
 
 .bnavIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  color: inherit;
+}
+
+.bnavGlyph {
   font-size: 18px;
   line-height: 1;
+  color: inherit;
+}
+
+.bnavLabel {
+  color: inherit;
 }
