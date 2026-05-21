@@ -11,13 +11,27 @@ export default function MarketRates() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([api.get('/market-rates/latest'), api.get('/market-rates')])
-      .then(([l, h]) => {
-        setLatest(l.data);
-        setHistory(h.data || []);
+    let cancelled = false;
+    api
+      .get('/market-rates')
+      .then((res) => {
+        if (cancelled) return;
+        const data = res.data;
+        if (Array.isArray(data)) {
+          setHistory(data);
+          setLatest(data[0] || null);
+        } else {
+          setHistory(data.history || []);
+          setLatest(data.latest ?? data.history?.[0] ?? null);
+        }
       })
       .catch(console.error)
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const locs = [

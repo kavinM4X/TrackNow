@@ -46,7 +46,7 @@ export default function Dashboard({ user }) {
     load();
     const interval = setInterval(() => {
       api.get('/market-rates/latest').then((r) => setMarketRate(r.data)).catch(() => {});
-    }, 5 * 60 * 1000);
+    }, 10 * 60 * 1000);
     return () => clearInterval(interval);
   }, [load]);
 
@@ -134,7 +134,7 @@ export default function Dashboard({ user }) {
               </>
             ) : (
               <p className="empty-text" style={{ margin: 0 }}>
-                No upcoming batch scheduled
+                No upcoming batch scheduled. Book a slot from the Book tab.
               </p>
             )}
           </div>

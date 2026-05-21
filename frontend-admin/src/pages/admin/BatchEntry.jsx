@@ -29,8 +29,8 @@ export default function BatchEntry() {
       wasteKg: 0,
       doubles: 0,
       goodSilkRatePerKg: '',
-      wasteRatePerKg: '',
-      doublesRatePerKg: '',
+      wasteRatePerKg: 0,
+      doublesRatePerKg: 0,
       notes: ''
     }
   });
@@ -101,8 +101,8 @@ export default function BatchEntry() {
         wasteKg: 0,
         doubles: 0,
         goodSilkRatePerKg: '',
-        wasteRatePerKg: '',
-        doublesRatePerKg: '',
+        wasteRatePerKg: 0,
+        doublesRatePerKg: 0,
         notes: ''
       });
       if (prefill.userId) loadBookingsForUser(prefill.userId);
@@ -145,6 +145,19 @@ export default function BatchEntry() {
       alert('Enter at least one weight (good silk, waste, or doubles).');
       return;
     }
+    const rateProvided = (v) => v !== '' && v !== undefined && v !== null;
+    if (!rateProvided(data.goodSilkRatePerKg)) {
+      alert('Enter rate (₹/kg) for Good silk. Client will see this batch only after all rates are saved.');
+      return;
+    }
+    if (!rateProvided(data.wasteRatePerKg)) {
+      alert('Enter rate (₹/kg) for Waste (use 0 if none).');
+      return;
+    }
+    if (!rateProvided(data.doublesRatePerKg)) {
+      alert('Enter rate (₹/kg) for Doubles (use 0 if none).');
+      return;
+    }
     try {
       await api.post('/admin/batches', {
         userId: data.userId,
@@ -169,8 +182,8 @@ export default function BatchEntry() {
         wasteKg: 0,
         doubles: 0,
         goodSilkRatePerKg: '',
-        wasteRatePerKg: '',
-        doublesRatePerKg: '',
+        wasteRatePerKg: 0,
+        doublesRatePerKg: 0,
         notes: ''
       });
       loadRecent();

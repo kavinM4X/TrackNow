@@ -79,10 +79,56 @@ function enrichBatch(batch, rateDoc) {
   };
 }
 
+function rateFieldProvided(val) {
+  return val !== '' && val !== undefined && val !== null;
+}
+
+/** Admin must enter ₹/kg for all three lines before client can see the batch */
+function validateAdminBatchRates(body) {
+  const { goodSilkRatePerKg, wasteRatePerKg, doublesRatePerKg } = body;
+  if (!rateFieldProvided(goodSilkRatePerKg)) {
+    return 'Enter rate (₹/kg) for Good silk before saving';
+  }
+  if (!rateFieldProvided(wasteRatePerKg)) {
+    return 'Enter rate (₹/kg) for Waste before saving';
+  }
+  if (!rateFieldProvided(doublesRatePerKg)) {
+    return 'Enter rate (₹/kg) for Doubles before saving';
+  }
+  return null;
+}
+
+/** Mongo filter: batches farmers may see in history, dashboard, detail */
+function clientVisibleBatchQuery(userId) {
+  const uid = typeof userId === 'string' ? userId : userId;
+  return {
+    userId: uid,
+    $or: [
+      { visibleToClient: true },
+      {
+        visibleToClient: { $ne: false },
+        updatedBy: { $exists: true, $ne: null },
+        estimatedValue: { $gt: 0 }
+      }
+    ]
+  };
+}
+
+function isBatchVisibleToClient(batch) {
+  if (!batch) return false;
+  if (batch.visibleToClient === true) return true;
+  if (batch.visibleToClient === false) return false;
+  return Boolean(batch.updatedBy) && Number(batch.estimatedValue) > 0;
+}
+
 module.exports = {
   MARKET_KEYS,
   marketRateForLocation,
   computeGoodSilk,
   enrichBatch,
-  roundMoney
+  roundMoney,
+  rateFieldProvided,
+  validateAdminBatchRates,
+  clientVisibleBatchQuery,
+  isBatchVisibleToClient
 };

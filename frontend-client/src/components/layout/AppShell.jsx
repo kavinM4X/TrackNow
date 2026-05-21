@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { logClick } from '../../api/client';
 import styles from './AppShell.module.css';
 
@@ -15,10 +15,12 @@ export default function AppShell({
   title,
   subtitle,
   headerRight,
+  backPath,
   children,
   activePulse
 }) {
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const page = location.pathname.replace(/^\//, '') || 'dashboard';
@@ -35,6 +37,16 @@ export default function AppShell({
         <div className={styles.headerRight}>
           {activePulse && <span className="pulse-dot" title="Live" />}
           {headerRight}
+          {backPath && (
+            <button
+              type="button"
+              className={styles.backBtn}
+              onClick={() => navigate(backPath)}
+              aria-label="Go back"
+            >
+              ← Back
+            </button>
+          )}
         </div>
       </header>
       <main className={styles.main}>{children}</main>

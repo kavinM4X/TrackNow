@@ -65,7 +65,7 @@ export default function TrackerControl() {
 
   useEffect(() => {
     loadLiveMap();
-    const id = setInterval(loadLiveMap, 25000);
+    const id = setInterval(loadLiveMap, 60000);
     return () => clearInterval(id);
   }, [loadLiveMap]);
 

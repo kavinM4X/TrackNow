@@ -15,11 +15,11 @@ router.get('/latest', protect, async (req, res) => {
   }
 });
 
-// GET /api/market-rates (admin only)
+// GET /api/market-rates (admin only) — history + latest in one response
 router.get('/', protect, adminOnly, async (req, res) => {
   try {
-    const rates = await MarketRate.find({}).sort({ date: -1 }).limit(30);
-    res.json(rates);
+    const history = await MarketRate.find({}).sort({ date: -1 }).limit(30);
+    res.json({ history, latest: history[0] || null });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

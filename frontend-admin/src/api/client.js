@@ -65,10 +65,14 @@ export function clearSession() {
 }
 
 export async function logClick(action, page) {
+  if (import.meta.env.VITE_DISABLE_CLICK_LOGS === 'true') return;
+  const key = `tracknow_log_${page}`;
   try {
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, '1');
     await api.post('/logs', { action, type: 'click', page });
   } catch {
-    /* non-blocking */
+    sessionStorage.removeItem(key);
   }
 }
 

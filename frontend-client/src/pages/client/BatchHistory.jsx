@@ -63,7 +63,10 @@ export default function BatchHistory() {
       {loading ? (
         <Spinner />
       ) : batches.length === 0 ? (
-        <p className="empty-text">No batch history yet. Your admin will add entries.</p>
+        <p className="empty-text">
+          No batch history yet. After delivery, your admin will enter weights and prices (Good silk,
+          Waste, Doubles) — then it will appear here.
+        </p>
       ) : filtered.length === 0 ? (
         <p className="empty-text">No batches match your search</p>
       ) : (

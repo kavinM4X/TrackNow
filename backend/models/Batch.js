@@ -52,6 +52,11 @@ const batchSchema = new mongoose.Schema({
   updatedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
+  },
+  /** Shown on client dashboard / history only after admin saves pricing */
+  visibleToClient: {
+    type: Boolean,
+    default: false
   }
 }, { timestamps: true });
 

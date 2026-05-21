@@ -509,29 +509,19 @@ router.post('/batches', protect, adminOnly, async (req, res) => {
     }
 
     const rateDoc = await MarketRate.findOne({ date });
-    const { marketRateForLocation, roundMoney } = require('../utils/batchCalc');
+    const { marketRateForLocation, roundMoney, validateAdminBatchRates } = require('../utils/batchCalc');
 
-    let gRate;
-    if (goodSilkRatePerKg === '' || goodSilkRatePerKg === undefined || goodSilkRatePerKg === null) {
-      gRate = marketRateForLocation(rateDoc, location) ?? 0;
-    } else {
-      gRate = Number(goodSilkRatePerKg);
-      if (!Number.isFinite(gRate)) {
-        gRate = marketRateForLocation(rateDoc, location) ?? 0;
-      }
+    const rateError = validateAdminBatchRates(req.body);
+    if (rateError) {
+      return res.status(400).json({ error: rateError });
     }
 
-    let wRate =
-      wasteRatePerKg === '' || wasteRatePerKg === undefined || wasteRatePerKg === null
-        ? 0
-        : Number(wasteRatePerKg);
-    if (!Number.isFinite(wRate)) wRate = 0;
-
-    let dRate =
-      doublesRatePerKg === '' || doublesRatePerKg === undefined || doublesRatePerKg === null
-        ? 0
-        : Number(doublesRatePerKg);
-    if (!Number.isFinite(dRate)) dRate = 0;
+    const gRate = Number(goodSilkRatePerKg);
+    const wRate = Number(wasteRatePerKg);
+    const dRate = Number(doublesRatePerKg);
+    if (![gRate, wRate, dRate].every((n) => Number.isFinite(n) && n >= 0)) {
+      return res.status(400).json({ error: 'All rates must be valid numbers (0 or more)' });
+    }
 
     const goodSilkAmount = roundMoney(good * gRate);
     const wasteAmount = roundMoney(waste * wRate);
@@ -558,7 +548,8 @@ router.post('/batches', protect, adminOnly, async (req, res) => {
       estimatedValue,
       linkedBookingId: linkedBookingId || null,
       notes,
-      updatedBy: req.user.id
+      updatedBy: req.user.id,
+      visibleToClient: true
     });
 
     if (linkedBookingId) {
