@@ -1,0 +1,15 @@
+# Netlify — TrackNow Admin
+# Connect repo with Base directory: frontend-admin
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "18"
+  VITE_API_URL = "https://tracknow-h0h3.onrender.com/api"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
