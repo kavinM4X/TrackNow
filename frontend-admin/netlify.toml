@@ -8,7 +8,7 @@
 [build.environment]
   NODE_VERSION = "18"
   # Set your Netlify API site URL (Site configuration → Environment variables)
-  VITE_API_URL = "https://tracknow-api.netlify.app/api"
+  VITE_API_URL = "https://tracknow-backend.netlify.app/api"
 
 [[redirects]]
   from = "/*"
