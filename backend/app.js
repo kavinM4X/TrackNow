@@ -16,6 +16,25 @@ app.use(cors(corsOrigins.length ? { origin: corsOrigins } : {}));
 app.use(express.json());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
+/** Vercel preview hits `/` — do not require MongoDB for root + health */
+const skipDbPaths = new Set(['/', '/api/health']);
+app.use(async (req, res, next) => {
+  if (skipDbPaths.has(req.path)) return next();
+  try {
+    await initApp();
+    next();
+  } catch (err) {
+    console.error('initApp failed:', err.message);
+    res.status(503).json({
+      error: 'Database unavailable',
+      message: err.message,
+      hint: !process.env.MONGODB_URI
+        ? 'Set MONGODB_URI in Vercel Environment Variables'
+        : 'Check MongoDB Atlas Network Access (0.0.0.0/0)'
+    });
+  }
+});
+
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/bookings', require('./routes/bookings'));
 app.use('/api/batches', require('./routes/batches'));
@@ -56,10 +75,12 @@ app.get('/api/health', (req, res) => {
     : process.env.NETLIFY
       ? 'netlify'
       : 'node';
+  const dbReady = mongoose.connection.readyState === 1;
   res.json({
     status: 'OK',
     message: 'TrackNow API is running',
     host: onServerless ? host : 'node',
+    database: dbReady ? 'connected' : 'not_connected_yet',
     features: ['vehicle-rental', 'user-invite', 'public-register']
   });
 });
