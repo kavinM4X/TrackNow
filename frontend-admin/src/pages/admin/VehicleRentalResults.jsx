@@ -58,7 +58,7 @@ export default function VehicleRentalResults() {
           </p>
         )}
         <div className={vr.sessionTop} style={{ marginTop: 8 }}>
-          <span>{session.vehicleOwnerName}</span>
+          <span>Driver: {session.vehicleOwnerName}</span>
           <strong>{formatINR(session.rentalAmount)}</strong>
         </div>
         <p className={vr.sessionMeta}>

@@ -122,7 +122,6 @@ export default function DriverRentalPortal() {
       <div className={styles.header}>
         <div className={styles.headerTop}>
           <h1 style={{ margin: 0, fontSize: 18 }}>Driver Entry Portal</h1>
-          <span className={styles.badge}>No Login</span>
         </div>
         {!locked && (
           <div className={styles.expiryBar}>
@@ -135,7 +134,7 @@ export default function DriverRentalPortal() {
       <div className={styles.body}>
         <div className={styles.ownerCard}>
           <div>
-            <div style={{ fontSize: 11, color: '#888' }}>Vehicle owner</div>
+            <div style={{ fontSize: 11, color: '#888' }}>Driver</div>
             <strong>{session.vehicleOwnerName}</strong>
           </div>
           <div style={{ textAlign: 'right' }}>

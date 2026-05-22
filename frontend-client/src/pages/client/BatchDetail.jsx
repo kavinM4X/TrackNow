@@ -113,7 +113,7 @@ export default function BatchDetail() {
         <div className={styles.headerDate}>{formatDateShort(batch.date)}</div>
         <div className={styles.headerLoc}>
           {batch.location} Market
-          {vr?.ownerName ? ` · ${vr.ownerName}` : ''}
+          {vr?.ownerName ? ` · Driver: ${vr.ownerName}` : ''}
         </div>
         <div className={styles.headerTotal}>
           {total} <span>kg</span>
