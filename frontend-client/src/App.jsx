@@ -11,6 +11,8 @@ import BatchHistory from './pages/client/BatchHistory';
 import BatchDetail from './pages/client/BatchDetail';
 import Tracker from './pages/client/Tracker';
 import Settings from './pages/client/Settings';
+import DriverRentalPortal from './pages/driver/DriverRentalPortal';
+import DriverRentalUser from './pages/driver/DriverRentalUser';
 import './styles/tracknow.css';
 
 function HomeRedirect({ user }) {
@@ -48,6 +50,8 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/driver/rental/:token" element={<DriverRentalPortal />} />
+        <Route path="/driver/rental/:token/user/:userId" element={<DriverRentalUser />} />
         <Route
           path="/login"
           element={

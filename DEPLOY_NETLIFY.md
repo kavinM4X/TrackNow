@@ -1,6 +1,6 @@
 # Deploy TrackNow frontends on Netlify (2 separate sites)
 
-Backend stays on **Render** (`https://tracknow-h0h3.onrender.com`).  
+Backend can stay on **Render** or move to **Netlify Functions** — see `DEPLOY_NETLIFY_API.md`.  
 You will create **two Netlify sites** from the same GitHub repo.
 
 | App | Netlify base directory | Example URL |

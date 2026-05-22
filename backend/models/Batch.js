@@ -57,6 +57,14 @@ const batchSchema = new mongoose.Schema({
   visibleToClient: {
     type: Boolean,
     default: false
+  },
+  vehicleRental: {
+    sessionId: { type: mongoose.Schema.Types.ObjectId, ref: 'VehicleRentalSession' },
+    ownerName: String,
+    ratePerKg: Number,
+    rentalDeduction: Number,
+    netSilkValue: Number,
+    finalAmount: Number
   }
 }, { timestamps: true });
 

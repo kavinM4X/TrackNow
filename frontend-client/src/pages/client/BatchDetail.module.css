@@ -144,6 +144,48 @@
   margin-top: 4px;
 }
 
+.netSilkRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #e8f4ed;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+.rentalCard {
+  background: #fef8ec;
+  border: 1px solid #d4a017;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.rentalTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #8b6914;
+  margin: 0 0 10px;
+}
+
+.rentalFinal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #d4a017;
+  font-weight: 600;
+  color: #5a3a0a;
+}
+
+.rentalFinal strong:last-child {
+  font-size: 20px;
+  color: #8b6914;
+}
+
 .readOnlyNote {
   background: #f8f8f6;
   border: 1px solid #e0e0dc;

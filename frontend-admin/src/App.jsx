@@ -11,6 +11,8 @@ import UpdateMarketRate from './pages/admin/UpdateMarketRate';
 import Bookings from './pages/admin/Bookings';
 import BookingDetail from './pages/admin/BookingDetail';
 import BatchEntry from './pages/admin/BatchEntry';
+import BatchEntryManual from './pages/admin/BatchEntryManual';
+import VehicleRentalResults from './pages/admin/VehicleRentalResults';
 import AllBatchHistory from './pages/admin/AllBatchHistory';
 import PerUserBatchHistory from './pages/admin/PerUserBatchHistory';
 import TrackerControl from './pages/admin/TrackerControl';
@@ -79,6 +81,8 @@ function App() {
             <Route path="/admin/market-rates" element={<MarketRates />} />
             <Route path="/admin/market-rates/update" element={<UpdateMarketRate />} />
             <Route path="/admin/batch-entry" element={<BatchEntry />} />
+            <Route path="/admin/batch-entry/manual" element={<BatchEntryManual />} />
+            <Route path="/admin/vehicle-rental/:sessionId" element={<VehicleRentalResults />} />
             <Route path="/admin/batch-history" element={<AllBatchHistory />} />
             <Route path="/admin/batch-history/user/:userId" element={<PerUserBatchHistory />} />
             <Route path="/admin/tracker-control" element={<TrackerControl />} />

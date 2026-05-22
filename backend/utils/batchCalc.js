@@ -70,7 +70,7 @@ function enrichBatch(batch, rateDoc) {
   const wasteRatePerKg = doc.wasteRatePerKg != null ? Number(doc.wasteRatePerKg) : 0;
   const doublesRatePerKg = doc.doublesRatePerKg != null ? Number(doc.doublesRatePerKg) : 0;
 
-  return {
+  const out = {
     ...doc,
     totalWeightKg: totalKg,
     goodSilkKg: good,
@@ -84,6 +84,13 @@ function enrichBatch(batch, rateDoc) {
     estimatedValue,
     ratePerKg: goodSilkRatePerKg ?? legacyRate
   };
+
+  if (doc.vehicleRental?.finalAmount != null) {
+    out.displayFinalAmount = Number(doc.vehicleRental.finalAmount);
+    out.netSilkValue = doc.vehicleRental.netSilkValue;
+  }
+
+  return out;
 }
 
 function rateFieldProvided(val) {

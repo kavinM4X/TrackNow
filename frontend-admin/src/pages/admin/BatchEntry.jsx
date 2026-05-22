@@ -1,392 +1,256 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
 import api from '../../api/client';
-import { formatDateShort, formatINR, MARKETS, shortUserId, todayISO } from '../../utils/format';
+import { formatDateShort, formatINR, todayISO } from '../../utils/format';
 import styles from './BatchEntry.module.css';
-
-function roundMoney(n) {
-  return Math.round(Number(n) || 0);
-}
+import vr from './VehicleRental.module.css';
 
 export default function BatchEntry() {
-  const location = useLocation();
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
-  const [bookings, setBookings] = useState([]);
-  const [recent, setRecent] = useState([]);
-  const [marketRate, setMarketRate] = useState(null);
-  const [ratesLoading, setRatesLoading] = useState(false);
-  const [success, setSuccess] = useState('');
+  const [sessions, setSessions] = useState([]);
+  const [date, setDate] = useState(todayISO());
+  const [location, setLocation] = useState('Coimbatore');
+  const [vehicleOwnerName, setVehicleOwnerName] = useState('');
+  const [rentalAmount, setRentalAmount] = useState('');
+  const [expiryHours, setExpiryHours] = useState(8);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [search, setSearch] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [lastLink, setLastLink] = useState(null);
+  const [error, setError] = useState('');
 
-  const { register, handleSubmit, watch, reset, setValue } = useForm({
-    defaultValues: {
-      date: todayISO(),
-      location: 'Coimbatore',
-      linkedBookingId: '',
-      goodSilkKg: '',
-      wasteKg: 0,
-      doubles: 0,
-      goodSilkRatePerKg: '',
-      wasteRatePerKg: 0,
-      doublesRatePerKg: 0,
-      notes: ''
-    }
-  });
-
-  const userId = watch('userId');
-  const date = watch('date');
-  const market = watch('location');
-  const goodKg = watch('goodSilkKg');
-  const wasteKg = watch('wasteKg');
-  const doublesKg = watch('doubles');
-  const goodRate = watch('goodSilkRatePerKg');
-  const wasteRate = watch('wasteRatePerKg');
-  const doublesRate = watch('doublesRatePerKg');
-
-  const goodNum = Number(goodKg) || 0;
-  const wasteNum = Number(wasteKg) || 0;
-  const doublesNum = Number(doublesKg) || 0;
-  const gr = Number(goodRate) || 0;
-  const wr = Number(wasteRate) || 0;
-  const dr = Number(doublesRate) || 0;
-
-  const totalKg = useMemo(
-    () => Math.round((goodNum + wasteNum + doublesNum) * 10) / 10,
-    [goodNum, wasteNum, doublesNum]
-  );
-
-  const goodAmt = useMemo(() => roundMoney(goodNum * gr), [goodNum, gr]);
-  const wasteAmt = useMemo(() => roundMoney(wasteNum * wr), [wasteNum, wr]);
-  const doublesAmt = useMemo(() => roundMoney(doublesNum * dr), [doublesNum, dr]);
-
-  const totalAmount = useMemo(
-    () => goodAmt + wasteAmt + doublesAmt,
-    [goodAmt, wasteAmt, doublesAmt]
-  );
-
-  const loadRecent = () => {
-    api.get('/admin/batches/recent').then((r) => setRecent(r.data)).catch(console.error);
-  };
-
-  const loadBookingsForUser = (uid) => {
-    if (!uid) {
-      setBookings([]);
-      return;
-    }
-    api
-      .get('/admin/bookings', { params: { userId: uid } })
-      .then((r) => {
-        const list = r.data.bookings || r.data || [];
-        setBookings(
-          list.filter((b) => b.status === 'pending' || b.status === 'confirmed')
-        );
-      })
-      .catch(console.error);
+  const loadSessions = () => {
+    api.get('/admin/vehicle-rentals').then((r) => setSessions(r.data)).catch(console.error);
   };
 
   useEffect(() => {
-    api.get('/admin/users').then((r) => setUsers(r.data));
-    loadRecent();
-    const prefill = location.state?.prefill;
-    if (prefill) {
-      const qty = prefill.quantityKg ?? prefill.totalWeightKg ?? '';
-      reset({
-        userId: prefill.userId || '',
-        date: prefill.date || todayISO(),
-        location: prefill.location || 'Coimbatore',
-        linkedBookingId: prefill.linkedBookingId || '',
-        goodSilkKg: qty === '' ? '' : qty,
-        wasteKg: 0,
-        doubles: 0,
-        goodSilkRatePerKg: '',
-        wasteRatePerKg: 0,
-        doublesRatePerKg: 0,
-        notes: ''
-      });
-      if (prefill.userId) loadBookingsForUser(prefill.userId);
-    }
-  }, [location.state, reset]);
+    api.get('/admin/users').then((r) => setUsers(r.data.filter((u) => u.role === 'user')));
+    loadSessions();
+  }, []);
 
-  useEffect(() => {
-    loadBookingsForUser(userId);
-  }, [userId]);
+  const filteredUsers = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return users;
+    return users.filter(
+      (u) => u.name?.toLowerCase().includes(q) || u.phone?.includes(q)
+    );
+  }, [users, search]);
 
-  const linkedBookingId = watch('linkedBookingId');
-  useEffect(() => {
-    if (!linkedBookingId) return;
-    const b = bookings.find((x) => x._id === linkedBookingId);
-    if (b?.location) {
-      reset((prev) => ({ ...prev, location: b.location, date: b.date || prev.date }));
-    }
-  }, [linkedBookingId, bookings, reset]);
-
-  useEffect(() => {
-    if (!date) {
-      setMarketRate(null);
-      return;
-    }
-    setRatesLoading(true);
-    api
-      .get(`/market-rates/for-date/${date}`)
-      .then((r) => setMarketRate(r.data))
-      .catch(() => setMarketRate(null))
-      .finally(() => setRatesLoading(false));
-  }, [date]);
-
-  const applyReferenceRateToGoodSilk = (amount) => {
-    if (amount != null) setValue('goodSilkRatePerKg', amount);
+  const toggleUser = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
   };
 
-  const onSubmit = async (data) => {
-    setSuccess('');
-    if (totalKg <= 0) {
-      alert('Enter at least one weight (good silk, waste, or doubles).');
+  const onGenerate = async () => {
+    setError('');
+    if (!vehicleOwnerName.trim()) {
+      setError('Enter vehicle owner name');
       return;
     }
-    const rateProvided = (v) => v !== '' && v !== undefined && v !== null;
-    if (!rateProvided(data.goodSilkRatePerKg)) {
-      alert('Enter rate (₹/kg) for Good silk. Client will see this batch only after all rates are saved.');
+    if (!rentalAmount || Number(rentalAmount) <= 0) {
+      setError('Enter rental amount');
       return;
     }
-    if (!rateProvided(data.wasteRatePerKg)) {
-      alert('Enter rate (₹/kg) for Waste (use 0 if none).');
+    if (selectedIds.length === 0) {
+      setError('Add at least one user');
       return;
     }
-    if (!rateProvided(data.doublesRatePerKg)) {
-      alert('Enter rate (₹/kg) for Doubles (use 0 if none).');
-      return;
-    }
+    setCreating(true);
     try {
-      await api.post('/admin/batches', {
-        userId: data.userId,
-        date: data.date,
-        location: data.location,
-        goodSilkKg: data.goodSilkKg,
-        wasteKg: data.wasteKg,
-        doubles: data.doubles,
-        goodSilkRatePerKg: data.goodSilkRatePerKg,
-        wasteRatePerKg: data.wasteRatePerKg,
-        doublesRatePerKg: data.doublesRatePerKg,
-        linkedBookingId: data.linkedBookingId || null,
-        notes: data.notes
+      const res = await api.post('/admin/vehicle-rentals', {
+        date,
+        location,
+        vehicleOwnerName: vehicleOwnerName.trim(),
+        rentalAmount: Number(rentalAmount),
+        expiryHours,
+        userIds: selectedIds
       });
-      setSuccess('✓ Batch entry saved');
-      reset({
-        userId: data.userId,
-        date: todayISO(),
-        location: 'Coimbatore',
-        linkedBookingId: '',
-        goodSilkKg: '',
-        wasteKg: 0,
-        doubles: 0,
-        goodSilkRatePerKg: '',
-        wasteRatePerKg: 0,
-        doublesRatePerKg: 0,
-        notes: ''
-      });
-      loadRecent();
+      setLastLink(res.data);
+      setSelectedIds([]);
+      setSearch('');
+      loadSessions();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed');
+      setError(err.response?.data?.error || 'Failed to create link');
+    } finally {
+      setCreating(false);
     }
   };
 
-  const fromBooking = Boolean(location.state?.prefill?.linkedBookingId);
+  const copyLink = () => {
+    if (!lastLink?.driverUrl) return;
+    navigator.clipboard?.writeText(lastLink.driverUrl);
+    alert('Link copied');
+  };
 
   return (
     <AppShell title="Batch Entry" backPath="/admin/dashboard">
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
-        <button type="button" className="btn-primary" onClick={() => navigate('/admin/batch-entry')}>
-          + New Entry
+        <button type="button" className="btn-primary" disabled>
+          Vehicle Rental
         </button>
-        <button type="button" className="btn-outline" onClick={() => navigate('/admin/batch-history')}>
-          All History
+        <button
+          type="button"
+          className="btn-outline"
+          onClick={() => navigate('/admin/batch-entry/manual')}
+        >
+          Manual Entry
         </button>
       </div>
-      {fromBooking && (
-        <p style={{ fontSize: 12, color: 'var(--blue)', margin: '0 0 10px' }}>
-          Linked from booking — save to complete the booking.
-        </p>
-      )}
 
-      <form className="card" onSubmit={handleSubmit(onSubmit)}>
-        <label className="field-label">Select User</label>
-        <select className="field-select" {...register('userId', { required: true })}>
-          <option value="">Choose user</option>
-          {users.map((u) => (
-            <option key={u._id} value={u._id}>
-              {u.name} ({shortUserId(u._id)})
-            </option>
-          ))}
+      <div className="card">
+        <label className="field-label">Date</label>
+        <input
+          type="date"
+          className="field-input"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+        />
+
+        <p className={vr.sectionTitle}>
+          <span className={vr.sectionBar} />
+          Vehicle Rental
+        </p>
+
+        <label className="field-label">Vehicle owner name</label>
+        <input
+          className="field-input"
+          placeholder="e.g. Murugan Transport"
+          value={vehicleOwnerName}
+          onChange={(e) => setVehicleOwnerName(e.target.value)}
+        />
+
+        <label className="field-label">Rental amount (₹)</label>
+        <input
+          type="number"
+          min="0"
+          className="field-input"
+          placeholder="12000"
+          value={rentalAmount}
+          onChange={(e) => setRentalAmount(e.target.value)}
+        />
+
+        <label className="field-label">Market</label>
+        <select
+          className="field-select"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+        >
+          <option value="Coimbatore">Coimbatore</option>
+          <option value="Mamballi">Mamballi</option>
+          <option value="Ramnagar">Ramnagar</option>
+          <option value="Dharmapuri">Dharmapuri</option>
         </select>
 
-        <div className={styles.dateMarketRow}>
-          <div>
-            <label className="field-label">Date</label>
-            <input type="date" className="field-input" {...register('date', { required: true })} />
-          </div>
-          <div>
-            <label className="field-label">Market</label>
-            <select className="field-select" {...register('location', { required: true })}>
-              {MARKETS.map((m) => (
-                <option key={m.label} value={m.label}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <p className="section-title">Weight Details</p>
-        <p className={styles.hint}>
-          Enter kg and your rate (₹/kg) for each line. Totals calculate below.
+        <p className={vr.sectionTitle}>
+          <span className={vr.sectionBar} />
+          Add users
         </p>
+        <input
+          className="field-input"
+          placeholder="Search user to add…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
-        <div className={styles.weightRow}>
-          <div className={styles.weightRowTitle}>Good silk</div>
-          <div className={styles.weightRowGrid}>
-            <div>
-              <label className="field-label">kg</label>
-              <input
-                type="number"
-                step="0.1"
-                min="0"
-                className="field-input"
-                {...register('goodSilkKg')}
-              />
-            </div>
-            <div>
-              <label className="field-label">Rate (₹/kg)</label>
-              <input
-                type="number"
-                step="1"
-                min="0"
-                className="field-input"
-                placeholder="Manual"
-                {...register('goodSilkRatePerKg')}
-              />
-            </div>
-          </div>
-          <div className={styles.weightRowAmt}>Line amount: {formatINR(goodAmt)}</div>
-        </div>
-
-        <div className={styles.weightRow}>
-          <div className={styles.weightRowTitle}>Waste</div>
-          <div className={styles.weightRowGrid}>
-            <div>
-              <label className="field-label">kg</label>
-              <input type="number" step="0.1" min="0" className="field-input" {...register('wasteKg')} />
-            </div>
-            <div>
-              <label className="field-label">Rate (₹/kg)</label>
-              <input
-                type="number"
-                step="1"
-                min="0"
-                className="field-input"
-                placeholder="Manual"
-                {...register('wasteRatePerKg')}
-              />
-            </div>
-          </div>
-          <div className={styles.weightRowAmt}>Line amount: {formatINR(wasteAmt)}</div>
-        </div>
-
-        <div className={styles.weightRow}>
-          <div className={styles.weightRowTitle}>Doubles</div>
-          <div className={styles.weightRowGrid}>
-            <div>
-              <label className="field-label">kg</label>
-              <input type="number" step="0.1" min="0" className="field-input" {...register('doubles')} />
-            </div>
-            <div>
-              <label className="field-label">Rate (₹/kg)</label>
-              <input
-                type="number"
-                step="1"
-                min="0"
-                className="field-input"
-                placeholder="Manual"
-                {...register('doublesRatePerKg')}
-              />
-            </div>
-          </div>
-          <div className={styles.weightRowAmt}>Line amount: {formatINR(doublesAmt)}</div>
-        </div>
-
-        <div className={styles.totalsCard}>
-          <div className={styles.totalsRow}>
-            <span>Total weight (kg)</span>
-            <strong>{totalKg} kg</strong>
-          </div>
-          <div className={styles.totalsRow} style={{ marginBottom: 0 }}>
-            <span>Total amount</span>
-            <strong style={{ fontSize: 18 }}>{formatINR(totalAmount)}</strong>
-          </div>
-        </div>
-
-        <p className={styles.ratesTitle}>
-          Reference rates on {formatDateShort(date)}
-          {ratesLoading ? ' (loading…)' : marketRate ? '' : ' — none for this date'}
-        </p>
-        <p className={styles.subtle}>
-          Tap a market to copy its ₹/kg into Good silk rate (optional).
-        </p>
-
-        {marketRate && (
-          <div className={styles.ratesGrid}>
-            {MARKETS.map((m) => {
-              const active = m.label === market;
-              const amount = marketRate[m.key];
+        {selectedIds.length > 0 && (
+          <div className={vr.chips}>
+            {selectedIds.map((id) => {
+              const u = users.find((x) => x._id === id);
               return (
                 <button
-                  key={m.label}
+                  key={id}
                   type="button"
-                  className={`${styles.rateCell} ${styles.rateCellClick} ${active ? styles.rateCellActive : ''}`}
-                  onClick={() => applyReferenceRateToGoodSilk(amount)}
+                  className={vr.chip}
+                  onClick={() => toggleUser(id)}
                 >
-                  <div className={active ? styles.rateMarketActive : styles.rateMarket}>
-                    {m.label}
-                    {active ? ' ✓' : ''}
-                  </div>
-                  <div className={active ? styles.rateAmountActive : styles.rateAmount}>
-                    {amount != null ? formatINR(amount) : '—'}
-                  </div>
+                  {u?.name || id} ×
                 </button>
               );
             })}
           </div>
         )}
 
-        <label className="field-label">Link to Booking</label>
-        <select className="field-select" {...register('linkedBookingId')}>
-          <option value="">None (no linked booking)</option>
-          {bookings.map((b) => (
-            <option key={b._id} value={b._id}>
-              {formatDateShort(b.date)} · {b.location} · {b.quantityKg} kg
-            </option>
+        <div className={vr.userPickList}>
+          {filteredUsers.slice(0, 8).map((u) => (
+            <button
+              key={u._id}
+              type="button"
+              className={`${vr.userPick} ${selectedIds.includes(u._id) ? vr.userPickOn : ''}`}
+              onClick={() => toggleUser(u._id)}
+            >
+              {u.name}
+            </button>
           ))}
-        </select>
+        </div>
+        <p className={styles.hint}>{selectedIds.length} user(s) added for driver entry</p>
 
-        <label className="field-label">Notes</label>
-        <textarea className="field-textarea" rows={3} placeholder="Add notes…" {...register('notes')} />
+        <p className={vr.sectionTitle}>
+          <span className={vr.sectionBar} />
+          Link expiry
+        </p>
+        <div className={vr.expiryRow}>
+          {[6, 8, 10].map((h) => (
+            <button
+              key={h}
+              type="button"
+              className={`${vr.expiryBtn} ${expiryHours === h ? vr.expiryBtnOn : ''}`}
+              onClick={() => setExpiryHours(h)}
+            >
+              {h} hr
+            </button>
+          ))}
+        </div>
 
-        {success && <p className="form-success">{success}</p>}
-        <button type="submit" className="btn-primary" disabled={totalKg <= 0}>
-          Save Batch Entry
+        {error && <p className="form-error">{error}</p>}
+
+        <button
+          type="button"
+          className="btn-primary"
+          style={{ marginTop: 8 }}
+          disabled={creating}
+          onClick={onGenerate}
+        >
+          {creating ? 'Generating…' : 'Generate & Share Link'}
         </button>
-      </form>
 
-      <p className="section-title">Recent entries</p>
-      {recent.length === 0 ? (
-        <p className="empty-text">No entries yet</p>
-      ) : (
-        recent.map((b) => (
-          <div key={b._id} className="card" style={{ fontSize: 13 }}>
-            <strong>{b.userName}</strong> — {formatDateShort(b.date)} — {b.totalWeightKg ?? b.quantityKg}{' '}
-            kg · {formatINR(b.estimatedValue)}
+        {lastLink?.driverUrl && (
+          <div className={vr.linkBox}>
+            <span className={vr.linkText}>{lastLink.driverUrl}</span>
+            <button type="button" className={vr.copyBtn} onClick={copyLink}>
+              Copy
+            </button>
           </div>
+        )}
+      </div>
+
+      <p className="section-title">Driver sessions</p>
+      {sessions.length === 0 ? (
+        <p className="empty-text">No vehicle rental sessions yet</p>
+      ) : (
+        sessions.map((s) => (
+          <button
+            key={s._id}
+            type="button"
+            className={`card ${vr.sessionCard}`}
+            onClick={() => navigate(`/admin/vehicle-rental/${s._id}`)}
+          >
+            <div className={vr.sessionTop}>
+              <strong>{formatDateShort(s.date)}</strong>
+              <span className={s.status === 'submitted' ? vr.badgeDone : vr.badgePending}>
+                {s.status === 'submitted' ? 'Submitted' : 'Pending'}
+              </span>
+            </div>
+            <div className={vr.sessionMeta}>
+              {s.vehicleOwnerName} · {formatINR(s.rentalAmount)}
+            </div>
+            <div className={vr.sessionMeta}>
+              {s.entries?.length || 0} users
+              {s.submittedAt ? ` · Saved ${new Date(s.submittedAt).toLocaleString()}` : ''}
+            </div>
+          </button>
         ))
       )}
     </AppShell>

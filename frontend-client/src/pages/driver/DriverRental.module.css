@@ -1,0 +1,278 @@
+.wrap {
+  min-height: 100vh;
+  background: #fefaf2;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  background: #8b6914;
+  color: white;
+  padding: 12px 16px 14px;
+}
+
+.headerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.badge {
+  background: #c0392b;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.expiryBar {
+  background: rgba(0, 0, 0, 0.28);
+  border-radius: 6px;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.expiryTime {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffd54f;
+  font-variant-numeric: tabular-nums;
+}
+
+.body {
+  flex: 1;
+  padding: 12px 16px 24px;
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.ownerCard {
+  background: #fef8ec;
+  border: 1px solid #d4a017;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.calcCard {
+  background: white;
+  border: 1px solid #e0e0dc;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.calcRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.calcRow input {
+  width: 72px;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.effective {
+  background: #fef8ec;
+  border: 1px solid #d4a017;
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  color: #8b6914;
+}
+
+.userCard {
+  background: white;
+  border: 1px solid #e0e0dc;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.userCard:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e3eef9;
+  color: #1e4d7b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.userLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tagDone {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #e8f4ed;
+  color: #2e7d52;
+}
+
+.tagPending {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #fef3cd;
+  color: #856404;
+}
+
+.submitBtn {
+  width: 100%;
+  background: #8b6914;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 12px;
+  cursor: pointer;
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+}
+
+.expired {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.detailLayout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 720px) {
+  .detailLayout {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.silkBlock {
+  margin-bottom: 10px;
+}
+
+.silkLabel {
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.silkGood {
+  color: #2e7d52;
+}
+
+.silkWaste {
+  color: #d4830a;
+}
+
+.silkDoubles {
+  color: #8b4513;
+}
+
+.silkGrid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 8px;
+}
+
+.silkInput {
+  background: #f5f5f3;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px;
+  width: 100%;
+  font-size: 14px;
+}
+
+.silkInputGood {
+  background: #f0faf5;
+  border-color: #2e7d52;
+}
+
+.calcPanel {
+  background: white;
+  border: 1px solid #e0e0dc;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.calcLine {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.pos {
+  color: #2e7d52;
+  font-weight: 500;
+}
+
+.neg {
+  color: #c0392b;
+  font-weight: 500;
+}
+
+.netBox {
+  background: #e8f4ed;
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  justify-content: space-between;
+  margin: 8px 0;
+  font-weight: 600;
+  color: #2e7d52;
+}
+
+.finalBox {
+  background: #fef8ec;
+  border: 1px solid #d4a017;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  color: #8b6914;
+}
+
+.backLink {
+  color: white;
+  text-decoration: none;
+  font-size: 18px;
+  margin-right: 8px;
+}

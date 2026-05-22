@@ -1,0 +1,436 @@
+
+<h2 style="position:absolute;width:1px;height:1px;clip:rect(0,0,0,0);overflow:hidden">Vehicle rental flow — 5 wireframe screens admin to driver to client</h2>
+<style>
+.fn{font-family:var(--font-sans);padding:.25rem 0}
+.fr{display:inline-block;background:#1C1C1E;border-radius:28px;padding:7px;width:180px}
+.no{width:48px;height:15px;background:#1C1C1E;border-radius:0 0 10px 10px;margin:0 auto -2px;position:relative;z-index:2}
+.sc{border-radius:20px;overflow:hidden;height:408px;display:flex;flex-direction:column}
+.sb{display:flex;justify-content:space-between;padding:3px 9px;font-size:7px;color:white;flex-shrink:0}
+.hd{padding:5px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.bd{flex:1;overflow:hidden;padding:6px}
+.cd{background:white;border:.5px solid #E0E0DC;border-radius:6px;padding:5px;margin-bottom:4px}
+.in{background:#F5F5F3;border:.5px solid #DDD;border-radius:4px;height:20px;padding:0 6px;display:flex;align-items:center;font-size:7px;color:#BBB;margin-bottom:3px}
+.lb{font-size:6px;color:#666;margin-bottom:1px}
+.bt{border-radius:5px;padding:6px;text-align:center;font-size:7px;font-weight:500;margin-bottom:3px}
+.bb{background:#1E4D7B;color:white}
+.ba{background:#8B6914;color:white}
+.tg{font-size:6px;padding:1px 4px;border-radius:3px;display:inline-block;white-space:nowrap}
+.td{background:#E8F4ED;color:#2E7D52}
+.tp{background:#FEF3CD;color:#856404}
+.ti{background:#E3EEF9;color:#1E4D7B}
+.dv{height:.5px;background:#E5E5E0;margin:4px 0}
+.nv{background:white;border-top:.5px solid #E5E5EA;padding:4px 0 7px;display:flex;justify-content:space-around;flex-shrink:0}
+.nb{display:flex;flex-direction:column;align-items:center;gap:1px}
+.nb span{font-size:6px;color:#8E8E93}
+.nb i{font-style:normal;font-size:11px;color:#C0C0C0;line-height:1}
+.nb.a i{color:#1E4D7B}
+.nb.a span{color:#1E4D7B}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:3px}
+.av{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:5.5px;font-weight:500;flex-shrink:0;background:#E3EEF9;color:#1E4D7B}
+.sect{font-size:7px;font-weight:500;color:#1E4D7B;margin-bottom:3px;display:flex;align-items:center;gap:3px}
+.sect-bar{width:2px;height:8px;background:#1E4D7B;border-radius:1px}
+</style>
+
+<div class="fn">
+
+<!-- FLOW STRIP -->
+<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:7px 10px;background:var(--color-background-secondary);border:.5px solid var(--color-border-tertiary);border-radius:8px;margin-bottom:14px">
+  <div style="background:#1E4D7B;color:white;font-size:6px;padding:3px 7px;border-radius:4px;line-height:1.5;text-align:center">Admin<br>Batch Entry</div>
+  <span style="font-size:10px;color:var(--color-text-secondary)">→</span>
+  <div style="background:#1E4D7B;color:white;font-size:6px;padding:3px 7px;border-radius:4px;line-height:1.5;text-align:center">Set Expiry<br>Generate Link</div>
+  <span style="font-size:10px;color:var(--color-text-secondary)">→</span>
+  <div style="background:#8B6914;color:white;font-size:6px;padding:3px 7px;border-radius:4px;line-height:1.5;text-align:center">Driver Opens<br>No Login · 6-10 hr</div>
+  <span style="font-size:10px;color:var(--color-text-secondary)">→</span>
+  <div style="background:#8B6914;color:white;font-size:6px;padding:3px 7px;border-radius:4px;line-height:1.5;text-align:center">Driver Enters<br>Silk + Rates</div>
+  <span style="font-size:10px;color:var(--color-text-secondary)">→</span>
+  <div style="background:#8B6914;color:white;font-size:6px;padding:3px 7px;border-radius:4px;line-height:1.5;text-align:center">Driver<br>Saves</div>
+  <span style="font-size:10px;color:var(--color-text-secondary)">→</span>
+  <div style="background:#1E4D7B;color:white;font-size:6px;padding:3px 7px;border-radius:4px;line-height:1.5;text-align:center">Admin Sees<br>Results</div>
+  <span style="font-size:10px;color:var(--color-text-secondary)">→</span>
+  <div style="background:#2E7D52;color:white;font-size:6px;padding:3px 7px;border-radius:4px;line-height:1.5;text-align:center">Client<br>Batch Detail</div>
+</div>
+
+<!-- ROW 1: Admin Entry · Driver Portal · User Calc -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px">
+
+<!-- ── SCREEN 23: Admin Batch Entry ── -->
+<div style="text-align:center">
+<div class="fr">
+<div class="no"></div>
+<div class="sc" style="background:#F7F7F5">
+  <div class="sb" style="background:#1E4D7B"><span>9:41</span><span>◉◉◉</span></div>
+  <div class="hd" style="background:#1E4D7B;color:white">
+    <div style="display:flex;align-items:center;gap:4px"><span style="font-size:9px">←</span><span style="font-size:10px;font-weight:500">Batch Entry</span></div>
+  </div>
+  <div class="bd">
+    <div class="lb">Date</div>
+    <div class="in" style="color:#444;margin-bottom:5px">20 May 2026</div>
+
+    <div class="sect"><div class="sect-bar"></div>Vehicle Rental</div>
+    <div class="cd" style="margin-bottom:5px">
+      <div class="lb">Vehicle Owner Name</div>
+      <div class="in" style="color:#444">Murugan Transport</div>
+      <div class="lb">Rental Amount (₹)</div>
+      <div class="in" style="color:#444;justify-content:space-between">12,000 <span style="font-size:6px;color:#888">total</span></div>
+    </div>
+
+    <div class="sect"><div class="sect-bar"></div>Add Users</div>
+    <div class="in" style="margin-bottom:3px">⌕ Search user to add...</div>
+    <div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:3px">
+      <div style="background:#E3EEF9;border:.5px solid #1E4D7B;border-radius:10px;padding:2px 5px;font-size:6px;color:#1E4D7B">Ramu K. ×</div>
+      <div style="background:#E3EEF9;border:.5px solid #1E4D7B;border-radius:10px;padding:2px 5px;font-size:6px;color:#1E4D7B">Selvam R. ×</div>
+      <div style="background:#E3EEF9;border:.5px solid #1E4D7B;border-radius:10px;padding:2px 5px;font-size:6px;color:#1E4D7B">Kumar M. ×</div>
+    </div>
+    <div style="font-size:6px;color:#888;margin-bottom:5px">3 users added · Est. 900 kg total</div>
+
+    <div class="sect"><div class="sect-bar"></div>Link Expiry</div>
+    <div style="display:flex;gap:4px;margin-bottom:5px">
+      <div style="flex:1;background:#1E4D7B;color:white;border-radius:4px;padding:4px;text-align:center;font-size:6.5px">⊙ 6 hr</div>
+      <div style="flex:1;background:#F0F4F9;border:.5px solid #B0CDE8;border-radius:4px;padding:4px;text-align:center;font-size:6.5px;color:#888">8 hr</div>
+      <div style="flex:1;background:#F0F4F9;border:.5px solid #B0CDE8;border-radius:4px;padding:4px;text-align:center;font-size:6.5px;color:#888">10 hr</div>
+    </div>
+
+    <div class="bt bb">Generate &amp; Share Link</div>
+    <div style="background:#E8F4ED;border:.5px solid #BDE0CC;border-radius:4px;padding:4px 6px;display:flex;align-items:center;gap:4px">
+      <div style="font-size:6px;color:#2E7D52;flex:1;overflow:hidden;white-space:nowrap">tracknow.in/d/xK4p2mR</div>
+      <div style="background:#2E7D52;color:white;font-size:6px;padding:2px 5px;border-radius:3px;flex-shrink:0">Copy</div>
+    </div>
+  </div>
+  <div class="nv">
+    <div class="nb"><i>⌂</i><span>Dash</span></div>
+    <div class="nb"><i>◎</i><span>Users</span></div>
+    <div class="nb"><i>◫</i><span>Books</span></div>
+    <div class="nb"><i>↑</i><span>Rates</span></div>
+    <div class="nb a"><i>▤</i><span>Batch</span></div>
+  </div>
+</div>
+</div>
+<div style="font-size:9px;color:var(--color-text-secondary);margin-top:4px">23 · Admin Batch Entry</div>
+</div>
+
+<!-- ── SCREEN 24: Driver Shared Link (no login) ── -->
+<div style="text-align:center">
+<div class="fr">
+<div class="no"></div>
+<div class="sc" style="background:#FEFAF2">
+  <div class="sb" style="background:#6B4C0A"><span>9:41</span><span>◉◉◉</span></div>
+  <div style="background:#8B6914;padding:5px 10px 7px;flex-shrink:0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+      <div style="font-size:9px;font-weight:500;color:white">Driver Entry Portal</div>
+      <div style="background:#C0392B;color:white;font-size:5.5px;padding:2px 5px;border-radius:3px">No Login</div>
+    </div>
+    <div style="background:rgba(0,0,0,.28);border-radius:4px;padding:3px 6px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:6px;color:rgba(255,255,255,.8)">Link expires in</span>
+      <span style="font-size:12px;font-weight:500;color:#FFD54F;font-variant-numeric:tabular-nums">06:42:18</span>
+    </div>
+  </div>
+  <div class="bd" style="padding:5px">
+    <div class="cd" style="background:#FEF8EC;border-color:#D4A017;margin-bottom:4px;padding:4px 6px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-size:6px;color:#888">Vehicle Owner</div><div style="font-size:8px;font-weight:500;color:#5A3A0A">Murugan Transport</div></div>
+        <div style="text-align:right"><div style="font-size:6px;color:#888">Total Rental</div><div style="font-size:11px;font-weight:500;color:#8B6914">₹12,000</div></div>
+      </div>
+    </div>
+
+    <div class="cd" style="margin-bottom:4px">
+      <div style="font-size:6.5px;font-weight:500;color:#1A1A1A;margin-bottom:3px">Rental Rate Calculation</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+        <span style="font-size:6px;color:#888">₹12,000 ÷ Total Silk</span>
+        <div style="display:flex;align-items:center;gap:3px">
+          <div style="background:#F5F5F3;border:.5px solid #DDD;border-radius:3px;width:36px;height:17px;padding:0 4px;display:flex;align-items:center;font-size:7px;color:#444">900</div>
+          <span style="font-size:6px;color:#888">kg</span>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:6px;color:#888">Base rate</span><span style="font-size:7px;font-weight:500;color:#1A1A1A">₹13.33/kg</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+        <span style="font-size:6px;color:#888">Manual extra</span>
+        <div style="display:flex;align-items:center;gap:2px">
+          <span style="font-size:6px;color:#888">+</span>
+          <div style="background:#F5F5F3;border:.5px solid #DDD;border-radius:3px;width:30px;height:17px;padding:0 4px;display:flex;align-items:center;font-size:7px;color:#444">0.01</div>
+        </div>
+      </div>
+      <div style="background:#FEF8EC;border:.5px solid #D4A017;border-radius:3px;padding:3px 5px;display:flex;justify-content:space-between">
+        <span style="font-size:6.5px;color:#8B6914;font-weight:500">Effective Rate</span>
+        <span style="font-size:8px;font-weight:500;color:#8B6914">₹13.34/kg</span>
+      </div>
+    </div>
+
+    <div style="font-size:6.5px;font-weight:500;color:#1A1A1A;margin-bottom:3px">Users — tap to enter</div>
+    <div class="cd" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+      <div style="display:flex;align-items:center;gap:4px">
+        <div class="av">RK</div>
+        <div><div style="font-size:7px;font-weight:500">Ramu Kumar</div><div style="font-size:5.5px;color:#888">360 kg · ₹4,802 rental</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:3px"><span class="tg td">Done</span><span style="font-size:9px;color:#888">›</span></div>
+    </div>
+    <div class="cd" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+      <div style="display:flex;align-items:center;gap:4px">
+        <div class="av">SR</div>
+        <div><div style="font-size:7px;font-weight:500">Selvam R.</div><div style="font-size:5.5px;color:#888">320 kg · ₹4,269 rental</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:3px"><span class="tg tp">Pending</span><span style="font-size:9px;color:#888">›</span></div>
+    </div>
+    <div class="cd" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+      <div style="display:flex;align-items:center;gap:4px">
+        <div class="av">MK</div>
+        <div><div style="font-size:7px;font-weight:500">Kumar M.</div><div style="font-size:5.5px;color:#888">220 kg · ₹2,935 rental</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:3px"><span class="tg tp">Pending</span><span style="font-size:9px;color:#888">›</span></div>
+    </div>
+
+    <div style="background:#8B6914;color:white;border-radius:5px;padding:7px;text-align:center;font-size:7.5px;font-weight:500">Save All &amp; Submit to Admin</div>
+  </div>
+</div>
+</div>
+<div style="font-size:9px;color:var(--color-text-secondary);margin-top:4px">24 · Driver Portal (No Login)</div>
+</div>
+
+<!-- ── SCREEN 25: User Calc Detail ── -->
+<div style="text-align:center">
+<div class="fr">
+<div class="no"></div>
+<div class="sc" style="background:#FEFAF2">
+  <div class="sb" style="background:#6B4C0A"><span>9:41</span><span>◉◉◉</span></div>
+  <div class="hd" style="background:#8B6914;color:white">
+    <div style="display:flex;align-items:center;gap:4px"><span style="font-size:9px">←</span><span style="font-size:10px;font-weight:500">Ramu Kumar</span></div>
+    <span style="background:rgba(255,255,255,.2);color:white;font-size:6px;padding:1px 5px;border-radius:3px">360 kg</span>
+  </div>
+  <div class="bd">
+    <div class="cd" style="margin-bottom:4px">
+      <div style="font-size:7px;font-weight:500;color:#1A1A1A;margin-bottom:4px">Enter Silk Details</div>
+      <div style="display:grid;grid-template-columns:1.1fr 1fr;gap:3px;margin-bottom:3px">
+        <div><div class="lb" style="color:#2E7D52">Good Silk (kg)</div><div style="background:#F0FAF5;border:.5px solid #2E7D52;border-radius:4px;height:20px;padding:0 5px;display:flex;align-items:center;font-size:7px;color:#2E7D52">360</div></div>
+        <div><div class="lb" style="color:#2E7D52">Rate (₹/kg)</div><div style="background:#F0FAF5;border:.5px solid #2E7D52;border-radius:4px;height:20px;padding:0 5px;display:flex;align-items:center;font-size:7px;color:#2E7D52">650</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1.1fr 1fr;gap:3px;margin-bottom:3px">
+        <div><div class="lb" style="color:#D4830A">Waste (kg)</div><div style="background:#FEF8EC;border:.5px solid #F5A623;border-radius:4px;height:20px;padding:0 5px;display:flex;align-items:center;font-size:7px;color:#D4830A">40</div></div>
+        <div><div class="lb" style="color:#D4830A">Rate (₹/kg)</div><div style="background:#FEF8EC;border:.5px solid #F5A623;border-radius:4px;height:20px;padding:0 5px;display:flex;align-items:center;font-size:7px;color:#D4830A">200</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1.1fr 1fr;gap:3px">
+        <div><div class="lb" style="color:#8B4513">Doubles (kg)</div><div style="background:#FDF5F0;border:.5px solid #A0522D;border-radius:4px;height:20px;padding:0 5px;display:flex;align-items:center;font-size:7px;color:#8B4513">20</div></div>
+        <div><div class="lb" style="color:#8B4513">Rate (₹/kg)</div><div style="background:#FDF5F0;border:.5px solid #A0522D;border-radius:4px;height:20px;padding:0 5px;display:flex;align-items:center;font-size:7px;color:#8B4513">300</div></div>
+      </div>
+    </div>
+
+    <div class="cd">
+      <div style="font-size:7px;font-weight:500;color:#1A1A1A;margin-bottom:4px">Auto Calculation</div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+        <span style="font-size:6.5px;color:#888">Good Silk: 360 × ₹650</span>
+        <span style="font-size:7px;color:#2E7D52;font-weight:500">+₹2,34,000</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+        <span style="font-size:6.5px;color:#888">Waste: 40 × ₹200</span>
+        <span style="font-size:7px;color:#C0392B">−₹8,000</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+        <span style="font-size:6.5px;color:#888">Doubles: 20 × ₹300</span>
+        <span style="font-size:7px;color:#C0392B">−₹6,000</span>
+      </div>
+      <div style="background:#E8F4ED;border-radius:3px;padding:3px 5px;display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:6.5px;color:#2E7D52;font-weight:500">Net Silk Value</span>
+        <span style="font-size:8px;font-weight:500;color:#2E7D52">₹2,20,000</span>
+      </div>
+      <div class="dv"></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+        <span style="font-size:6.5px;color:#888">Rental: 360 × ₹13.34</span>
+        <span style="font-size:7px;color:#8B6914">−₹4,802</span>
+      </div>
+      <div class="dv"></div>
+      <div style="background:#FEF8EC;border:.5px solid #D4A017;border-radius:4px;padding:4px 5px;display:flex;justify-content:space-between">
+        <span style="font-size:7px;font-weight:500;color:#5A3A0A">Final Amount</span>
+        <span style="font-size:12px;font-weight:500;color:#8B6914">₹2,15,198</span>
+      </div>
+    </div>
+
+    <div style="background:#8B6914;color:white;border-radius:5px;padding:6px;text-align:center;font-size:7px;font-weight:500;margin-top:4px">Save Ramu Kumar</div>
+  </div>
+</div>
+</div>
+<div style="font-size:9px;color:var(--color-text-secondary);margin-top:4px">25 · User Calc Detail (Driver)</div>
+</div>
+
+</div><!-- end row 1 -->
+
+<!-- ROW 2: Admin Results · Client Detail · Annotation -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+
+<!-- ── SCREEN 26: Admin Batch Results ── -->
+<div style="text-align:center">
+<div class="fr">
+<div class="no"></div>
+<div class="sc" style="background:#F7F7F5">
+  <div class="sb" style="background:#1E4D7B"><span>9:41</span><span>◉◉◉</span></div>
+  <div class="hd" style="background:#1E4D7B;color:white">
+    <div style="font-size:10px;font-weight:500">Batch Results</div>
+    <div style="background:rgba(255,255,255,.15);font-size:6px;color:white;padding:2px 5px;border-radius:3px">Auto-saved</div>
+  </div>
+  <div class="bd">
+    <div style="background:#E3EEF9;border:.5px solid #1E4D7B;border-radius:6px;padding:6px;margin-bottom:5px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+        <span style="font-size:8px;font-weight:500;color:#1E4D7B">20 May 2026</span>
+        <span class="tg td">Submitted</span>
+      </div>
+      <div style="font-size:6px;color:#888;margin-bottom:3px">Driver saved · 14:32 PM · Link expired</div>
+      <div class="dv" style="margin:3px 0"></div>
+      <div style="display:flex;justify-content:space-between">
+        <span style="font-size:6px;color:#888">Murugan Transport</span>
+        <span style="font-size:7px;font-weight:500;color:#1E4D7B">₹12,000</span>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <span style="font-size:6px;color:#888">3 users · 900 kg silk</span>
+        <span style="font-size:6px;color:#888">Rate ₹13.34/kg</span>
+      </div>
+    </div>
+
+    <div style="font-size:7px;font-weight:500;color:#1A1A1A;margin-bottom:3px">User Breakdown</div>
+
+    <div class="cd" style="margin-bottom:3px">
+      <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
+        <div class="av">RK</div>
+        <div style="font-size:7px;font-weight:500;flex:1">Ramu Kumar</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px">
+        <div style="text-align:center"><div style="font-size:7px;font-weight:500;color:#2E7D52">360 kg</div><div style="font-size:5px;color:#AAA">Good</div></div>
+        <div style="text-align:center"><div style="font-size:7px;font-weight:500;color:#8B6914">₹4,802</div><div style="font-size:5px;color:#AAA">Rental</div></div>
+        <div style="text-align:center"><div style="font-size:7px;font-weight:500;color:#1E4D7B">₹2.15L</div><div style="font-size:5px;color:#AAA">Net</div></div>
+      </div>
+    </div>
+
+    <div class="cd" style="margin-bottom:3px">
+      <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
+        <div class="av">SR</div>
+        <div style="font-size:7px;font-weight:500;flex:1">Selvam R.</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px">
+        <div style="text-align:center"><div style="font-size:7px;font-weight:500;color:#2E7D52">320 kg</div><div style="font-size:5px;color:#AAA">Good</div></div>
+        <div style="text-align:center"><div style="font-size:7px;font-weight:500;color:#8B6914">₹4,269</div><div style="font-size:5px;color:#AAA">Rental</div></div>
+        <div style="text-align:center"><div style="font-size:7px;font-weight:500;color:#1E4D7B">₹1.88L</div><div style="font-size:5px;color:#AAA">Net</div></div>
+      </div>
+    </div>
+
+    <div class="cd" style="margin-bottom:5px">
+      <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
+        <div class="av">MK</div>
+        <div style="font-size:7px;font-weight:500;flex:1">Kumar M.</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px">
+        <div style="text-align:center"><div style="font-size:7px;font-weight:500;color:#2E7D52">220 kg</div><div style="font-size:5px;color:#AAA">Good</div></div>
+        <div style="text-align:center"><div style="font-size:7px;font-weight:500;color:#8B6914">₹2,935</div><div style="font-size:5px;color:#AAA">Rental</div></div>
+        <div style="text-align:center"><div style="font-size:7px;font-weight:500;color:#1E4D7B">₹1.28L</div><div style="font-size:5px;color:#AAA">Net</div></div>
+      </div>
+    </div>
+
+    <div style="border:.5px solid #1E4D7B;color:#1E4D7B;border-radius:4px;padding:5px;text-align:center;font-size:7px">↓ Export as Excel</div>
+  </div>
+  <div class="nv">
+    <div class="nb"><i>⌂</i><span>Dash</span></div>
+    <div class="nb"><i>◎</i><span>Users</span></div>
+    <div class="nb"><i>◫</i><span>Books</span></div>
+    <div class="nb"><i>↑</i><span>Rates</span></div>
+    <div class="nb a"><i>▤</i><span>Batch</span></div>
+  </div>
+</div>
+</div>
+<div style="font-size:9px;color:var(--color-text-secondary);margin-top:4px">26 · Admin Batch Results</div>
+</div>
+
+<!-- ── SCREEN 20 updated: Client Batch Detail ── -->
+<div style="text-align:center">
+<div class="fr">
+<div class="no"></div>
+<div class="sc" style="background:#F7F7F5">
+  <div class="sb" style="background:#2E7D52"><span>9:41</span><span>◉◉◉</span></div>
+  <div class="hd" style="background:#2E7D52;color:white">
+    <div style="display:flex;align-items:center;gap:4px"><span style="font-size:9px">←</span><span style="font-size:10px;font-weight:500">Batch Detail</span></div>
+    <span class="tg td">Done</span>
+  </div>
+  <div class="bd">
+    <div class="cd" style="text-align:center;margin-bottom:4px;padding:6px">
+      <div style="font-size:10px;font-weight:500;color:#1A1A1A">20 May 2026</div>
+      <div style="font-size:6px;color:#888;margin-bottom:1px">Coimbatore · Murugan Transport</div>
+      <div style="font-size:16px;font-weight:500;color:#2E7D52">360<span style="font-size:9px"> kg</span></div>
+    </div>
+
+    <div class="cd" style="margin-bottom:3px">
+      <div style="font-size:7px;font-weight:500;margin-bottom:3px">Weight Breakdown</div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:6.5px;color:#888">Good Silk</span><span style="font-size:7px;font-weight:500;color:#2E7D52">360 kg</span></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:6.5px;color:#888">Waste</span><span style="font-size:7px;color:#F5A623">40 kg</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="font-size:6.5px;color:#888">Doubles</span><span style="font-size:7px;color:#A0522D">20 kg</span></div>
+    </div>
+
+    <div class="cd" style="margin-bottom:3px">
+      <div style="font-size:7px;font-weight:500;margin-bottom:3px">Silk Value</div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:6.5px;color:#888">Good: 360 × ₹650</span><span style="font-size:7px;color:#2E7D52">+₹2,34,000</span></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:6.5px;color:#888">Waste: 40 × ₹200</span><span style="font-size:7px;color:#C0392B">−₹8,000</span></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:6.5px;color:#888">Doubles: 20 × ₹300</span><span style="font-size:7px;color:#C0392B">−₹6,000</span></div>
+      <div style="background:#E8F4ED;border-radius:3px;padding:3px 5px;display:flex;justify-content:space-between">
+        <span style="font-size:6.5px;color:#2E7D52;font-weight:500">Net Silk Value</span>
+        <span style="font-size:8px;font-weight:500;color:#2E7D52">₹2,20,000</span>
+      </div>
+    </div>
+
+    <!-- rental deduction — new section -->
+    <div style="background:#FEF8EC;border:.5px solid #D4A017;border-radius:6px;padding:5px">
+      <div style="font-size:7px;font-weight:500;color:#8B6914;margin-bottom:3px">Vehicle Rental Deduction</div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+        <span style="font-size:6px;color:#888">Murugan Transport</span>
+        <span style="font-size:6px;color:#888">Rate ₹13.34/kg</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+        <span style="font-size:6.5px;color:#888">360 kg × ₹13.34</span>
+        <span style="font-size:7px;color:#8B6914">−₹4,802</span>
+      </div>
+      <div class="dv" style="background:#D4A017;margin:3px 0"></div>
+      <div style="display:flex;justify-content:space-between">
+        <span style="font-size:7px;font-weight:500;color:#5A3A0A">Final Amount</span>
+        <span style="font-size:11px;font-weight:500;color:#8B6914">₹2,15,198</span>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<div style="font-size:9px;color:var(--color-text-secondary);margin-top:4px">20 · Client Batch Detail (Updated)</div>
+</div>
+
+<!-- ANNOTATION -->
+<div style="padding-top:4px">
+  <div style="font-size:10px;font-weight:500;color:var(--color-text-primary);margin-bottom:8px">How the math works</div>
+
+  <div style="background:var(--color-background-secondary);border:.5px solid var(--color-border-tertiary);border-radius:7px;padding:8px;margin-bottom:6px">
+    <div style="font-size:7.5px;font-weight:500;color:var(--color-text-primary);margin-bottom:5px">Rental formula</div>
+    <div style="background:white;border:.5px solid var(--color-border-tertiary);border-radius:5px;padding:6px;font-size:6.5px;color:var(--color-text-secondary);line-height:2">
+      ₹12,000 ÷ 900 kg = ₹13.33<br>
+      + driver extra (0.01) = <strong>₹13.34/kg</strong><br>
+      <div class="dv" style="margin:2px 0"></div>
+      Ramu rental = 360 × ₹13.34 = <strong>₹4,802</strong><br>
+      Selvam rental = 320 × ₹13.34 = <strong>₹4,269</strong><br>
+      Kumar rental = 220 × ₹13.34 = <strong>₹2,935</strong>
+    </div>
+  </div>
+
+  <div style="background:var(--color-background-secondary);border:.5px solid var(--color-border-tertiary);border-radius:7px;padding:8px;margin-bottom:6px">
+    <div style="font-size:7.5px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px">Link rules</div>
+    <div style="font-size:7px;color:var(--color-text-secondary);line-height:1.7">
+      ✓ No login needed — public URL<br>
+      ✓ Countdown visible always<br>
+      ✓ Auto-expires at set time<br>
+      ✓ After expiry — page shows<br>
+      &nbsp;&nbsp;"This link has expired"<br>
+      ✓ Can't reopen after save
+    </div>
+  </div>
+
+  <div style="background:var(--color-background-secondary);border:.5px solid var(--color-border-tertiary);border-radius:7px;padding:8px">
+    <div style="font-size:7.5px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px">Per-user calculation</div>
+    <div style="font-size:7px;color:var(--color-text-secondary);line-height:1.7">
+      Rental = <strong>Good silk kg × rate</strong><br>
+      Waste + Doubles = subtracted<br>
+      from silk value only<br>
+      (not from rental base)<br><br>
+      Final = Net Silk − Rental
+    </div>
+  </div>
+</div>
+
+</div><!-- end row 2 -->
+</div>

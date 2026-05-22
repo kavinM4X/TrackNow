@@ -98,12 +98,23 @@ export default function BatchDetail() {
   const doublesRate = batch.doublesRatePerKg ?? 0;
 
   const value = batch.estimatedValue;
+  const vr = batch.vehicleRental;
+  const netSilk =
+    vr?.netSilkValue ??
+    (batch.goodSilkAmount != null
+      ? Number(batch.goodSilkAmount) -
+        Number(batch.wasteAmount || 0) -
+        Number(batch.doublesAmount || 0)
+      : null);
 
   return (
     <AppShell title="Batch Detail" backPath="/batch-history">
       <div className={`card ${styles.headerCard}`}>
         <div className={styles.headerDate}>{formatDateShort(batch.date)}</div>
-        <div className={styles.headerLoc}>{batch.location} Market</div>
+        <div className={styles.headerLoc}>
+          {batch.location} Market
+          {vr?.ownerName ? ` · ${vr.ownerName}` : ''}
+        </div>
         <div className={styles.headerTotal}>
           {total} <span>kg</span>
         </div>
@@ -127,15 +138,24 @@ export default function BatchDetail() {
         )}
         {showLineRates ? (
           <>
+            <p className={styles.breakdownTitle}>Silk value</p>
             <LineCost label="Good silk" kg={good} rate={goodRate} amount={batch.goodSilkAmount} />
             <LineCost label="Waste" kg={waste} rate={wasteRate} amount={batch.wasteAmount} />
             <LineCost label="Doubles" kg={doubles} rate={doublesRate} amount={batch.doublesAmount} />
-            <div className={styles.estimated}>
-              <strong>Total amount</strong>
-              <strong style={{ fontSize: 18, color: 'var(--green)' }}>
-                {value != null ? formatINR(value) : '—'}
-              </strong>
-            </div>
+            {netSilk != null && (
+              <div className={styles.netSilkRow}>
+                <strong>Net silk value</strong>
+                <strong style={{ color: 'var(--green)' }}>{formatINR(netSilk)}</strong>
+              </div>
+            )}
+            {!vr && (
+              <div className={styles.estimated}>
+                <strong>Total amount</strong>
+                <strong style={{ fontSize: 18, color: 'var(--green)' }}>
+                  {value != null ? formatINR(value) : '—'}
+                </strong>
+              </div>
+            )}
           </>
         ) : (
           <>
@@ -163,7 +183,33 @@ export default function BatchDetail() {
         )}
       </div>
 
-      <p className={styles.readOnlyNote}>Data entered by admin · Read only</p>
+      {vr && (
+        <div className={styles.rentalCard}>
+          <p className={styles.rentalTitle}>Vehicle rental deduction</p>
+          <div className={styles.valueRow}>
+            <span>{vr.ownerName}</span>
+            <span style={{ fontSize: 12, color: '#888' }}>
+              Rate {vr.ratePerKg != null ? `${formatINR(vr.ratePerKg)}/kg` : '—'}
+            </span>
+          </div>
+          <div className={styles.valueRow}>
+            <span>
+              {good} kg × {vr.ratePerKg != null ? formatINR(vr.ratePerKg) : '—'}
+            </span>
+            <span style={{ color: '#8b6914', fontWeight: 600 }}>
+              −{formatINR(vr.rentalDeduction)}
+            </span>
+          </div>
+          <div className={styles.rentalFinal}>
+            <strong>Final amount</strong>
+            <strong>{formatINR(vr.finalAmount ?? value)}</strong>
+          </div>
+        </div>
+      )}
+
+      <p className={styles.readOnlyNote}>
+        {vr ? 'Entered by driver · Read only' : 'Data entered by admin · Read only'}
+      </p>
     </AppShell>
   );
 }
