@@ -122,6 +122,22 @@ Keep only **one** live API URL to avoid confusion.
 
 ## Troubleshooting
 
+### 500 `FUNCTION_INVOCATION_FAILED` on `*.vercel.app`
+
+1. **Root Directory** must be **`backend`** (not repo root).  
+   Vercel → Project → Settings → General → Root Directory → `backend` → Redeploy.
+
+2. **Environment variables** (Production):  
+   `MONGODB_URI`, `JWT_SECRET`, `NODE_ENV=production`, `BACKUP_ENABLED=false`, `CORS_ORIGIN`, `FRONTEND_CLIENT_URL`.
+
+3. **MongoDB Atlas** → Network Access → **Allow access from anywhere** (`0.0.0.0/0`) or Vercel IPs.
+
+4. **Logs:** Vercel → Project → **Logs** (or Deployments → failed deploy → Function logs).  
+   Look for `MONGODB_URI`, `Cannot find module`, or `connect ECONNREFUSED`.
+
+5. Test after fix:  
+   `https://YOUR-PROJECT.vercel.app/api/health` → `"host": "vercel"`.
+
 | Issue | Fix |
 |-------|-----|
 | CORS | `CORS_ORIGIN` must include both Netlify frontend URLs exactly |
