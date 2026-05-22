@@ -48,11 +48,18 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/health', (req, res) => {
-  const onNetlify = Boolean(process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME);
+  const onServerless = Boolean(
+    process.env.VERCEL || process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME
+  );
+  const host = process.env.VERCEL
+    ? 'vercel'
+    : process.env.NETLIFY
+      ? 'netlify'
+      : 'node';
   res.json({
     status: 'OK',
     message: 'TrackNow API is running',
-    host: onNetlify ? 'netlify' : 'node',
+    host: onServerless ? host : 'node',
     features: ['vehicle-rental', 'user-invite', 'public-register']
   });
 });
@@ -74,8 +81,8 @@ async function initApp() {
     const n = await expireStaleTrackerDays();
     if (n > 0) console.log(`Auto-disabled ${n} expired tracker(s)`);
 
-    // node-cron does not run on Netlify serverless; use BACKUP_ENABLED=false or external cron
-    if (!process.env.NETLIFY) {
+    // node-cron does not run on serverless (Netlify/Vercel); use BACKUP_ENABLED=false or external cron
+    if (!process.env.NETLIFY && !process.env.VERCEL) {
       const { startMonthlyBackupScheduler } = require('./jobs/scheduleMonthlyBackup');
       startMonthlyBackupScheduler();
     }

@@ -21,12 +21,14 @@ function pickClientOriginFromCors(origins) {
   return notAdmin || null;
 }
 
+// Client app stays on Netlify when API is on Vercel — set FRONTEND_CLIENT_URL in Vercel env
 const PRODUCTION_CLIENT_DEFAULT = 'https://tracknow-client.netlify.app';
 
 function isProductionRuntime() {
   return (
     process.env.NODE_ENV === 'production' ||
     process.env.NETLIFY === 'true' ||
+    process.env.VERCEL === '1' ||
     Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME)
   );
 }

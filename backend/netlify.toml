@@ -11,6 +11,7 @@
   NODE_ENV = "production"
   NETLIFY = "true"
   # Public links (registration, driver portal) — must match your client Netlify site
+  # If API stays on Netlify only; for Vercel API set FRONTEND_CLIENT_URL in Vercel dashboard
   FRONTEND_CLIENT_URL = "https://tracknow-client.netlify.app"
   # PORT/NODE_ENV/BACKUP_DIR are not real secrets; scanner false-positives in docs/node_modules
   SECRETS_SCAN_ENABLED = "false"

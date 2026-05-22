@@ -2,13 +2,15 @@
 
 A full-stack **MERN** application for managing silk production, bookings, market rates, batch settlements, vehicle rental workflows, and GPS tracking — with separate **farmer (client)** and **admin** web apps.
 
-**Live deployment (Netlify)**
+**Live deployment**
 
-| App | URL |
-|-----|-----|
-| Client (farmers) | https://tracknow-client.netlify.app |
-| Admin | https://tracknow-admin.netlify.app |
-| API | https://tracknow-backend.netlify.app |
+| App | Host | URL |
+|-----|------|-----|
+| Client | Netlify | https://tracknow-client.netlify.app |
+| Admin | Netlify | https://tracknow-admin.netlify.app |
+| API | **Vercel** (recommended) | https://tracknow-backend.vercel.app |
+
+Frontends stay on Netlify; point `VITE_API_URL` at the Vercel API. Guide: [DEPLOY_VERCEL.md](./DEPLOY_VERCEL.md)
 
 ---
 
@@ -291,9 +293,10 @@ cd backend && npm install
 
 Deploy guides:
 
-- **Frontends:** [DEPLOY_NETLIFY.md](./DEPLOY_NETLIFY.md)
-- **API (Netlify Functions):** [DEPLOY_NETLIFY_API.md](./DEPLOY_NETLIFY_API.md)
-- **Render → Netlify migration:** [MIGRATE_RENDER_TO_NETLIFY.md](./MIGRATE_RENDER_TO_NETLIFY.md)
+- **API on Vercel (backend only):** [DEPLOY_VERCEL.md](./DEPLOY_VERCEL.md)
+- **Netlify frontends:** [DEPLOY_NETLIFY.md](./DEPLOY_NETLIFY.md)
+- **Netlify API:** [DEPLOY_NETLIFY_API.md](./DEPLOY_NETLIFY_API.md)
+- **Render → Netlify:** [MIGRATE_RENDER_TO_NETLIFY.md](./MIGRATE_RENDER_TO_NETLIFY.md)
 - **Android install:** [MOBILE_ANDROID.md](./MOBILE_ANDROID.md)
 
 ---
