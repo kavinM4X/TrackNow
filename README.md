@@ -8,7 +8,7 @@ A full-stack **MERN** application for managing silk production, bookings, market
 |-----|------|-----|
 | Client | Netlify | https://tracknow-client.netlify.app |
 | Admin | Netlify | https://tracknow-admin.netlify.app |
-| API | **Vercel** (recommended) | https://tracknow-backend.vercel.app |
+| API | **Vercel** (recommended) | https://track-now-bay.vercel.app |
 
 Frontends stay on Netlify; point `VITE_API_URL` at the Vercel API. Guide: [DEPLOY_VERCEL.md](./DEPLOY_VERCEL.md)
 
@@ -145,13 +145,13 @@ Mark **only** `MONGODB_URI` and `JWT_SECRET` as secrets in the Netlify UI.
 ```env
 # Omit for local dev — Vite proxies /api to localhost:5000
 # VITE_API_URL=http://localhost:5000/api
-VITE_API_URL=https://tracknow-backend.netlify.app/api
+VITE_API_URL=https://track-now-bay.vercel.app/api
 ```
 
 ### Admin (`frontend-admin/.env`)
 
 ```env
-VITE_API_URL=https://tracknow-backend.netlify.app/api
+VITE_API_URL=https://track-now-bay.vercel.app/api
 VITE_CLIENT_APP_URL=https://tracknow-client.netlify.app
 ```
 
@@ -239,7 +239,7 @@ Default credentials are defined in the seed script / `.env.example` comments.
 
 ## API overview
 
-Base URL (production): `https://tracknow-backend.netlify.app/api`
+Base URL (production): `https://track-now-bay.vercel.app/api`
 
 ### Health
 

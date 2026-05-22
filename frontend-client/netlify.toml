@@ -8,7 +8,7 @@
 [build.environment]
   NODE_VERSION = "18"
   # API on Vercel (backend only); or Netlify/Render URL if you still use those
-  VITE_API_URL = "https://tracknow-backend.vercel.app/api"
+  VITE_API_URL = "https://track-now-bay.vercel.app/api"
 
 [[redirects]]
   from = "/*"

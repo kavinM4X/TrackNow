@@ -4,7 +4,7 @@
 
 | Component | Host | URL (example) |
 |-----------|------|----------------|
-| API | **Vercel** | `https://tracknow-backend.vercel.app` |
+| API | **Vercel** | `https://track-now-bay.vercel.app` |
 | Client | Netlify | `https://tracknow-client.netlify.app` |
 | Admin | Netlify | `https://tracknow-admin.netlify.app` |
 
@@ -56,12 +56,12 @@ If deploy fails with `Missing script: "build"`, pull latest `main` (includes a n
 **Skip on Vercel:** `PORT` (not used). Optional: omit `BACKUP_DIR`, `BACKUP_RETENTION_MONTHS`.
 
 8. **Deploy**
-8. Test: `https://tracknow-backend.vercel.app/api/health` → `"host": "vercel"`
+8. Test: `https://track-now-bay.vercel.app/api/health` → `"host": "vercel"`
 
 Copy your real API base URL:
 
 ```text
-https://tracknow-backend.vercel.app/api
+https://track-now-bay.vercel.app/api
 ```
 
 ---
@@ -75,7 +75,7 @@ Do **not** create Vercel projects for the frontends. Only update env on **existi
 **Site configuration → Environment variables**
 
 ```env
-VITE_API_URL=https://tracknow-backend.vercel.app/api
+VITE_API_URL=https://track-now-bay.vercel.app/api
 ```
 
 **Deploys → Trigger deploy** (clear cache if needed).
@@ -83,7 +83,7 @@ VITE_API_URL=https://tracknow-backend.vercel.app/api
 ### Netlify — Admin (`frontend-admin`)
 
 ```env
-VITE_API_URL=https://tracknow-backend.vercel.app/api
+VITE_API_URL=https://track-now-bay.vercel.app/api
 VITE_CLIENT_APP_URL=https://tracknow-client.netlify.app
 ```
 
@@ -98,7 +98,7 @@ Redeploy admin.
 **`frontend-client/.env`** and **`frontend-admin/.env`:**
 
 ```env
-VITE_API_URL=https://tracknow-backend.vercel.app/api
+VITE_API_URL=https://track-now-bay.vercel.app/api
 ```
 
 Admin also:
