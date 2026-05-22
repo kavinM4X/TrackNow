@@ -12,7 +12,7 @@ export default function BatchEntry() {
   const [sessions, setSessions] = useState([]);
   const [date, setDate] = useState(todayISO());
   const [location, setLocation] = useState('Coimbatore');
-  const [driverName, setDriverName] = useState('');
+  const [vehicleOwnerName, setVehicleOwnerName] = useState('');
   const [rentalAmount, setRentalAmount] = useState('');
   const [expiryHours, setExpiryHours] = useState(8);
   const [selectedIds, setSelectedIds] = useState([]);
@@ -46,8 +46,8 @@ export default function BatchEntry() {
 
   const onGenerate = async () => {
     setError('');
-    if (!driverName.trim()) {
-      setError('Enter driver name');
+    if (!vehicleOwnerName.trim()) {
+      setError('Enter vehicle owner name');
       return;
     }
     if (!rentalAmount || Number(rentalAmount) <= 0) {
@@ -63,7 +63,7 @@ export default function BatchEntry() {
       const res = await api.post('/admin/vehicle-rentals', {
         date,
         location,
-        vehicleOwnerName: driverName.trim(),
+        vehicleOwnerName: vehicleOwnerName.trim(),
         rentalAmount: Number(rentalAmount),
         expiryHours,
         userIds: selectedIds
@@ -79,29 +79,10 @@ export default function BatchEntry() {
     }
   };
 
-  const copyLink = async () => {
+  const copyLink = () => {
     if (!lastLink?.driverUrl) return;
-    try {
-      await navigator.clipboard.writeText(lastLink.driverUrl);
-      alert('Link copied');
-    } catch {
-      alert('Could not copy link');
-    }
-  };
-
-  const shareLink = async () => {
-    if (!lastLink?.driverUrl) return;
-    const title = 'TrackNow — Driver entry';
-    const text = `Driver link for ${driverName.trim() || 'batch entry'} (${formatDateShort(date)})`;
-    if (navigator.share) {
-      try {
-        await navigator.share({ title, text, url: lastLink.driverUrl });
-        return;
-      } catch (err) {
-        if (err?.name === 'AbortError') return;
-      }
-    }
-    await copyLink();
+    navigator.clipboard?.writeText(lastLink.driverUrl);
+    alert('Link copied');
   };
 
   return (
@@ -133,12 +114,12 @@ export default function BatchEntry() {
           Vehicle Rental
         </p>
 
-        <label className="field-label">Driver name</label>
+        <label className="field-label">Vehicle owner name</label>
         <input
           className="field-input"
-          placeholder=""
-          value={driverName}
-          onChange={(e) => setDriverName(e.target.value)}
+          placeholder="e.g. Murugan Transport"
+          value={vehicleOwnerName}
+          onChange={(e) => setVehicleOwnerName(e.target.value)}
         />
 
         <label className="field-label">Rental amount (₹)</label>
@@ -238,14 +219,9 @@ export default function BatchEntry() {
         {lastLink?.driverUrl && (
           <div className={vr.linkBox}>
             <span className={vr.linkText}>{lastLink.driverUrl}</span>
-            <div className={vr.linkActions}>
-              <button type="button" className={vr.shareBtn} onClick={shareLink}>
-                Share
-              </button>
-              <button type="button" className={vr.copyBtn} onClick={copyLink}>
-                Copy
-              </button>
-            </div>
+            <button type="button" className={vr.copyBtn} onClick={copyLink}>
+              Copy
+            </button>
           </div>
         )}
       </div>
@@ -268,7 +244,7 @@ export default function BatchEntry() {
               </span>
             </div>
             <div className={vr.sessionMeta}>
-              Driver: {s.vehicleOwnerName} · {formatINR(s.rentalAmount)}
+              {s.vehicleOwnerName} · {formatINR(s.rentalAmount)}
             </div>
             <div className={vr.sessionMeta}>
               {s.entries?.length || 0} users

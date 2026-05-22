@@ -99,22 +99,6 @@
   white-space: nowrap;
 }
 
-.linkActions {
-  display: flex;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.shareBtn {
-  background: var(--blue);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 4px 10px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
 .copyBtn {
   background: #2e7d52;
   color: white;

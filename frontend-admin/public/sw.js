@@ -7,22 +7,5 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  if (request.method !== 'GET') return;
-
-  let url;
-  try {
-    url = new URL(request.url);
-  } catch {
-    return;
-  }
-
-  // Do not intercept API, extensions, or other origins — avoids "Failed to fetch" in console
-  if (url.origin !== self.location.origin) return;
-  if (!url.protocol.startsWith('http')) return;
-
-  event.respondWith(
-    fetch(request).catch(() => new Response('', { status: 503, statusText: 'Offline' }))
-  );
-});
+/* Empty handler: satisfies install criteria without intercepting network traffic */
+self.addEventListener('fetch', () => {});

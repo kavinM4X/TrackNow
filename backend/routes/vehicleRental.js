@@ -12,13 +12,10 @@ const {
   summarizeSession
 } = require('../utils/vehicleRentalCalc');
 const { roundMoney } = require('../utils/batchCalc');
+const { getClientPortalBase } = require('../utils/clientPortalBase');
 
 function clientPortalBase() {
-  return (
-    process.env.FRONTEND_CLIENT_URL ||
-    process.env.CLIENT_PORTAL_URL ||
-    'http://localhost:5173'
-  ).replace(/\/$/, '');
+  return getClientPortalBase();
 }
 
 function sessionPayload(doc) {

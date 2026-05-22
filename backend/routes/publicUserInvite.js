@@ -4,16 +4,13 @@ const { protect, adminOnly } = require('../middleware/auth');
 const PublicUserInviteLink = require('../models/PublicUserInviteLink');
 const Log = require('../models/Log');
 const { createAppUser } = require('../utils/createAppUser');
+const { getClientPortalBase } = require('../utils/clientPortalBase');
 
 const adminRouter = express.Router();
 const publicRouter = express.Router();
 
 function clientPortalBase() {
-  return (
-    process.env.FRONTEND_CLIENT_URL ||
-    process.env.CLIENT_PORTAL_URL ||
-    'http://localhost:5173'
-  ).replace(/\/$/, '');
+  return getClientPortalBase();
 }
 
 function buildRegisterUrl(token) {
