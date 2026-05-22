@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
 import api, { clearSession } from '../../api/client';
-import { formatDateDayMonth } from '../../utils/format';
+import { formatDateDayMonth, todayDayMonthLabel } from '../../utils/format';
 
 function ensure12Months(data = []) {
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -71,6 +71,30 @@ export default function AdminDashboard({ onLogout }) {
   const [chart, setChart] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [todayLabel, setTodayLabel] = useState(() => todayDayMonthLabel());
+
+  /** Update header date at local 12:01 AM (and on mount) */
+  useEffect(() => {
+    const refresh = () => setTodayLabel(todayDayMonthLabel());
+
+    const scheduleNextMidnight = () => {
+      const now = new Date();
+      const next = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 1, 0, 0);
+      if (now >= next) next.setDate(next.getDate() + 1);
+      return setTimeout(() => {
+        refresh();
+        timerId = scheduleNextMidnight();
+      }, next.getTime() - now.getTime());
+    };
+
+    refresh();
+    let timerId = scheduleNextMidnight();
+    const poll = setInterval(refresh, 60_000);
+    return () => {
+      clearTimeout(timerId);
+      clearInterval(poll);
+    };
+  }, []);
 
   useEffect(() => {
     Promise.all([
@@ -87,8 +111,6 @@ export default function AdminDashboard({ onLogout }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const today = formatDateDayMonth(new Date().toISOString().split('T')[0]);
-
   const logout = () => {
     if (!window.confirm('Are you sure you want to logout?')) return;
     clearSession();
@@ -97,7 +119,7 @@ export default function AdminDashboard({ onLogout }) {
   };
 
   return (
-    <AppShell title="Admin Dashboard" headerRight={<span style={{ fontSize: 12, opacity: 0.8 }}>{today}</span>}>
+    <AppShell title="Admin Dashboard" headerRight={<span style={{ fontSize: 12, opacity: 0.8 }}>{todayLabel}</span>}>
       {loading ? (
         <div className="spinner" />
       ) : (
