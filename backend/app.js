@@ -48,10 +48,11 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/health', (req, res) => {
+  const onNetlify = Boolean(process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME);
   res.json({
     status: 'OK',
     message: 'TrackNow API is running',
-    host: process.env.NETLIFY ? 'netlify' : 'node',
+    host: onNetlify ? 'netlify' : 'node',
     features: ['vehicle-rental', 'user-invite', 'public-register']
   });
 });

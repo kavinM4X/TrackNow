@@ -170,7 +170,7 @@ router.get('/recent-bookings', protect, adminOnly, async (req, res) => {
   }
 });
 
-// Public registration link (no expiry) — also mounted in app.js
+// GET/POST /api/admin/user-invite — public registration link (no expiry)
 const { adminRouter: userInviteAdmin } = require('./publicUserInvite');
 router.use('/user-invite', userInviteAdmin);
 

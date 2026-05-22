@@ -7,7 +7,7 @@
 
 [build.environment]
   NODE_VERSION = "18"
-  VITE_API_URL = "https://tracknow-h0h3.onrender.com/api"
+  VITE_API_URL = "https://tracknow-api.netlify.app/api"
 
 [[redirects]]
   from = "/*"
