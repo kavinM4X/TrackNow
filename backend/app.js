@@ -33,8 +33,7 @@ const { adminRouter: vehicleRentalAdmin, publicRouter: vehicleRentalPublic } = r
 app.use('/api/admin/vehicle-rentals', vehicleRentalAdmin);
 app.use('/api/public/vehicle-rental', vehicleRentalPublic);
 
-const { adminRouter: userInviteAdmin, publicRouter: userInvitePublic } = require('./routes/publicUserInvite');
-app.use('/api/admin/user-invite', userInviteAdmin);
+const { publicRouter: userInvitePublic } = require('./routes/publicUserInvite');
 app.use('/api/public/register-user', userInvitePublic);
 
 app.use('/api/admin', require('./routes/admin'));
@@ -52,7 +51,8 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
     message: 'TrackNow API is running',
-    host: process.env.NETLIFY ? 'netlify' : 'node'
+    host: process.env.NETLIFY ? 'netlify' : 'node',
+    features: ['vehicle-rental', 'user-invite', 'public-register']
   });
 });
 
