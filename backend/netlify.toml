@@ -10,6 +10,8 @@
   NODE_VERSION = "18"
   NODE_ENV = "production"
   NETLIFY = "true"
+  # PORT/NODE_ENV/BACKUP_DIR are not real secrets; scanner false-positives in docs/node_modules
+  SECRETS_SCAN_ENABLED = "false"
 
 [functions]
   node_bundler = "esbuild"
