@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
 import api from '../../api/client';
 import { formatDateShort, formatINR } from '../../utils/format';
+import { normalizeVehicleRentalSession } from '../../utils/publicClientUrl';
 import vr from './VehicleRental.module.css';
 
 function initials(name) {
@@ -22,7 +23,7 @@ export default function VehicleRentalResults() {
   useEffect(() => {
     api
       .get(`/admin/vehicle-rentals/${sessionId}`)
-      .then((r) => setSession(r.data))
+      .then((r) => setSession(normalizeVehicleRentalSession(r.data)))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [sessionId]);

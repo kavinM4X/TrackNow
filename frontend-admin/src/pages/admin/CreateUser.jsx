@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import AppShell from '../../components/layout/AppShell';
 import api from '../../api/client';
+import { normalizeInvitePayload } from '../../utils/publicClientUrl';
 import vr from './VehicleRental.module.css';
 
 export default function CreateUser() {
@@ -18,7 +19,7 @@ export default function CreateUser() {
   const loadInvite = () => {
     api
       .get('/admin/user-invite')
-      .then((r) => setInvite(r.data.hasLink ? r.data : null))
+      .then((r) => setInvite(r.data.hasLink ? normalizeInvitePayload(r.data) : null))
       .catch(console.error);
   };
 
@@ -30,7 +31,7 @@ export default function CreateUser() {
     setInviteLoading(true);
     try {
       const res = await api.post('/admin/user-invite');
-      setInvite(res.data);
+      setInvite(normalizeInvitePayload(res.data));
     } catch (err) {
       alert(err.response?.data?.error || 'Failed to generate link');
     } finally {

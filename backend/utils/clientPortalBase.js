@@ -21,12 +21,24 @@ function pickClientOriginFromCors(origins) {
   return notAdmin || null;
 }
 
+const PRODUCTION_CLIENT_DEFAULT = 'https://tracknow-client.netlify.app';
+
+function isProductionRuntime() {
+  return (
+    process.env.NODE_ENV === 'production' ||
+    process.env.NETLIFY === 'true' ||
+    Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME)
+  );
+}
+
 function getClientPortalBase() {
   const explicit = process.env.FRONTEND_CLIENT_URL || process.env.CLIENT_PORTAL_URL;
   if (explicit) return explicit.replace(/\/$/, '');
 
   const fromCors = pickClientOriginFromCors(parseCorsOrigins());
   if (fromCors) return fromCors;
+
+  if (isProductionRuntime()) return PRODUCTION_CLIENT_DEFAULT;
 
   return 'http://localhost:5173';
 }

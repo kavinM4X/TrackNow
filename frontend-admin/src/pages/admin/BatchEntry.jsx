@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
 import api from '../../api/client';
 import { formatDateShort, formatINR, todayISO } from '../../utils/format';
+import { normalizeVehicleRentalSession } from '../../utils/publicClientUrl';
 import styles from './BatchEntry.module.css';
 import vr from './VehicleRental.module.css';
 
@@ -22,7 +23,10 @@ export default function BatchEntry() {
   const [error, setError] = useState('');
 
   const loadSessions = () => {
-    api.get('/admin/vehicle-rentals').then((r) => setSessions(r.data)).catch(console.error);
+    api
+      .get('/admin/vehicle-rentals')
+      .then((r) => setSessions(r.data.map(normalizeVehicleRentalSession)))
+      .catch(console.error);
   };
 
   useEffect(() => {
@@ -68,7 +72,7 @@ export default function BatchEntry() {
         expiryHours,
         userIds: selectedIds
       });
-      setLastLink(res.data);
+      setLastLink(normalizeVehicleRentalSession(res.data));
       setSelectedIds([]);
       setSearch('');
       loadSessions();
