@@ -3,9 +3,20 @@ import { useParams } from 'react-router-dom';
 import publicApi from '../../api/publicClient';
 import styles from './PublicRegister.module.css';
 
+function formatCountdown(ms) {
+  if (ms <= 0) return '00:00:00';
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return [h, m, sec].map((n) => String(n).padStart(2, '0')).join(':');
+}
+
 export default function PublicRegister() {
   const { token } = useParams();
   const [valid, setValid] = useState(null);
+  const [expiresAt, setExpiresAt] = useState(null);
+  const [countdown, setCountdown] = useState('');
   const [error, setError] = useState('');
   const [form, setForm] = useState({
     name: '',
@@ -20,12 +31,32 @@ export default function PublicRegister() {
   useEffect(() => {
     publicApi
       .get(`/public/register-user/${token}`)
-      .then(() => setValid(true))
+      .then((r) => {
+        setValid(true);
+        setExpiresAt(r.data.expiresAt);
+        setError('');
+      })
       .catch((err) => {
         setValid(false);
-        setError(err.response?.data?.error || 'Invalid registration link');
+        const msg = err.response?.data?.error || 'Invalid registration link';
+        setError(msg);
       });
   }, [token]);
+
+  useEffect(() => {
+    if (!expiresAt) return undefined;
+    const tick = () => {
+      const ms = new Date(expiresAt) - Date.now();
+      setCountdown(formatCountdown(ms));
+      if (ms <= 0) {
+        setValid(false);
+        setError('This registration link has expired');
+      }
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [expiresAt]);
 
   const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
 
@@ -42,6 +73,7 @@ export default function PublicRegister() {
       setDone(true);
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed');
+      if (err.response?.status === 410) setValid(false);
     } finally {
       setSubmitting(false);
     }
@@ -85,6 +117,12 @@ export default function PublicRegister() {
       <div className={styles.header}>
         <h1>Create your account</h1>
         <p>Register as a farmer — no admin login needed</p>
+        {expiresAt && (
+          <div className={styles.expiryBar}>
+            <span>Link expires in</span>
+            <span className={styles.expiryTime}>{countdown}</span>
+          </div>
+        )}
       </div>
       <form className={styles.card} onSubmit={onSubmit}>
         <label className={styles.label}>Full name</label>

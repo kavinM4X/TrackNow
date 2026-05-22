@@ -6,6 +6,18 @@ import api from '../../api/client';
 import { normalizeInvitePayload } from '../../utils/publicClientUrl';
 import vr from './VehicleRental.module.css';
 
+function formatExpiryLabel(expiresAt) {
+  if (!expiresAt) return null;
+  const d = new Date(expiresAt);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
 export default function CreateUser() {
   const navigate = useNavigate();
   const [trackerOn, setTrackerOn] = useState(false);
@@ -52,7 +64,7 @@ export default function CreateUser() {
   const shareInviteLink = async () => {
     if (!invite?.registerUrl) return;
     const title = 'TrackNow — Create account';
-    const text = 'Register your TrackNow farmer account (no expiry)';
+    const text = 'Register your TrackNow farmer account (link expires in 18 hours)';
     if (navigator.share) {
       try {
         await navigator.share({ title, text, url: invite.registerUrl });
@@ -94,7 +106,8 @@ export default function CreateUser() {
           Share registration link
         </p>
         <p style={{ fontSize: 12, color: '#666', margin: '0 0 10px' }}>
-          Anyone with this link can create a <strong>farmer (user)</strong> account — no login, no expiry.
+          Anyone with this link can create a <strong>farmer (user)</strong> account — no login. Link expires
+          after <strong>18 hours</strong> (regenerate to extend).
         </p>
         <button
           type="button"
@@ -110,6 +123,17 @@ export default function CreateUser() {
         </button>
         {invite?.registerUrl && (
           <div className={vr.linkBox} style={{ marginTop: 10 }}>
+            {invite.expired ? (
+              <p style={{ fontSize: 12, color: '#c0392b', margin: '0 0 8px' }}>
+                This link has expired — tap Regenerate link.
+              </p>
+            ) : (
+              invite.expiresAt && (
+                <p style={{ fontSize: 12, color: '#666', margin: '0 0 8px' }}>
+                  Expires: {formatExpiryLabel(invite.expiresAt)}
+                </p>
+              )
+            )}
             <span className={vr.linkText}>{invite.registerUrl}</span>
             <div className={vr.linkActions}>
               <button type="button" className={vr.shareBtn} onClick={shareInviteLink}>
