@@ -1,15 +1,67 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import AppShell from '../../components/layout/AppShell';
 import api from '../../api/client';
+import vr from './VehicleRental.module.css';
 
 export default function CreateUser() {
   const navigate = useNavigate();
   const [trackerOn, setTrackerOn] = useState(false);
   const [error, setError] = useState('');
+  const [invite, setInvite] = useState(null);
+  const [inviteLoading, setInviteLoading] = useState(false);
+
   const { register, handleSubmit, watch } = useForm({ defaultValues: { role: 'user' } });
   const password = watch('password');
+
+  const loadInvite = () => {
+    api
+      .get('/admin/user-invite')
+      .then((r) => setInvite(r.data.hasLink ? r.data : null))
+      .catch(console.error);
+  };
+
+  useEffect(() => {
+    loadInvite();
+  }, []);
+
+  const generateInviteLink = async () => {
+    setInviteLoading(true);
+    try {
+      const res = await api.post('/admin/user-invite');
+      setInvite(res.data);
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to generate link');
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+
+  const copyInviteLink = async () => {
+    if (!invite?.registerUrl) return;
+    try {
+      await navigator.clipboard.writeText(invite.registerUrl);
+      alert('Link copied');
+    } catch {
+      alert('Could not copy link');
+    }
+  };
+
+  const shareInviteLink = async () => {
+    if (!invite?.registerUrl) return;
+    const title = 'TrackNow — Create account';
+    const text = 'Register your TrackNow farmer account (no expiry)';
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text, url: invite.registerUrl });
+        return;
+      } catch (err) {
+        if (err?.name === 'AbortError') return;
+      }
+    }
+    await copyInviteLink();
+  };
 
   const onSubmit = async (data) => {
     setError('');
@@ -35,6 +87,43 @@ export default function CreateUser() {
 
   return (
     <AppShell title="Create User" backPath="/admin/users">
+      <div className="card" style={{ marginBottom: 12 }}>
+        <p className={vr.sectionTitle}>
+          <span className={vr.sectionBar} />
+          Share registration link
+        </p>
+        <p style={{ fontSize: 12, color: '#666', margin: '0 0 10px' }}>
+          Anyone with this link can create a <strong>farmer (user)</strong> account — no login, no expiry.
+        </p>
+        <button
+          type="button"
+          className="btn-primary"
+          disabled={inviteLoading}
+          onClick={generateInviteLink}
+        >
+          {inviteLoading
+            ? 'Generating…'
+            : invite?.registerUrl
+              ? 'Regenerate link'
+              : 'Generate registration link'}
+        </button>
+        {invite?.registerUrl && (
+          <div className={vr.linkBox} style={{ marginTop: 10 }}>
+            <span className={vr.linkText}>{invite.registerUrl}</span>
+            <div className={vr.linkActions}>
+              <button type="button" className={vr.shareBtn} onClick={shareInviteLink}>
+                Share
+              </button>
+              <button type="button" className={vr.copyBtn} onClick={copyInviteLink}>
+                Copy
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <p className="section-title">Or create user manually</p>
+
       <form className="card" onSubmit={handleSubmit(onSubmit)}>
         <label className="field-label">Full Name</label>
         <input className="field-input" {...register('name', { required: true })} />
@@ -84,7 +173,9 @@ export default function CreateUser() {
           </div>
         )}
         {error && <p className="form-error">{error}</p>}
-        <button type="submit" className="btn-primary">Create User</button>
+        <button type="submit" className="btn-primary">
+          Create User
+        </button>
       </form>
     </AppShell>
   );

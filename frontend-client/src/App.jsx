@@ -13,6 +13,7 @@ import Tracker from './pages/client/Tracker';
 import Settings from './pages/client/Settings';
 import DriverRentalPortal from './pages/driver/DriverRentalPortal';
 import DriverRentalUser from './pages/driver/DriverRentalUser';
+import PublicRegister from './pages/register/PublicRegister';
 import './styles/tracknow.css';
 
 function HomeRedirect({ user }) {
@@ -52,6 +53,7 @@ function App() {
       <Routes>
         <Route path="/driver/rental/:token" element={<DriverRentalPortal />} />
         <Route path="/driver/rental/:token/user/:userId" element={<DriverRentalUser />} />
+        <Route path="/register/:token" element={<PublicRegister />} />
         <Route
           path="/login"
           element={

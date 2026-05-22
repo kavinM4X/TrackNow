@@ -32,6 +32,11 @@ app.use('/api/logs', require('./routes/logs'));
 const { adminRouter: vehicleRentalAdmin, publicRouter: vehicleRentalPublic } = require('./routes/vehicleRental');
 app.use('/api/admin/vehicle-rentals', vehicleRentalAdmin);
 app.use('/api/public/vehicle-rental', vehicleRentalPublic);
+
+const { adminRouter: userInviteAdmin, publicRouter: userInvitePublic } = require('./routes/publicUserInvite');
+app.use('/api/admin/user-invite', userInviteAdmin);
+app.use('/api/public/register-user', userInvitePublic);
+
 app.use('/api/admin', require('./routes/admin'));
 
 app.get('/', (req, res) => {

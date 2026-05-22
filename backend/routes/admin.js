@@ -216,41 +216,32 @@ router.patch('/users/:id/toggle-status', protect, adminOnly, async (req, res) =>
 router.post('/users', protect, adminOnly, async (req, res) => {
   try {
     const { name, phone, email, role, password, trackerEnabled, vehicleId } = req.body;
-    const normalizedPhone = normalizePhone(phone);
+    const { createAppUser } = require('../utils/createAppUser');
 
-    if (!normalizedPhone || !password) {
-      return res.status(400).json({ error: 'Phone and password are required' });
-    }
-
-    const exists = await User.findOne({ phone: normalizedPhone });
-    if (exists) return res.status(400).json({ error: 'Phone already in use' });
-
-    // Plain password — User model pre-save hook hashes once
-    const user = await User.create({
+    const result = await createAppUser({
       name,
-      phone: normalizedPhone,
+      phone,
       email,
-      role: role || 'user',
       password,
-      isActive: true,
-      trackerEnabled: trackerEnabled || false,
-      vehicleId: vehicleId || null
+      role: role || 'user',
+      trackerEnabled,
+      vehicleId,
+      activatedBy: req.user._id
     });
-    
-    if (trackerEnabled && vehicleId) {
-      await TrackerConfig.create({
-        userId: user._id, userName: name, vehicleId,
-        isEnabled: true, activatedAt: new Date(),
-        activatedBy: req.user.id
-      });
+
+    if (result.error) {
+      return res.status(result.status).json({ error: result.error });
     }
-    
-    await Log.create({ 
-      userId: req.user.id, userName: req.user.name, 
-      action: `Created user ${name}`, type: 'admin', page: 'create-user' 
+
+    await Log.create({
+      userId: req.user._id,
+      userName: req.user.name,
+      action: `Created user ${result.user.name}`,
+      type: 'admin',
+      page: 'create-user'
     });
-    
-    res.status(201).json({ message: 'User created', userId: user._id });
+
+    res.status(201).json({ message: 'User created', userId: result.user._id });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
