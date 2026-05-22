@@ -196,18 +196,12 @@ export default function DriverRentalUser() {
               <span className={styles.neg}>−{formatINR(preview.doublesAmt)}</span>
             </div>
             <div className={styles.netBox}>
-              <span>Net silk value</span>
+              <span>Total value</span>
               <span>{formatINR(preview.netSilk)}</span>
             </div>
-            <div className={styles.calcLine}>
-              <span>
-                Rental: {form.goodSilkKg || 0} × {formatINR(rate)}
-              </span>
-              <span className={styles.neg}>−{formatINR(preview.rental)}</span>
-            </div>
             <div className={styles.finalBox}>
-              <span>Final amount</span>
-              <span style={{ fontSize: 18 }}>{formatINR(preview.finalAmount)}</span>
+              <span>Rental total value</span>
+              <span style={{ fontSize: 18 }}>−{formatINR(preview.rental)}</span>
             </div>
           </div>
         </div>

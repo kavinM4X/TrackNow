@@ -144,7 +144,7 @@ export default function BatchDetail() {
             <LineCost label="Doubles" kg={doubles} rate={doublesRate} amount={batch.doublesAmount} />
             {netSilk != null && (
               <div className={styles.netSilkRow}>
-                <strong>Net silk value</strong>
+                <strong>Total value</strong>
                 <strong style={{ color: 'var(--green)' }}>{formatINR(netSilk)}</strong>
               </div>
             )}

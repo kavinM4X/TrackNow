@@ -210,7 +210,9 @@ export default function DriverRentalPortal() {
                     <div style={{ fontWeight: 600 }}>{e.userName}</div>
                     <div style={{ fontSize: 12, color: '#888' }}>
                       {e.goodSilkKg || 0} kg
-                      {e.rentalAmount != null ? ` · ${formatINR(e.rentalAmount)} rental` : ''}
+                      {e.rentalAmount != null
+                        ? ` · Rental total value −${formatINR(e.rentalAmount)}`
+                        : ''}
                     </div>
                   </div>
                 </div>
