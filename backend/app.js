@@ -16,55 +16,18 @@ app.use(cors(corsOrigins.length ? { origin: corsOrigins } : {}));
 app.use(express.json());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
-/** Vercel preview hits `/` — do not require MongoDB for root + health */
-const skipDbPaths = new Set(['/', '/api/health']);
-app.use(async (req, res, next) => {
-  if (skipDbPaths.has(req.path)) return next();
-  try {
-    await initApp();
-    next();
-  } catch (err) {
-    console.error('initApp failed:', err.message);
-    res.status(503).json({
-      error: 'Database unavailable',
-      message: err.message,
-      hint: !process.env.MONGODB_URI
-        ? 'Set MONGODB_URI in Vercel Environment Variables'
-        : 'Check MongoDB Atlas Network Access (0.0.0.0/0)'
-    });
-  }
-});
-
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/bookings', require('./routes/bookings'));
-app.use('/api/batches', require('./routes/batches'));
-const marketRatesRouter = require('./routes/marketrates');
-app.use('/api/market-rates', marketRatesRouter);
-app.use('/api/marketrates', marketRatesRouter);
-
-const trackerRouter = require('./routes/tracker');
-app.use('/api/tracker', trackerRouter);
-app.use('/api/admin/tracker', trackerRouter);
-
-app.use('/api/logs', require('./routes/logs'));
-
-const { adminRouter: vehicleRentalAdmin, publicRouter: vehicleRentalPublic } = require('./routes/vehicleRental');
-app.use('/api/admin/vehicle-rentals', vehicleRentalAdmin);
-app.use('/api/public/vehicle-rental', vehicleRentalPublic);
-
-const { publicRouter: userInvitePublic } = require('./routes/publicUserInvite');
-app.use('/api/public/register-user', userInvitePublic);
-
-app.use('/api/admin', require('./routes/admin'));
-
-app.get('/', (req, res) => {
-  res.json({
+function rootPayload() {
+  return {
     name: 'TrackNow API',
     status: 'running',
     health: '/api/health',
     docs: 'Use /api/* endpoints from the admin or client app'
-  });
-});
+  };
+}
+
+/** No database — must run before DB middleware (Vercel preview opens `/`) */
+app.get('/', (req, res) => res.json(rootPayload()));
+app.get('/api', (req, res) => res.json(rootPayload()));
 
 app.get('/api/health', (req, res) => {
   const onServerless = Boolean(
@@ -102,7 +65,6 @@ async function initApp() {
     const n = await expireStaleTrackerDays();
     if (n > 0) console.log(`Auto-disabled ${n} expired tracker(s)`);
 
-    // node-cron does not run on serverless (Netlify/Vercel); use BACKUP_ENABLED=false or external cron
     if (!process.env.NETLIFY && !process.env.VERCEL) {
       const { startMonthlyBackupScheduler } = require('./jobs/scheduleMonthlyBackup');
       startMonthlyBackupScheduler();
@@ -111,5 +73,50 @@ async function initApp() {
 
   return initPromise;
 }
+
+app.use(async (req, res, next) => {
+  try {
+    await initApp();
+    next();
+  } catch (err) {
+    console.error('initApp failed:', err.message);
+    res.status(503).json({
+      error: 'Database unavailable',
+      message: err.message,
+      hint: !process.env.MONGODB_URI
+        ? 'Set MONGODB_URI in Vercel Environment Variables'
+        : 'Check MongoDB Atlas Network Access (0.0.0.0/0)'
+    });
+  }
+});
+
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/bookings', require('./routes/bookings'));
+app.use('/api/batches', require('./routes/batches'));
+const marketRatesRouter = require('./routes/marketrates');
+app.use('/api/market-rates', marketRatesRouter);
+app.use('/api/marketrates', marketRatesRouter);
+
+const trackerRouter = require('./routes/tracker');
+app.use('/api/tracker', trackerRouter);
+app.use('/api/admin/tracker', trackerRouter);
+
+app.use('/api/logs', require('./routes/logs'));
+
+const { adminRouter: vehicleRentalAdmin, publicRouter: vehicleRentalPublic } = require('./routes/vehicleRental');
+app.use('/api/admin/vehicle-rentals', vehicleRentalAdmin);
+app.use('/api/public/vehicle-rental', vehicleRentalPublic);
+
+const { publicRouter: userInvitePublic } = require('./routes/publicUserInvite');
+app.use('/api/public/register-user', userInvitePublic);
+
+app.use('/api/admin', require('./routes/admin'));
+
+app.use((err, req, res, _next) => {
+  console.error('Unhandled error:', err);
+  if (!res.headersSent) {
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
 
 module.exports = { app, initApp };

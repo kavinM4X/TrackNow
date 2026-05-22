@@ -1,2 +1,3 @@
-/** Vercel serverless entry — Express handles requests; DB init runs in app middleware */
-module.exports = require('../app').app;
+const { app } = require('../app');
+
+module.exports = (req, res) => app(req, res);
