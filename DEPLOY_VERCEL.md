@@ -31,8 +31,18 @@ If you need **zero cold starts**, use Render **paid** always-on, or Vercel Pro +
 2. [vercel.com/new](https://vercel.com/new) → Import **TrackNow** → GitHub.
 3. **Project name:** `tracknow-backend`
 4. **Root Directory:** `backend` ← required
-5. Framework: **Other**
-6. **Environment variables** (Production):
+5. Framework: **Express** (or **Other**)
+6. **Build settings:**
+
+| Setting | Value |
+|---------|--------|
+| **Build Command** | `npm run build` |
+| **Output Directory** | leave **empty** (not `dist`) |
+| **Install Command** | `npm install` |
+
+If deploy fails with `Missing script: "build"`, pull latest `main` (includes a no-op `build` script in `backend/package.json`).
+
+7. **Environment variables** (Production):
 
 | Key | Value |
 |-----|--------|
@@ -43,7 +53,9 @@ If you need **zero cold starts**, use Render **paid** always-on, or Vercel Pro +
 | `FRONTEND_CLIENT_URL` | `https://tracknow-client.netlify.app` |
 | `CORS_ORIGIN` | `http://localhost:5173,http://localhost:5174,https://tracknow-client.netlify.app,https://tracknow-admin.netlify.app` |
 
-7. **Deploy**
+**Skip on Vercel:** `PORT` (not used). Optional: omit `BACKUP_DIR`, `BACKUP_RETENTION_MONTHS`.
+
+8. **Deploy**
 8. Test: `https://tracknow-backend.vercel.app/api/health` → `"host": "vercel"`
 
 Copy your real API base URL:

@@ -4,6 +4,7 @@
   "description": "Backend API for TrackNow Sericulture Management System",
   "main": "server.js",
   "scripts": {
+    "build": "node -e \"console.log('TrackNow API — no compile step')\"",
     "start": "node server.js",
     "dev": "nodemon server.js",
     "backup": "node scripts/run-backup.js",
