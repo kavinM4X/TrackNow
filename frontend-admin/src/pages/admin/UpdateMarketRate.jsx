@@ -42,12 +42,16 @@ export default function UpdateMarketRate() {
       date: data.date,
       coimbatore: Number(data.coimbatore),
       coimbatoreAvg: Number(data.coimbatoreAvg) || null,
+      coimbatoreMin: Number(data.coimbatoreMin) || null,
       mamballi: Number(data.mamballi),
       mamballiAvg: Number(data.mamballiAvg) || null,
+      mamballiMin: Number(data.mamballiMin) || null,
       ramnagar: Number(data.ramnagar),
       ramnagarAvg: Number(data.ramnagarAvg) || null,
+      ramnagarMin: Number(data.ramnagarMin) || null,
       dharmapuri: Number(data.dharmapuri),
-      dharmapuriAvg: Number(data.dharmapuriAvg) || null
+      dharmapuriAvg: Number(data.dharmapuriAvg) || null,
+      dharmapuriMin: Number(data.dharmapuriMin) || null
     };
     try {
       if (editId) {
@@ -102,6 +106,13 @@ export default function UpdateMarketRate() {
               className="field-input"
               placeholder="Avg - manual enter"
               {...register(`${key}Avg`, { min: 1 })}
+            />
+            <input
+              type="number"
+              min={1}
+              className="field-input"
+              placeholder="Min - manual enter"
+              {...register(`${key}Min`, { min: 1 })}
             />
           </div>
         ))}

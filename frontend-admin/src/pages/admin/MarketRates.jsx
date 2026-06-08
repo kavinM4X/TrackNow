@@ -6,10 +6,10 @@ import { formatDateShort } from '../../utils/format';
 import styles from './MarketRates.module.css';
 
 const LOCS = [
-  { label: 'Coimbatore', key: 'coimbatore', avgKey: 'coimbatoreAvg', abbr: 'CBE' },
-  { label: 'Mamballi', key: 'mamballi', avgKey: 'mamballiAvg', abbr: 'MBL' },
-  { label: 'Ramnagar', key: 'ramnagar', avgKey: 'ramnagarAvg', abbr: 'RNG' },
-  { label: 'Dharmapuri', key: 'dharmapuri', avgKey: 'dharmapuriAvg', abbr: 'DHP' }
+  { label: 'Coimbatore', key: 'coimbatore', avgKey: 'coimbatoreAvg', minKey: 'coimbatoreMin', abbr: 'CBE' },
+  { label: 'Mamballi', key: 'mamballi', avgKey: 'mamballiAvg', minKey: 'mamballiMin', abbr: 'MBL' },
+  { label: 'Ramnagar', key: 'ramnagar', avgKey: 'ramnagarAvg', minKey: 'ramnagarMin', abbr: 'RNG' },
+  { label: 'Dharmapuri', key: 'dharmapuri', avgKey: 'dharmapuriAvg', minKey: 'dharmapuriMin', abbr: 'DHP' }
 ];
 
 const SUMMARY_ROTATE_MS = 3000;
@@ -20,7 +20,8 @@ function SummaryRotator({ latest }) {
       LOCS.map((loc) => {
         const rate = latest[loc.key];
         const avg = latest[loc.avgKey];
-        return `${loc.label}: ₹${rate ?? '—'} · Avg: ₹${avg ?? '—'}`;
+        const min = latest[loc.minKey];
+        return `${loc.label}: ₹${rate ?? '—'} · Avg: ₹${avg ?? '—'} · Min: ₹${min ?? '—'}`;
       }),
     [latest]
   );
@@ -37,6 +38,7 @@ function SummaryRotator({ latest }) {
   const loc = LOCS[index];
   const rate = latest[loc.key];
   const avg = latest[loc.avgKey];
+  const min = latest[loc.minKey];
 
   return (
     <div className={styles.summaryRotator} aria-live="polite">
@@ -44,6 +46,8 @@ function SummaryRotator({ latest }) {
         {loc.label}: <span className={styles.summaryRate}>₹{rate ?? '—'}</span>
         {' · '}
         <span className={styles.summaryAvg}>Avg: ₹{avg ?? '—'}</span>
+        {' · '}
+        <span className={styles.summaryAvg}>Min: ₹{min ?? '—'}</span>
       </div>
     </div>
   );

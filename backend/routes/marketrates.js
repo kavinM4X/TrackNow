@@ -56,12 +56,16 @@ router.post('/', protect, adminOnly, async (req, res) => {
       date,
       coimbatore,
       coimbatoreAvg,
+      coimbatoreMin,
       mamballi,
       mamballiAvg,
+      mamballiMin,
       ramnagar,
       ramnagarAvg,
+      ramnagarMin,
       dharmapuri,
-      dharmapuriAvg
+      dharmapuriAvg,
+      dharmapuriMin
     } = req.body;
     const rates = [coimbatore, mamballi, ramnagar, dharmapuri];
     const topRate = Math.max(...rates);
@@ -79,7 +83,19 @@ router.post('/', protect, adminOnly, async (req, res) => {
     if (existing) return res.status(409).json({ error: 'Rate already exists for this date', id: existing._id });
     
     const rate = await MarketRate.create({ 
-      date, coimbatore, coimbatoreAvg, mamballi, mamballiAvg, ramnagar, ramnagarAvg, dharmapuri, dharmapuriAvg,
+      date,
+      coimbatore,
+      coimbatoreAvg,
+      coimbatoreMin: coimbatoreMin ?? null,
+      mamballi,
+      mamballiAvg,
+      mamballiMin: mamballiMin ?? null,
+      ramnagar,
+      ramnagarAvg,
+      ramnagarMin: ramnagarMin ?? null,
+      dharmapuri,
+      dharmapuriAvg,
+      dharmapuriMin: dharmapuriMin ?? null,
       topRate, topMarket, minAvg, updatedBy: req.user.id 
     });
     
@@ -101,12 +117,16 @@ router.put('/:id', protect, adminOnly, async (req, res) => {
       date,
       coimbatore,
       coimbatoreAvg,
+      coimbatoreMin,
       mamballi,
       mamballiAvg,
+      mamballiMin,
       ramnagar,
       ramnagarAvg,
+      ramnagarMin,
       dharmapuri,
-      dharmapuriAvg
+      dharmapuriAvg,
+      dharmapuriMin
     } = req.body;
     const rates = [coimbatore, mamballi, ramnagar, dharmapuri];
     const topRate = Math.max(...rates);
@@ -122,7 +142,19 @@ router.put('/:id', protect, adminOnly, async (req, res) => {
     const rate = await MarketRate.findByIdAndUpdate(
       req.params.id,
       {
-        date, coimbatore, coimbatoreAvg, mamballi, mamballiAvg, ramnagar, ramnagarAvg, dharmapuri, dharmapuriAvg,
+        date,
+        coimbatore,
+        coimbatoreAvg,
+        coimbatoreMin: coimbatoreMin ?? null,
+        mamballi,
+        mamballiAvg,
+        mamballiMin: mamballiMin ?? null,
+        ramnagar,
+        ramnagarAvg,
+        ramnagarMin: ramnagarMin ?? null,
+        dharmapuri,
+        dharmapuriAvg,
+        dharmapuriMin: dharmapuriMin ?? null,
         topRate, topMarket, minAvg, updatedBy: req.user.id
       },
       { new: true }

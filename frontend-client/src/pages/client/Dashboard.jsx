@@ -8,10 +8,10 @@ import { displayTotalKg, formatDateDayMonth } from '../../utils/format';
 import styles from './Dashboard.module.css';
 
 const MARKET_LOCATIONS = [
-  ['Coimbatore', 'coimbatore', 'coimbatoreAvg'],
-  ['Mamballi', 'mamballi', 'mamballiAvg'],
-  ['Ramnagar', 'ramnagar', 'ramnagarAvg'],
-  ['Dharmapuri', 'dharmapuri', 'dharmapuriAvg']
+  ['Coimbatore', 'coimbatore', 'coimbatoreAvg', 'coimbatoreMin'],
+  ['Mamballi', 'mamballi', 'mamballiAvg', 'mamballiMin'],
+  ['Ramnagar', 'ramnagar', 'ramnagarAvg', 'ramnagarMin'],
+  ['Dharmapuri', 'dharmapuri', 'dharmapuriAvg', 'dharmapuriMin']
 ];
 
 export default function Dashboard({ user }) {
@@ -58,7 +58,7 @@ export default function Dashboard({ user }) {
     return () => clearInterval(id);
   }, [marketRate]);
 
-  const [rateLabel, rateKey, rateAvgKey] = MARKET_LOCATIONS[rateIndex];
+  const [rateLabel, rateKey, rateAvgKey, rateMinKey] = MARKET_LOCATIONS[rateIndex];
 
   return (
     <AppShell
@@ -77,7 +77,10 @@ export default function Dashboard({ user }) {
                   <span className={styles.rateLoc}>{rateLabel}</span>
                   <span className={styles.rateVal}>₹{marketRate[rateKey] ?? '—'}</span>
                   <span className={styles.rateUnit}>
-                    Avg: ₹{marketRate[rateAvgKey] ?? marketRate.minAvg ?? '—'}
+                    Avg: ₹{marketRate[rateAvgKey] ?? '—'}
+                  </span>
+                  <span className={styles.rateUnit}>
+                    Min: ₹{marketRate[rateMinKey] ?? '—'}
                   </span>
                 </div>
                 <div className={styles.rateDots} aria-hidden>
