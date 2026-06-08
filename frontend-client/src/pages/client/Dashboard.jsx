@@ -7,9 +7,17 @@ import api from '../../api/client';
 import { displayTotalKg, formatDateDayMonth } from '../../utils/format';
 import styles from './Dashboard.module.css';
 
+const MARKET_LOCATIONS = [
+  ['Coimbatore', 'coimbatore', 'coimbatoreAvg'],
+  ['Mamballi', 'mamballi', 'mamballiAvg'],
+  ['Ramnagar', 'ramnagar', 'ramnagarAvg'],
+  ['Dharmapuri', 'dharmapuri', 'dharmapuriAvg']
+];
+
 export default function Dashboard({ user }) {
   const navigate = useNavigate();
   const [marketRate, setMarketRate] = useState(null);
+  const [rateIndex, setRateIndex] = useState(0);
   const [upcoming, setUpcoming] = useState(null);
   const [recentBatches, setRecentBatches] = useState([]);
   const [stats, setStats] = useState({ totalBatches: 0, totalKg: 0 });
@@ -42,12 +50,16 @@ export default function Dashboard({ user }) {
     return () => clearInterval(interval);
   }, [load]);
 
-  const locations = [
-    ['Coimbatore', 'coimbatore', 'coimbatoreAvg'],
-    ['Mamballi', 'mamballi', 'mamballiAvg'],
-    ['Ramnagar', 'ramnagar', 'ramnagarAvg'],
-    ['Dharmapuri', 'dharmapuri', 'dharmapuriAvg']
-  ];
+  useEffect(() => {
+    if (!marketRate) return undefined;
+    const id = setInterval(() => {
+      setRateIndex((i) => (i + 1) % MARKET_LOCATIONS.length);
+    }, 4000);
+    return () => clearInterval(id);
+  }, [marketRate]);
+
+  const [rateLabel, rateKey, rateAvgKey] = MARKET_LOCATIONS[rateIndex];
+
   return (
     <AppShell
       title="Dashboard"
@@ -60,16 +72,22 @@ export default function Dashboard({ user }) {
           {marketRate && (
             <>
               <p className="section-title">Live Market Rate</p>
-              <div className={styles.rateGrid}>
-                {locations.map(([label, key, avgKey]) => (
-                  <div key={key} className={styles.rateCard}>
-                    <span className={styles.rateLoc}>{label}</span>
-                    <span className={styles.rateVal}>₹{marketRate[key] ?? '—'}</span>
-                    <span className={styles.rateUnit}>
-                      Avg: ₹{marketRate[avgKey] ?? marketRate.minAvg ?? '—'}
-                    </span>
-                  </div>
-                ))}
+              <div className={styles.rateCarousel}>
+                <div key={rateIndex} className={styles.rateCardSingle}>
+                  <span className={styles.rateLoc}>{rateLabel}</span>
+                  <span className={styles.rateVal}>₹{marketRate[rateKey] ?? '—'}</span>
+                  <span className={styles.rateUnit}>
+                    Avg: ₹{marketRate[rateAvgKey] ?? marketRate.minAvg ?? '—'}
+                  </span>
+                </div>
+                <div className={styles.rateDots} aria-hidden>
+                  {MARKET_LOCATIONS.map(([label], i) => (
+                    <span
+                      key={label}
+                      className={`${styles.rateDot} ${i === rateIndex ? styles.rateDotOn : ''}`}
+                    />
+                  ))}
+                </div>
               </div>
             </>
           )}
