@@ -4,6 +4,7 @@ import api, { getStoredUser, clearSession, setSession, getToken } from './api/cl
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import ExpenseTrips from './pages/ExpenseTrips';
 import ExpenseEntry from './pages/ExpenseEntry';
 import SilkEntry from './pages/SilkEntry';
 import Parties from './pages/Parties';
@@ -61,7 +62,8 @@ function App() {
           <>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/expense" element={<ExpenseEntry />} />
+            <Route path="/expense" element={<ExpenseTrips />} />
+            <Route path="/expense/:vehicleId" element={<ExpenseEntry />} />
             <Route path="/silk" element={<SilkEntry />} />
             <Route path="/parties" element={<Parties />} />
             <Route path="/profile" element={<Profile onLogout={handleLogout} />} />

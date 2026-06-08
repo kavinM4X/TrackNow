@@ -21,8 +21,60 @@ function driverOnly(req, res, next) {
   next();
 }
 
-async function resolveDriverVehicle(userId) {
-  return DriverVehicle.findOne({ driverUserId: userId, status: 'active' });
+function nameMatches(a, b) {
+  if (!a || !b) return false;
+  return String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
+}
+
+async function linkVehicleToDriver(vehicle, userId) {
+  if (!vehicle.driverUserId) {
+    vehicle.driverUserId = userId;
+    await vehicle.save();
+  }
+  return vehicle;
+}
+
+async function listDriverVehicleDocs(userId, userName) {
+  const linked = await DriverVehicle.find({ driverUserId: userId, status: 'active' });
+
+  const driverNames = new Set();
+  if (userName) driverNames.add(String(userName).trim().toLowerCase());
+  linked.forEach((v) => {
+    if (v.driverName) driverNames.add(String(v.driverName).trim().toLowerCase());
+  });
+
+  const or = [{ driverUserId: userId }];
+  for (const name of driverNames) {
+    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    or.push({ driverName: new RegExp(`^${escaped}$`, 'i') });
+  }
+
+  const all = await DriverVehicle.find({ status: 'active', $or: or }).sort({ updatedAt: -1 });
+
+  const seen = new Set();
+  const merged = [];
+  for (const v of all) {
+    const id = String(v._id);
+    if (seen.has(id)) continue;
+    seen.add(id);
+    await linkVehicleToDriver(v, userId);
+    merged.push(v);
+  }
+  return merged;
+}
+
+async function listDriverVehicles(userId, userName) {
+  const docs = await listDriverVehicleDocs(userId, userName);
+  return Promise.all(docs.map(enrichVehicle));
+}
+
+async function resolveDriverVehicle(userId, vehicleId, userName) {
+  const allowed = await listDriverVehicleDocs(userId, userName);
+  if (vehicleId) {
+    const v = allowed.find((x) => String(x._id) === String(vehicleId));
+    return v || null;
+  }
+  return allowed[0] || null;
 }
 
 // ——— Admin: dashboard stats ———
@@ -69,13 +121,39 @@ adminRouter.get('/vehicles', protect, adminOnly, async (req, res) => {
 
 adminRouter.post('/vehicles', protect, adminOnly, async (req, res) => {
   try {
-    const { vehicleNumber, driverName, driverUserId, status } = req.body;
+    const {
+      vehicleNumber,
+      driverName,
+      driverUserId,
+      status,
+      city,
+      advanceAmount,
+      paymentMethod,
+      advanceDate
+    } = req.body;
+    const cities = ['Coimbatore', 'Ramnagar', 'Mamballi', 'Dharmapuri'];
+    if (!city || !cities.includes(city)) {
+      return res.status(400).json({ error: 'Valid city is required' });
+    }
     const v = await DriverVehicle.create({
       vehicleNumber: String(vehicleNumber).trim().toUpperCase(),
       driverName: driverName?.trim(),
       driverUserId: driverUserId || null,
+      city,
       status: status || 'active'
     });
+    const amt = Number(advanceAmount);
+    if (amt > 0) {
+      const method = paymentMethod === 'upi' ? 'upi' : 'cash';
+      await DriverAdvance.create({
+        vehicleId: v._id,
+        amount: amt,
+        date: advanceDate || new Date().toISOString().split('T')[0],
+        paymentMethod: method,
+        remarks: `Opening advance (${method.toUpperCase()})`,
+        createdBy: req.user._id
+      });
+    }
     res.status(201).json(await enrichVehicle(v));
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -90,12 +168,44 @@ adminRouter.put('/vehicles/:id', protect, adminOnly, async (req, res) => {
         vehicleNumber: req.body.vehicleNumber?.trim()?.toUpperCase(),
         driverName: req.body.driverName?.trim(),
         driverUserId: req.body.driverUserId || null,
+        city: req.body.city,
         status: req.body.status
       },
       { new: true }
     );
     if (!v) return res.status(404).json({ error: 'Not found' });
     res.json(await enrichVehicle(v));
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+adminRouter.get('/vehicles/:id/expenses', protect, adminOnly, async (req, res) => {
+  try {
+    const vehicle = await DriverVehicle.findById(req.params.id);
+    if (!vehicle) return res.status(404).json({ error: 'Not found' });
+    const expenses = await DriverExpense.find({ vehicleId: vehicle._id }).sort({
+      date: -1,
+      createdAt: -1
+    });
+    const totals = await getVehicleTotals(vehicle._id);
+    res.json({ vehicle: await enrichVehicle(vehicle), expenses, totals });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+adminRouter.put('/expenses/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const expense = await DriverExpense.findById(req.params.id);
+    if (!expense) return res.status(404).json({ error: 'Not found' });
+    if (req.body.category) expense.category = req.body.category;
+    if (req.body.amount != null) expense.amount = Number(req.body.amount);
+    if (req.body.date) expense.date = req.body.date;
+    if (req.body.remarks !== undefined) expense.remarks = req.body.remarks;
+    await expense.save();
+    const vehicle = await DriverVehicle.findById(expense.vehicleId);
+    res.json({ expense, vehicle: vehicle ? await enrichVehicle(vehicle) : null });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -113,10 +223,11 @@ adminRouter.get('/vehicles/:id/ledger', protect, adminOnly, async (req, res) => 
       ...advances.map((a) => ({
         _id: a._id,
         date: a.date,
-        type: 'Advance',
+        type: a.paymentMethod ? `Advance (${a.paymentMethod.toUpperCase()})` : 'Advance',
         amount: a.amount,
         sign: 1,
         remarks: a.remarks,
+        paymentMethod: a.paymentMethod,
         createdAt: a.createdAt
       })),
       ...expenses.map((e) => ({
@@ -139,11 +250,12 @@ adminRouter.get('/vehicles/:id/ledger', protect, adminOnly, async (req, res) => 
 // ——— Advances ———
 adminRouter.post('/advances', protect, adminOnly, async (req, res) => {
   try {
-    const { vehicleId, amount, date, remarks } = req.body;
+    const { vehicleId, amount, date, remarks, paymentMethod } = req.body;
     const advance = await DriverAdvance.create({
       vehicleId,
       amount: Number(amount),
       date,
+      paymentMethod: paymentMethod === 'upi' ? 'upi' : 'cash',
       remarks,
       createdBy: req.user._id
     });
@@ -283,13 +395,65 @@ adminRouter.get('/reports/daily', protect, adminOnly, async (req, res) => {
 });
 
 // ——— Driver app routes ———
+driverRouter.get('/vehicles', protect, driverOnly, async (req, res) => {
+  try {
+    const vehicles = await listDriverVehicles(req.user._id, req.user.name);
+    res.json(vehicles);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+driverRouter.get('/vehicles/:id', protect, driverOnly, async (req, res) => {
+  try {
+    const vehicle = await resolveDriverVehicle(req.user._id, req.params.id, req.user.name);
+    if (!vehicle) return res.status(404).json({ error: 'Vehicle not found' });
+    res.json(await enrichVehicle(vehicle));
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+driverRouter.get('/vehicles/:id/expenses', protect, driverOnly, async (req, res) => {
+  try {
+    const vehicle = await resolveDriverVehicle(req.user._id, req.params.id, req.user.name);
+    if (!vehicle) return res.status(404).json({ error: 'Vehicle not found' });
+    const expenses = await DriverExpense.find({ vehicleId: vehicle._id }).sort({
+      date: -1,
+      createdAt: -1
+    });
+    const totals = await getVehicleTotals(vehicle._id);
+    res.json({ vehicle: await enrichVehicle(vehicle), expenses, totals });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+driverRouter.put('/expenses/:id', protect, driverOnly, async (req, res) => {
+  try {
+    const expense = await DriverExpense.findById(req.params.id);
+    if (!expense) return res.status(404).json({ error: 'Not found' });
+    const vehicle = await resolveDriverVehicle(req.user._id, expense.vehicleId, req.user.name);
+    if (!vehicle) return res.status(403).json({ error: 'Not allowed' });
+    if (req.body.category) expense.category = req.body.category;
+    if (req.body.amount != null) expense.amount = Number(req.body.amount);
+    if (req.body.date) expense.date = req.body.date;
+    if (req.body.remarks !== undefined) expense.remarks = req.body.remarks;
+    await expense.save();
+    res.json({ expense, vehicle: await enrichVehicle(vehicle) });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 driverRouter.get('/me', protect, driverOnly, async (req, res) => {
   try {
-    const vehicle = await resolveDriverVehicle(req.user._id);
+    const vehicles = await listDriverVehicles(req.user._id, req.user.name);
+    const vehicle = vehicles[0] || null;
     if (!vehicle) {
-      return res.json({ user: req.user, vehicle: null, noVehicle: true });
+      return res.json({ user: req.user, vehicle: null, vehicles: [], noVehicle: true });
     }
-    res.json({ user: req.user, vehicle: await enrichVehicle(vehicle) });
+    res.json({ user: req.user, vehicle, vehicles });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -297,10 +461,11 @@ driverRouter.get('/me', protect, driverOnly, async (req, res) => {
 
 driverRouter.get('/dashboard', protect, driverOnly, async (req, res) => {
   try {
-    const vehicle = await resolveDriverVehicle(req.user._id);
-    if (!vehicle) {
+    const vehicles = await listDriverVehicles(req.user._id, req.user.name);
+    if (!vehicles.length) {
       return res.json({
         vehicle: null,
+        vehicles: [],
         noVehicle: true,
         todaySpent: 0,
         pendingCount: 0,
@@ -308,7 +473,8 @@ driverRouter.get('/dashboard', protect, driverOnly, async (req, res) => {
         recentEntries: []
       });
     }
-    const enriched = await enrichVehicle(vehicle);
+    const enriched = vehicles[0];
+    const vehicle = await DriverVehicle.findById(enriched._id);
     const today = new Date().toISOString().split('T')[0];
     const [todayExpenses, pendingCount, recentExpenses, recentEntries] = await Promise.all([
       DriverExpense.aggregate([
@@ -324,6 +490,7 @@ driverRouter.get('/dashboard', protect, driverOnly, async (req, res) => {
     ]);
     res.json({
       vehicle: enriched,
+      vehicles,
       todaySpent: todayExpenses[0]?.total || 0,
       pendingCount,
       recentExpenses,
@@ -361,7 +528,7 @@ driverRouter.get('/rates', protect, driverOnly, async (req, res) => {
 
 driverRouter.post('/expenses', protect, driverOnly, async (req, res) => {
   try {
-    const vehicle = await resolveDriverVehicle(req.user._id);
+    const vehicle = await resolveDriverVehicle(req.user._id, req.body.vehicleId, req.user.name);
     if (!vehicle) return res.status(404).json({ error: 'No vehicle assigned' });
     const expense = await DriverExpense.create({
       vehicleId: vehicle._id,
@@ -379,7 +546,7 @@ driverRouter.post('/expenses', protect, driverOnly, async (req, res) => {
 
 driverRouter.post('/entries', protect, driverOnly, async (req, res) => {
   try {
-    const vehicle = await resolveDriverVehicle(req.user._id);
+    const vehicle = await resolveDriverVehicle(req.user._id, req.body.vehicleId, req.user.name);
     if (!vehicle) return res.status(404).json({ error: 'No vehicle assigned' });
     const rates = await getRatesForParty(req.body.partyId);
     const amounts = calcSilkAmounts({

@@ -3,6 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import AppShell from '../../components/layout/AppShell';
 import api from '../../api/client';
+import { MARKETS, todayISO } from '../../utils/format';
+import dr from './Driver.module.css';
+
+const PAYMENT_METHODS = [
+  { value: 'cash', label: 'Cash' },
+  { value: 'upi', label: 'UPI' }
+];
 
 export default function VehicleForm() {
   const { id } = useParams();
@@ -11,9 +18,17 @@ export default function VehicleForm() {
   const [error, setError] = useState('');
   const [driverUsers, setDriverUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
-  const { register, handleSubmit, reset } = useForm({
-    defaultValues: { status: 'active', driverUserId: '' }
+  const { register, handleSubmit, reset, watch, setValue } = useForm({
+    defaultValues: {
+      status: 'active',
+      driverUserId: '',
+      city: '',
+      advanceAmount: '',
+      paymentMethod: 'cash',
+      advanceDate: todayISO()
+    }
   });
+  const paymentMethod = watch('paymentMethod');
 
   useEffect(() => {
     api
@@ -31,6 +46,7 @@ export default function VehicleForm() {
           reset({
             vehicleNumber: v.vehicleNumber,
             status: v.status,
+            city: v.city || '',
             driverUserId: v.driverUserId?._id || v.driverUserId || ''
           });
         }
@@ -45,12 +61,22 @@ export default function VehicleForm() {
       setError('Please select a driver');
       return;
     }
+    if (!data.city) {
+      setError('Please select a city');
+      return;
+    }
     const payload = {
       vehicleNumber: data.vehicleNumber,
       driverName: driver.name,
       driverUserId: driver._id,
+      city: data.city,
       status: data.status
     };
+    if (!isEdit) {
+      payload.advanceAmount = data.advanceAmount ? Number(data.advanceAmount) : 0;
+      payload.paymentMethod = data.paymentMethod;
+      payload.advanceDate = data.advanceDate || todayISO();
+    }
     try {
       if (isEdit) {
         await api.put(`/admin/driver/vehicles/${id}`, payload);
@@ -86,6 +112,48 @@ export default function VehicleForm() {
             No drivers yet. They can register in the Driver app, or create one under Users → Create
             (role: driver).
           </p>
+        )}
+
+        <label className="field-label">City</label>
+        <select className="field-select" {...register('city', { required: true })}>
+          <option value="">— Select city —</option>
+          {MARKETS.map((m) => (
+            <option key={m.key} value={m.label}>
+              {m.label}
+            </option>
+          ))}
+        </select>
+
+        {!isEdit && (
+          <>
+            <label className="field-label">Advance Amount (₹)</label>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              className="field-input"
+              placeholder="Enter amount (optional)"
+              {...register('advanceAmount')}
+            />
+
+            <label className="field-label">Payment Method</label>
+            <div className={dr.filterRow}>
+              {PAYMENT_METHODS.map((m) => (
+                <button
+                  key={m.value}
+                  type="button"
+                  className={`${dr.filterChip} ${paymentMethod === m.value ? dr.filterChipOn : ''}`}
+                  onClick={() => setValue('paymentMethod', m.value)}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+            <input type="hidden" {...register('paymentMethod')} />
+
+            <label className="field-label">Advance Date</label>
+            <input type="date" className="field-input" {...register('advanceDate')} />
+          </>
         )}
 
         <label className="field-label">Status</label>

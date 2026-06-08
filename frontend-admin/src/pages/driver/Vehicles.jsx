@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
 import api from '../../api/client';
 import { formatINR } from '../../utils/format';
@@ -7,11 +7,13 @@ import dr from './Driver.module.css';
 
 export default function Vehicles() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [vehicles, setVehicles] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
   const load = () => {
+    setLoading(true);
     api
       .get('/admin/driver/vehicles')
       .then((r) => setVehicles(r.data))
@@ -21,7 +23,7 @@ export default function Vehicles() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [location.pathname]);
 
   const filtered = vehicles.filter(
     (v) =>
@@ -51,11 +53,18 @@ export default function Vehicles() {
       ) : (
         filtered.map((v) => (
           <div key={v._id} className={`card ${dr.vehicleCard}`}>
-            <div className={dr.vehicleHead}>
+            <div
+              className={`${dr.vehicleHead} ${dr.vehicleCardClick}`}
+              role="button"
+              tabIndex={0}
+              onClick={() => navigate(`/admin/driver/vehicles/${v._id}/expenses`)}
+              onKeyDown={(e) => e.key === 'Enter' && navigate(`/admin/driver/vehicles/${v._id}/expenses`)}
+            >
               <div>
                 <strong>{v.vehicleNumber}</strong>
                 <div style={{ fontSize: 11, color: '#888' }}>
-                  Driver: {v.driverName} · {v.status}
+                  Driver: {v.driverName}
+                  {v.city ? ` · ${v.city}` : ''} · {v.status}
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
@@ -77,21 +86,40 @@ export default function Vehicles() {
               <button
                 type="button"
                 className={dr.actionBtn}
-                onClick={() => navigate(`/admin/driver/vehicles/${v._id}/advance`)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/admin/driver/vehicles/${v._id}/expenses`);
+                }}
+              >
+                Expenses
+              </button>
+              <button
+                type="button"
+                className={dr.actionBtn}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/admin/driver/vehicles/${v._id}/advance`);
+                }}
               >
                 + Advance
               </button>
               <button
                 type="button"
                 className={dr.actionBtn}
-                onClick={() => navigate(`/admin/driver/vehicles/${v._id}/ledger`)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/admin/driver/vehicles/${v._id}/ledger`);
+                }}
               >
                 Ledger
               </button>
               <button
                 type="button"
                 className={dr.actionBtn}
-                onClick={() => navigate(`/admin/driver/vehicles/${v._id}/edit`)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/admin/driver/vehicles/${v._id}/edit`);
+                }}
               >
                 Edit
               </button>

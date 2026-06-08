@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import styles from './DriverShell.module.css';
 
 const NAV = [
@@ -11,6 +11,7 @@ const NAV = [
 
 export default function DriverShell({ title, backPath, headerRight, hideNav, children }) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <div className={styles.shell}>
@@ -32,9 +33,13 @@ export default function DriverShell({ title, backPath, headerRight, hideNav, chi
               key={item.to}
               to={item.to}
               end={item.to === '/dashboard'}
-              className={({ isActive }) =>
-                `${styles.bnavItem} ${isActive ? styles.active : ''}`
-              }
+              className={({ isActive }) => {
+                const active =
+                  item.to === '/expense'
+                    ? location.pathname.startsWith('/expense')
+                    : isActive;
+                return `${styles.bnavItem} ${active ? styles.active : ''}`;
+              }}
             >
               <span className={styles.bnavIcon}>{item.icon}</span>
               <span>{item.label}</span>

@@ -125,6 +125,26 @@
   color: var(--green);
 }
 
+.advanceRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+}
+
+.advanceLbl {
+  font-size: 12px;
+  color: #666;
+}
+
+.advanceVal {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--green);
+}
+
 .neg {
   color: var(--danger);
 }
@@ -151,6 +171,177 @@
   background: var(--amber-light);
   color: var(--amber);
   font-weight: 600;
+}
+
+.expenseVehicleCard,
+.expenseTripCard {
+  background: #fff;
+  border: 1px solid #e0e0dc;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 14px;
+}
+
+.expenseTripCard {
+  display: block;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.expenseTripCard:hover {
+  border-color: var(--amber);
+  box-shadow: 0 2px 8px rgba(123, 63, 0, 0.12);
+}
+
+.expenseTripCard:active {
+  background: var(--amber-light);
+}
+
+.expenseVehicleDate {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.expenseVehicleHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.expenseVehicleNum {
+  font-size: 16px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.expenseVehicleMeta {
+  font-size: 11px;
+  color: #888;
+}
+
+.expenseVehicleBal {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.expenseVehicleBalVal {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--green);
+}
+
+.expenseVehicleBalLbl {
+  font-size: 10px;
+  color: #888;
+}
+
+.addLineBtn {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border: 1px dashed var(--amber);
+  border-radius: 8px;
+  background: var(--amber-light);
+  color: var(--amber);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.expenseSummaryCard {
+  background: var(--amber-light);
+  border: 1px solid #e8c9a8;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.expenseSummaryTitle {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.expenseLine {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e0e0dc;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.expenseTotals {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e8c9a8;
+}
+
+.previewSm {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.balanceAfterBlock {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #e8c9a8;
+}
+
+.balanceAfterLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--amber);
+}
+
+.balanceAfterVal {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--amber);
+  line-height: 1.1;
+}
+
+.removeLineBtn {
+  border: none;
+  background: #fdecea;
+  color: var(--danger);
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.editExpBtn {
+  border: 1px solid var(--amber);
+  background: var(--amber-light);
+  color: var(--amber);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.savedExpenseLine {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e0e0dc;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  font-size: 13px;
 }
 
 .previewBox {

@@ -22,6 +22,7 @@ import Vehicles from './pages/driver/Vehicles';
 import VehicleForm from './pages/driver/VehicleForm';
 import AddAdvance from './pages/driver/AddAdvance';
 import Ledger from './pages/driver/Ledger';
+import VehicleExpenses from './pages/driver/VehicleExpenses';
 import Entries from './pages/driver/Entries';
 import Parties from './pages/driver/Parties';
 import PartyForm from './pages/driver/PartyForm';
@@ -103,6 +104,7 @@ function App() {
             <Route path="/admin/driver/vehicles/:id/edit" element={<VehicleForm />} />
             <Route path="/admin/driver/vehicles/:id/advance" element={<AddAdvance />} />
             <Route path="/admin/driver/vehicles/:id/ledger" element={<Ledger />} />
+            <Route path="/admin/driver/vehicles/:id/expenses" element={<VehicleExpenses />} />
             <Route path="/admin/driver/entries" element={<Entries />} />
             <Route path="/admin/driver/parties" element={<Parties />} />
             <Route path="/admin/driver/parties/new" element={<PartyForm />} />

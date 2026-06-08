@@ -11,14 +11,17 @@ export default function AddAdvance() {
   const navigate = useNavigate();
   const [vehicle, setVehicle] = useState(null);
   const [error, setError] = useState('');
-  const { register, handleSubmit, watch, reset } = useForm();
+  const { register, handleSubmit, watch, reset, setValue } = useForm({
+    defaultValues: { paymentMethod: 'cash' }
+  });
   const amount = Number(watch('amount')) || 0;
+  const paymentMethod = watch('paymentMethod');
 
   useEffect(() => {
     api.get('/admin/driver/vehicles').then((r) => {
       const v = r.data.find((x) => x._id === id);
       setVehicle(v);
-      reset({ vehicleId: id, date: todayISO(), amount: '' });
+      reset({ vehicleId: id, date: todayISO(), amount: '', paymentMethod: 'cash' });
     });
   }, [id, reset]);
 
@@ -29,6 +32,7 @@ export default function AddAdvance() {
         vehicleId: id,
         amount: Number(data.amount),
         date: data.date,
+        paymentMethod: data.paymentMethod,
         remarks: data.remarks
       });
       navigate('/admin/driver/vehicles');
@@ -49,6 +53,20 @@ export default function AddAdvance() {
         <input className="field-input" readOnly value={vehicle?.driverName || ''} />
         <label className="field-label">Advance Amount (₹)</label>
         <input type="number" min={1} className="field-input" {...register('amount', { required: true })} />
+        <label className="field-label">Payment Method</label>
+        <div className={dr.filterRow}>
+          {['cash', 'upi'].map((m) => (
+            <button
+              key={m}
+              type="button"
+              className={`${dr.filterChip} ${paymentMethod === m ? dr.filterChipOn : ''}`}
+              onClick={() => setValue('paymentMethod', m)}
+            >
+              {m.toUpperCase()}
+            </button>
+          ))}
+        </div>
+        <input type="hidden" {...register('paymentMethod')} />
         <label className="field-label">Date</label>
         <input type="date" className="field-input" {...register('date', { required: true })} />
         <label className="field-label">Remarks</label>
