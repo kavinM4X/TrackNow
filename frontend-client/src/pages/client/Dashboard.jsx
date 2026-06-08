@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/common/Badge';
 import Spinner from '../../components/common/Spinner';
 import api from '../../api/client';
-import { formatDateDayMonth } from '../../utils/format';
+import { displayTotalKg, formatDateDayMonth } from '../../utils/format';
 import styles from './Dashboard.module.css';
 
 export default function Dashboard({ user }) {
+  const navigate = useNavigate();
   const [marketRate, setMarketRate] = useState(null);
   const [upcoming, setUpcoming] = useState(null);
   const [recentBatches, setRecentBatches] = useState([]);
@@ -89,10 +91,17 @@ export default function Dashboard({ user }) {
             <>
               <p className="section-title">Last batches</p>
               {recentBatches.map((b) => (
-                <div key={b._id} className={`card ${styles.batchRow}`}>
-                  <div>
-                    <strong>{formatDateDayMonth(b.date)}</strong> · {b.location} · {b.quantityKg} kg
-                  </div>
+                <div
+                  key={b._id}
+                  className={`card ${styles.batchRow}`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/batch-history/${b._id}`)}
+                  onKeyDown={(e) => e.key === 'Enter' && navigate(`/batch-history/${b._id}`)}
+                >
+                  <span>
+                    {formatDateDayMonth(b.date)} · {b.location} · {displayTotalKg(b)} kg
+                  </span>
                 </div>
               ))}
             </>
