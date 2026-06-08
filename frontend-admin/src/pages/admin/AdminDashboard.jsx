@@ -159,7 +159,16 @@ export default function AdminDashboard({ onLogout }) {
             <div
               key={b._id}
               className="card"
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              role="button"
+              tabIndex={0}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                cursor: 'pointer'
+              }}
+              onClick={() => navigate(`/admin/bookings/${b._id}`)}
+              onKeyDown={(e) => e.key === 'Enter' && navigate(`/admin/bookings/${b._id}`)}
             >
               <div>
                 <strong>{b.userName || b.userId?.name}</strong>
