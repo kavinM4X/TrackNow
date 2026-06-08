@@ -1,0 +1,253 @@
+.shell {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--page-bg);
+}
+
+.header {
+  background: var(--amber);
+  color: #fff;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.back {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.main {
+  flex: 1;
+  padding: 12px 14px 80px;
+  overflow-y: auto;
+}
+
+.bnav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--max-width);
+  background: #fff;
+  border-top: 1px solid #e5e5ea;
+  display: flex;
+  justify-content: space-around;
+  padding: 6px 0 10px;
+  z-index: 50;
+}
+
+.bnavItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-decoration: none;
+  color: #c0c0c0;
+  font-size: 10px;
+}
+
+.bnavItem.active {
+  color: var(--amber);
+}
+
+.bnavIcon {
+  font-size: 18px;
+}
+
+.heroActions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.heroBtn {
+  flex: 1;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  color: #fff;
+}
+
+.heroBtnPrimary {
+  background: #e05c00;
+}
+
+.heroBtnSecondary {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.statCard {
+  text-align: center;
+  margin: 0;
+}
+
+.statVal {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.statLbl {
+  font-size: 10px;
+  color: #888;
+}
+
+.pos {
+  color: var(--green);
+}
+
+.neg {
+  color: var(--danger);
+}
+
+.catGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.catBtn {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px 4px;
+  font-size: 11px;
+  background: #fff;
+  cursor: pointer;
+  text-transform: capitalize;
+}
+
+.catBtnOn {
+  border-color: var(--amber);
+  background: var(--amber-light);
+  color: var(--amber);
+  font-weight: 600;
+}
+
+.previewBox {
+  background: var(--amber-light);
+  border: 1px solid #e8c9a8;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+
+.previewRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.silkRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.silkBox {
+  background: #fff;
+  border: 1px solid #e0e0dc;
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.silkBoxGood {
+  background: #e8f4ed;
+}
+
+.silkBoxWaste {
+  background: #fdf5e0;
+}
+
+.silkBoxDouble {
+  background: #f5ede8;
+}
+
+.loginPage {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--page-bg);
+}
+
+.loginCard {
+  width: 100%;
+  max-width: 360px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid #e0e0dc;
+}
+
+.loginTitle {
+  margin: 0 0 4px;
+  font-size: 22px;
+  color: var(--amber);
+}
+
+.loginSub {
+  margin: 0 0 20px;
+  font-size: 13px;
+  color: #888;
+}
+
+.err {
+  color: var(--danger);
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.authSwitch {
+  margin: 16px 0 0;
+  font-size: 13px;
+  text-align: center;
+  color: #666;
+}
+
+.authSwitch a {
+  color: var(--amber);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.authHint {
+  margin: 10px 0 0;
+  font-size: 11px;
+  color: #888;
+  text-align: center;
+  line-height: 1.4;
+}

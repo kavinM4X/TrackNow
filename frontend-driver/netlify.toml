@@ -1,0 +1,15 @@
+# Netlify — SilkRoute Driver app
+# Connect repo with Base directory: frontend-driver
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "18"
+  VITE_API_URL = "https://track-now-bay.vercel.app/api"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

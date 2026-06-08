@@ -67,6 +67,28 @@
   color: var(--blue);
 }
 
+.bnavItem.bnavDriver.active {
+  color: #1a3c5e;
+}
+
 .bnavIcon {
   font-size: 18px;
+}
+
+.headerDriver {
+  background: #1a3c5e;
+}
+
+.shellDriver .main {
+  background: #f7f7f5;
+}
+
+.tracknowLink {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #fff;
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
 }

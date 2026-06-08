@@ -7,9 +7,22 @@ const { normalizePhone } = require('../utils/phone');
 exports.register = async (req, res) => {
   try {
     const { name, email, password, phone, address, farmDetails, role } = req.body;
+    const normalizedPhone = normalizePhone(phone);
 
-    // Check if user already exists by phone
-    const userExists = await User.findOne({ phone });
+    if (!name?.trim()) {
+      return res.status(400).json({ success: false, message: 'Name is required' });
+    }
+    if (!normalizedPhone) {
+      return res.status(400).json({ success: false, message: 'Valid phone number is required' });
+    }
+    if (!password || String(password).length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+    }
+
+    const allowedRoles = ['user', 'driver', 'staff'];
+    const safeRole = allowedRoles.includes(role) ? role : 'user';
+
+    const userExists = await User.findOne({ phone: normalizedPhone });
     if (userExists) {
       return res.status(400).json({ 
         success: false, 
@@ -17,25 +30,22 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Create user
     const user = await User.create({
-      name,
+      name: String(name).trim(),
       email,
       password,
-      phone,
+      phone: normalizedPhone,
       address,
       farmDetails,
-      role: role || 'user'
+      role: safeRole
     });
 
-    // Log the action
     await Log.create({
-      user: user._id,
-      action: 'register',
-      entity: 'User',
-      entityId: user._id,
-      details: { email: user.email, name: user.name },
-      status: 'success'
+      userId: user._id,
+      userName: user.name,
+      action: `registered as ${user.role}`,
+      type: 'login',
+      page: 'register'
     });
 
     // Generate token
@@ -212,14 +222,12 @@ exports.updateProfile = async (req, res) => {
     user.updatedAt = Date.now();
     await user.save();
 
-    // Log the action
     await Log.create({
-      user: user._id,
-      action: 'update_profile',
-      entity: 'User',
-      entityId: user._id,
-      details: { updatedFields: Object.keys(req.body) },
-      status: 'success'
+      userId: user._id,
+      userName: user.name,
+      action: 'updated profile',
+      type: 'login',
+      page: 'profile'
     });
 
     res.status(200).json({
@@ -275,13 +283,12 @@ exports.changePassword = async (req, res) => {
     user.updatedAt = Date.now();
     await user.save();
 
-    // Log the action
     await Log.create({
-      user: user._id,
-      action: 'change_password',
-      entity: 'User',
-      entityId: user._id,
-      status: 'success'
+      userId: user._id,
+      userName: user.name,
+      action: 'changed password',
+      type: 'login',
+      page: 'profile'
     });
 
     res.status(200).json({

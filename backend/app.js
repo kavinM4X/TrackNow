@@ -44,7 +44,7 @@ app.get('/api/health', (req, res) => {
     message: 'TrackNow API is running',
     host: onServerless ? host : 'node',
     database: dbReady ? 'connected' : 'not_connected_yet',
-    features: ['vehicle-rental', 'user-invite', 'public-register']
+    features: ['vehicle-rental', 'user-invite', 'public-register', 'driver-management']
   });
 });
 
@@ -110,7 +110,15 @@ app.use('/api/public/vehicle-rental', vehicleRentalPublic);
 const { publicRouter: userInvitePublic } = require('./routes/publicUserInvite');
 app.use('/api/public/register-user', userInvitePublic);
 
+const { adminRouter: driverAdmin, driverRouter: driverApp } = require('./routes/driverManagement');
+app.use('/api/admin/driver', driverAdmin);
+app.use('/api/driver', driverApp);
+
 app.use('/api/admin', require('./routes/admin'));
+
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ error: 'Not found', path: req.originalUrl });
+});
 
 app.use((err, req, res, _next) => {
   console.error('Unhandled error:', err);

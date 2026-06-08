@@ -29,7 +29,8 @@ async function createAppUser({
     return { error: 'This phone number is already registered', status: 400 };
   }
 
-  const safeRole = role === 'admin' ? 'admin' : 'user';
+  const allowed = ['user', 'admin', 'driver', 'staff'];
+  const safeRole = allowed.includes(role) ? role : 'user';
 
   const user = await User.create({
     name: String(name).trim(),

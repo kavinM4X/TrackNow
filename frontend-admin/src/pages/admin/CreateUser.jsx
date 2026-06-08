@@ -168,6 +168,8 @@ export default function CreateUser() {
         <select className="field-select" {...register('role')}>
           <option value="user">user</option>
           <option value="admin">admin</option>
+          <option value="driver">driver</option>
+          <option value="staff">staff</option>
         </select>
         <label className="field-label">Password</label>
         <input type="password" className="field-input" {...register('password', { required: true, minLength: 6 })} />

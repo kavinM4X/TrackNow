@@ -4,13 +4,15 @@
   "description": "Sericulture Management System - Full stack MERN application with 2 frontends",
   "main": "index.js",
   "scripts": {
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:client\" \"npm run dev:admin\"",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:client\" \"npm run dev:admin\" \"npm run dev:driver\"",
     "dev:backend": "cd backend && npm run dev",
     "dev:client": "cd frontend-client && npm run dev",
     "dev:admin": "cd frontend-admin && npm run dev",
-    "install:all": "npm install && cd backend && npm install && cd ../frontend-client && npm install && cd ../frontend-admin && npm install",
+    "dev:driver": "cd frontend-driver && npm run dev",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend-client && npm install && cd ../frontend-admin && npm install && cd ../frontend-driver && npm install",
     "build:client": "cd frontend-client && npm run build",
-    "build:admin": "cd frontend-admin && npm run build"
+    "build:admin": "cd frontend-admin && npm run build",
+    "build:driver": "cd frontend-driver && npm run build"
   },
   "keywords": [
     "sericulture",

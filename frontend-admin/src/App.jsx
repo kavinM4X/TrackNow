@@ -17,6 +17,16 @@ import AllBatchHistory from './pages/admin/AllBatchHistory';
 import PerUserBatchHistory from './pages/admin/PerUserBatchHistory';
 import TrackerControl from './pages/admin/TrackerControl';
 import Logs from './pages/admin/Logs';
+import DriverDashboard from './pages/driver/DriverDashboard';
+import Vehicles from './pages/driver/Vehicles';
+import VehicleForm from './pages/driver/VehicleForm';
+import AddAdvance from './pages/driver/AddAdvance';
+import Ledger from './pages/driver/Ledger';
+import Entries from './pages/driver/Entries';
+import Parties from './pages/driver/Parties';
+import PartyForm from './pages/driver/PartyForm';
+import Reports from './pages/driver/Reports';
+import RateSettings from './pages/driver/RateSettings';
 import './styles/tracknow.css';
 
 function App() {
@@ -87,6 +97,18 @@ function App() {
             <Route path="/admin/batch-history/user/:userId" element={<PerUserBatchHistory />} />
             <Route path="/admin/tracker-control" element={<TrackerControl />} />
             <Route path="/admin/logs" element={<Logs />} />
+            <Route path="/admin/driver/dashboard" element={<DriverDashboard />} />
+            <Route path="/admin/driver/vehicles" element={<Vehicles />} />
+            <Route path="/admin/driver/vehicles/new" element={<VehicleForm />} />
+            <Route path="/admin/driver/vehicles/:id/edit" element={<VehicleForm />} />
+            <Route path="/admin/driver/vehicles/:id/advance" element={<AddAdvance />} />
+            <Route path="/admin/driver/vehicles/:id/ledger" element={<Ledger />} />
+            <Route path="/admin/driver/entries" element={<Entries />} />
+            <Route path="/admin/driver/parties" element={<Parties />} />
+            <Route path="/admin/driver/parties/new" element={<PartyForm />} />
+            <Route path="/admin/driver/parties/:id/edit" element={<PartyForm />} />
+            <Route path="/admin/driver/reports" element={<Reports />} />
+            <Route path="/admin/driver/rates" element={<RateSettings />} />
             <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
           </>
         ) : (

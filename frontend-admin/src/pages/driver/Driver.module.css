@@ -1,0 +1,194 @@
+.statGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.statCard {
+  text-align: center;
+  margin: 0;
+  padding: 10px;
+}
+
+.statVal {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.statLbl {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.pos {
+  color: #2e7d52;
+}
+
+.neg {
+  color: #a93226;
+}
+
+.bal {
+  color: #1a3c5e;
+}
+
+.vehicleCard {
+  margin-bottom: 8px;
+}
+
+.vehicleHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 6px;
+}
+
+.miniGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.miniBox {
+  background: #f0f4f9;
+  border-radius: 4px;
+  padding: 6px;
+  text-align: center;
+  font-size: 11px;
+}
+
+.miniBoxExp {
+  background: #fdf0f0;
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+}
+
+.actionBtn {
+  flex: 1;
+  border: none;
+  border-radius: 4px;
+  padding: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  background: #eaf0f6;
+  color: #1a3c5e;
+}
+
+.filterRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.filterChip {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  background: #f0f0ee;
+  color: #888;
+}
+
+.filterChipOn {
+  background: #1a3c5e;
+  color: #fff;
+}
+
+.entryGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.entryCell {
+  border-radius: 4px;
+  padding: 6px;
+  text-align: center;
+  font-size: 10px;
+}
+
+.good {
+  background: #e8f4ed;
+}
+
+.waste {
+  background: #fdf5e0;
+}
+
+.double {
+  background: #f5ede8;
+}
+
+.approveBtn {
+  flex: 1;
+  background: #e8f4ed;
+  border: 1px solid #2e7d52;
+  color: #2e7d52;
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rejectBtn {
+  flex: 1;
+  background: #fdeded;
+  border: 1px solid #a93226;
+  color: #a93226;
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ledgerRow {
+  display: grid;
+  grid-template-columns: 1.2fr 1.5fr 1fr 1fr;
+  gap: 4px;
+  font-size: 11px;
+  padding: 6px;
+}
+
+.previewBox {
+  background: #eaf0f6;
+  border: 1px solid #b0c8e0;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+
+.chartBar {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 60px;
+  margin-top: 8px;
+}
+
+.chartCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.chartFill {
+  width: 100%;
+  background: #1a3c5e;
+  border-radius: 3px 3px 0 0;
+  min-height: 4px;
+}
