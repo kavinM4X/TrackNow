@@ -13,6 +13,7 @@ const driverPartySchema = new mongoose.Schema(
       enum: ['Coimbatore', 'Ramnagar', 'Mamballi', 'Dharmapuri']
     },
     assignedDate: { type: String, trim: true },
+    assignmentRentalAmount: { type: Number, default: 0 },
     goodRateOverride: Number,
     wasteRateOverride: Number,
     doubleRateOverride: Number

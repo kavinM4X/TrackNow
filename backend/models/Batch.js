@@ -65,6 +65,10 @@ const batchSchema = new mongoose.Schema({
     rentalDeduction: Number,
     netSilkValue: Number,
     finalAmount: Number
+  },
+  driverSilkEntryId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'DriverSilkEntry'
   }
 }, { timestamps: true });
 

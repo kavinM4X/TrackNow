@@ -37,6 +37,15 @@ export function todayISO() {
   return localDateISO(new Date());
 }
 
+/** Wide default for batch history — includes driver entries dated ahead. */
+export function defaultHistoryDateRange() {
+  const y = new Date().getFullYear();
+  return {
+    fromDate: `${y}-01-01`,
+    toDate: `${y + 1}-12-31`
+  };
+}
+
 /** e.g. "22 May" — local timezone, for dashboard header */
 export function todayDayMonthLabel(date = new Date()) {
   return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });

@@ -2,13 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
 import api from '../../api/client';
-import { formatDateShort, formatINR, initials, MARKETS, shortUserId, todayISO } from '../../utils/format';
-
-function monthStartISO() {
-  const d = new Date();
-  d.setDate(1);
-  return d.toISOString().slice(0, 10);
-}
+import {
+  defaultHistoryDateRange,
+  formatDateShort,
+  formatINR,
+  initials,
+  MARKETS,
+  shortUserId
+} from '../../utils/format';
 
 export default function AllBatchHistory() {
   const navigate = useNavigate();
@@ -20,8 +21,7 @@ export default function AllBatchHistory() {
     search: '',
     userId: '',
     location: 'all',
-    fromDate: monthStartISO(),
-    toDate: todayISO()
+    ...defaultHistoryDateRange()
   });
 
   const load = async () => {

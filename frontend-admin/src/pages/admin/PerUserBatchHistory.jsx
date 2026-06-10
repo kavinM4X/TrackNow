@@ -2,13 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
 import api from '../../api/client';
-import { formatDateShort, formatINR, shortUserId, todayISO } from '../../utils/format';
-
-function monthStartISO() {
-  const d = new Date();
-  d.setDate(1);
-  return d.toISOString().slice(0, 10);
-}
+import { defaultHistoryDateRange, formatDateShort, formatINR, shortUserId } from '../../utils/format';
 
 export default function PerUserBatchHistory() {
   const { userId } = useParams();
@@ -18,8 +12,7 @@ export default function PerUserBatchHistory() {
   const [userName, setUserName] = useState('User');
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
-    fromDate: monthStartISO(),
-    toDate: todayISO(),
+    ...defaultHistoryDateRange(),
     location: 'all',
     search: ''
   });

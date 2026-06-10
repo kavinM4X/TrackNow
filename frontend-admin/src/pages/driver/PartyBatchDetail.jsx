@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
 import api from '../../api/client';
 import { formatDateDayMonth, formatINR } from '../../utils/format';
+import dr from './Driver.module.css';
 
 export default function PartyBatchDetail() {
   const { batchId } = useParams();
@@ -52,41 +53,38 @@ export default function PartyBatchDetail() {
           {(batch.parties || []).map((p) => {
             const e = p.batchEntry;
             const hasEntry = submitted && e?.completed;
+            const location = p.city || p.village || '—';
 
             return (
-              <div key={p._id} className="card" style={{ marginBottom: 8 }}>
-                <div>
-                  <strong>{p.name}</strong>
-                  <div style={{ fontSize: 11, color: '#888' }}>
-                    {p.phone}
-                    {p.village ? ` · ${p.village}` : ''}
-                    {p.city ? ` · ${p.city}` : ''}
-                    {p.driverName ? ` · Driver: ${p.driverName}` : ''}
-                    {p.assignedDate ? ` · ${p.assignedDate}` : ''}
-                  </div>
+              <div key={p._id} className={`card ${dr.partyCard}`}>
+                <div className={dr.partyCardHead}>
+                  <div className={dr.partyName}>{p.name}</div>
+                  <div className={dr.partyPhone}>{p.phone || '—'}</div>
+                  <div className={dr.partyLocation}>{location}</div>
                 </div>
 
                 {hasEntry ? (
-                  <div style={{ fontSize: 11, color: '#444', marginTop: 8 }}>
-                    Good {e.goodSilkKg}kg @ {formatINR(e.goodSilkRatePerKg)}/kg · Waste {e.wasteKg}kg ·
-                    Doubles {e.doublesKg}kg
-                    <div style={{ marginTop: 4 }}>
-                      Net {formatINR(e.netSilkValue)} · Rental −{formatINR(e.rentalAmount)} · Final{' '}
-                      {formatINR(e.finalAmount)}
+                  <div className={dr.partySilkRow}>
+                    <div className={dr.partyGoodSilk}>
+                      <span className={dr.partyGoodSilkLbl}>Good silk</span>
+                      <span className={dr.partyGoodSilkVal}>{e.goodSilkKg} kg</span>
+                    </div>
+                    <div className={dr.partyRate}>
+                      <span className={dr.partyRateLbl}>Rate</span>
+                      <span className={dr.partyRateVal}>{formatINR(e.goodSilkRatePerKg)}/kg</span>
                     </div>
                   </div>
                 ) : submitted ? (
-                  <p style={{ fontSize: 11, color: '#888', margin: '8px 0 0' }}>No entry data</p>
+                  <p style={{ fontSize: 12, color: '#888', margin: 0 }}>No entry data</p>
                 ) : null}
 
                 {submitted && (
                   <button
                     type="button"
-                    className="btn-outline"
-                    style={{ marginTop: 8, fontSize: 12 }}
+                    className={`btn-outline ${dr.partyEditBtn}`}
                     onClick={() => navigate(`/admin/driver/parties/${p._id}/edit`)}
                   >
-                    Edit party / rates
+                    Edit entry
                   </button>
                 )}
               </div>

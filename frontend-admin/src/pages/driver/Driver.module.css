@@ -371,3 +371,91 @@
   cursor: pointer;
   font-size: 12px;
 }
+
+.partyCard {
+  margin-bottom: 8px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.partyCardHead {
+  margin-bottom: 10px;
+}
+
+.partyEditBtn {
+  margin-top: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 13px;
+  padding: 8px 10px;
+}
+
+.partyName {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.partyPhone {
+  font-size: 13px;
+  color: #444;
+  margin-bottom: 2px;
+}
+
+.partyLocation {
+  font-size: 12px;
+  color: #888;
+}
+
+.partySilkRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  min-width: 0;
+}
+
+.partyGoodSilk {
+  background: #e8f4ed;
+  border: 1px solid #b8dfc8;
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.partyGoodSilkLbl {
+  display: block;
+  font-size: 11px;
+  color: var(--green);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.partyGoodSilkVal {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--green);
+  word-break: break-word;
+}
+
+.partyRate {
+  background: var(--blue-light);
+  border: 1px solid var(--blue-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.partyRateLbl {
+  display: block;
+  font-size: 11px;
+  color: var(--blue);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.partyRateVal {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--blue);
+  word-break: break-word;
+}

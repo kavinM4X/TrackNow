@@ -8,10 +8,11 @@ const DriverAdvance = require('../models/DriverAdvance');
 const DriverExpense = require('../models/DriverExpense');
 const DriverSilkEntry = require('../models/DriverSilkEntry');
 const DriverPartyBatch = require('../models/DriverPartyBatch');
+const Batch = require('../models/Batch');
 const DriverRateConfig = require('../models/DriverRateConfig');
 const { enrichVehicle, getVehicleTotals } = require('../utils/driverBalance');
 const { getGlobalRates, getRatesForParty, calcSilkAmounts } = require('../utils/driverRates');
-const { normalizePhone } = require('../utils/phone');
+const { normalizePhone, phonesMatch } = require('../utils/phone');
 const {
   calcEffectiveRatePerKg,
   calcUserRentalEntry,
@@ -346,8 +347,14 @@ adminRouter.get('/parties', protect, adminOnly, async (req, res) => {
 
 adminRouter.get('/party-batches', protect, adminOnly, async (req, res) => {
   try {
+    await syncPartyBatchesFromParties();
     const batches = await DriverPartyBatch.find().sort({ assignedDate: -1, updatedAt: -1 });
-    res.json(batches.map(batchPayload));
+    const rows = [];
+    for (const batch of batches) {
+      await hydrateBatchRental(batch);
+      rows.push(batchPayload(batch));
+    }
+    res.json(rows);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -355,14 +362,17 @@ adminRouter.get('/party-batches', protect, adminOnly, async (req, res) => {
 
 adminRouter.get('/party-batches/:id', protect, adminOnly, async (req, res) => {
   try {
-    const batch = await DriverPartyBatch.findById(req.params.id);
+    let batch = await DriverPartyBatch.findById(req.params.id);
     if (!batch) return res.status(404).json({ error: 'Batch not found' });
+    await hydrateBatchRental(batch);
 
-    const parties = await DriverParty.find({
+    const partyFilter = {
       driverUserId: batch.driverUserId,
-      assignedDate: batch.assignedDate,
-      city: batch.city
-    }).sort({ name: 1 });
+      assignedDate: batch.assignedDate
+    };
+    if (batch.city) partyFilter.city = batch.city;
+
+    const parties = await DriverParty.find(partyFilter).sort({ name: 1 });
 
     const partyRows = parties.map((p) => {
       const obj = p.toObject();
@@ -399,16 +409,151 @@ function partyPayload(body) {
 }
 
 async function findPartyBatch(driverUserId, assignedDate, city) {
-  let batch = await DriverPartyBatch.findOne({ driverUserId, assignedDate, city });
-  if (!batch && city) {
+  let batch = null;
+  if (city) {
+    batch = await DriverPartyBatch.findOne({ driverUserId, assignedDate, city });
+  }
+  if (!batch) {
     batch = await DriverPartyBatch.findOne({
       driverUserId,
       assignedDate,
       $or: [{ city: null }, { city: '' }, { city: { $exists: false } }]
     });
-    if (batch) batch.city = city;
+    if (batch && city) batch.city = city;
+  }
+  if (!batch) {
+    batch = await DriverPartyBatch.findOne({ driverUserId, assignedDate });
+    if (batch && city && !batch.city) batch.city = city;
   }
   return batch;
+}
+
+async function mergeDuplicateBatches(driverUserId, assignedDate, primary) {
+  const others = await DriverPartyBatch.find({
+    driverUserId,
+    assignedDate,
+    _id: { $ne: primary._id }
+  });
+  if (!others.length) return primary;
+
+  for (const other of others) {
+    for (const row of other.entries || []) {
+      const exists = primary.entries.find((e) => String(e.partyId) === String(row.partyId));
+      if (!exists) primary.entries.push(row);
+    }
+    if ((other.rentalAmount || 0) > (primary.rentalAmount || 0)) {
+      primary.rentalAmount = other.rentalAmount;
+    }
+    if (!primary.city && other.city) primary.city = other.city;
+    if (other.status === 'submitted' && primary.status !== 'submitted') {
+      primary.status = other.status;
+      primary.submittedAt = other.submittedAt;
+    }
+    await DriverPartyBatch.deleteOne({ _id: other._id });
+  }
+  await primary.save();
+  return primary;
+}
+
+async function hydrateBatchRental(batch) {
+  if ((batch.rentalAmount || 0) > 0 && batch.city) return batch;
+
+  const parties = await DriverParty.find({
+    driverUserId: batch.driverUserId,
+    assignedDate: batch.assignedDate
+  });
+  let changed = false;
+
+  if ((batch.rentalAmount || 0) <= 0) {
+    let rental = parties.reduce((max, p) => {
+      const r = Number(p.assignmentRentalAmount) || 0;
+      return r > max ? r : max;
+    }, 0);
+    if (rental <= 0) {
+      const sibling = await DriverPartyBatch.findOne({
+        driverUserId: batch.driverUserId,
+        assignedDate: batch.assignedDate,
+        rentalAmount: { $gt: 0 }
+      }).sort({ updatedAt: -1 });
+      rental = Number(sibling?.rentalAmount) || 0;
+    }
+    if (rental > 0) {
+      batch.rentalAmount = rental;
+      changed = true;
+    }
+  }
+
+  if (!batch.city) {
+    const withCity = parties.find((p) => p.city);
+    if (withCity?.city) {
+      batch.city = withCity.city;
+      changed = true;
+    }
+  }
+
+  if (changed) await batch.save();
+  return batch;
+}
+
+async function syncPartyBatchesFromParties(driverUserId = null) {
+  const filter = {
+    driverUserId: { $exists: true, $ne: null },
+    assignedDate: { $exists: true, $ne: '' }
+  };
+  if (driverUserId) filter.driverUserId = driverUserId;
+
+  const parties = await DriverParty.find(filter);
+  const groups = new Map();
+
+  for (const p of parties) {
+    const key = `${String(p.driverUserId)}|${p.assignedDate}|${p.city || ''}`;
+    if (!groups.has(key)) {
+      groups.set(key, {
+        driverUserId: p.driverUserId,
+        driverName: p.driverName,
+        assignedDate: p.assignedDate,
+        city: p.city || undefined,
+        parties: [],
+        rentalAmount: 0
+      });
+    }
+    const g = groups.get(key);
+    g.parties.push(p);
+    if (!g.driverName && p.driverName) g.driverName = p.driverName;
+    const rental = Number(p.assignmentRentalAmount) || 0;
+    if (rental > g.rentalAmount) g.rentalAmount = rental;
+  }
+
+  for (const g of groups.values()) {
+    let batch = await findPartyBatch(g.driverUserId, g.assignedDate, g.city);
+    const entryRows = g.parties.map((party) => ({
+      partyId: party._id,
+      partyName: party.name,
+      phone: party.phone
+    }));
+
+    if (!batch) {
+      batch = await DriverPartyBatch.create({
+        driverUserId: g.driverUserId,
+        driverName: g.driverName,
+        assignedDate: g.assignedDate,
+        city: g.city,
+        rentalAmount: g.rentalAmount,
+        entries: entryRows
+      });
+    } else {
+      for (const row of entryRows) {
+        const exists = batch.entries.find((e) => String(e.partyId) === String(row.partyId));
+        if (!exists) batch.entries.push(row);
+      }
+      if (g.rentalAmount > 0) batch.rentalAmount = g.rentalAmount;
+      if (g.city && !batch.city) batch.city = g.city;
+      if (g.driverName) batch.driverName = g.driverName;
+      await batch.save();
+    }
+
+    await mergeDuplicateBatches(g.driverUserId, g.assignedDate, batch);
+  }
 }
 
 adminRouter.post('/parties/bulk', protect, adminOnly, async (req, res) => {
@@ -455,6 +600,12 @@ adminRouter.post('/parties/bulk', protect, adminOnly, async (req, res) => {
       if (!party) {
         party = await DriverParty.findOne({ clientUserId: user._id, driverUserId: null });
       }
+      if (!party) {
+        party = await DriverParty.findOne({
+          phone: normalizePhone(user.phone),
+          driverUserId: driver._id
+        });
+      }
       if (party) {
         Object.assign(party, payload);
         await party.save();
@@ -476,6 +627,11 @@ adminRouter.post('/parties/bulk', protect, adminOnly, async (req, res) => {
         : advanceFallback;
     if (!rentalAmount || rentalAmount <= 0) {
       return res.status(400).json({ error: 'Rental amount is required' });
+    }
+
+    for (const party of parties) {
+      party.assignmentRentalAmount = rentalAmount;
+      await party.save();
     }
 
     let batch = await findPartyBatch(driver._id, assignedDate, city);
@@ -508,6 +664,8 @@ adminRouter.post('/parties/bulk', protect, adminOnly, async (req, res) => {
       await batch.save();
     }
 
+    batch = await mergeDuplicateBatches(driver._id, assignedDate, batch);
+
     res.status(201).json({ parties, batch, count: parties.length, assignedDate });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -535,16 +693,173 @@ adminRouter.put('/parties/:id', protect, adminOnly, async (req, res) => {
   }
 });
 
+async function resolveClientUserForParty(party) {
+  if (!party) return null;
+
+  const existingId = party.clientUserId?._id || party.clientUserId;
+  if (existingId) {
+    const user = await User.findOne({ _id: existingId, role: 'user' }).select('name phone');
+    if (user) return user;
+  }
+
+  const phone = normalizePhone(party.phone);
+  if (phone) {
+    const byPhone = await User.find({ role: 'user' }).select('name phone');
+    const user = byPhone.find((u) => phonesMatch(u.phone, phone));
+    if (user) {
+      if (party._id) {
+        await DriverParty.findByIdAndUpdate(party._id, { clientUserId: user._id });
+      }
+      return user;
+    }
+  }
+
+  if (party.name?.trim()) {
+    const escaped = party.name.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const matches = await User.find({
+      role: 'user',
+      name: { $regex: new RegExp(`^${escaped}$`, 'i') }
+    }).select('name phone');
+    const user =
+      matches.length === 1
+        ? matches[0]
+        : matches.find((u) => phone && phonesMatch(u.phone, phone));
+    if (user) {
+      if (party._id) {
+        await DriverParty.findByIdAndUpdate(party._id, { clientUserId: user._id });
+      }
+      return user;
+    }
+  }
+
+  return null;
+}
+
+async function syncDriverEntryToClientBatch(entryId, reviewedBy, visible) {
+  const full = await DriverSilkEntry.findById(entryId)
+    .populate('partyId')
+    .populate('vehicleId', 'driverName vehicleNumber');
+  if (!full) return null;
+
+  const party = full.partyId;
+  let user = null;
+  if (full.clientUserId) {
+    user = await User.findOne({ _id: full.clientUserId, role: 'user' }).select('name phone');
+  }
+  if (!user) {
+    user = await resolveClientUserForParty(party);
+  }
+  if (!user) return null;
+
+  const clientUserId = user._id;
+  if (!full.clientUserId || String(full.clientUserId) !== String(clientUserId)) {
+    full.clientUserId = clientUserId;
+    await full.save();
+  }
+
+  if (!visible) {
+    await Batch.findOneAndUpdate({ driverSilkEntryId: full._id }, { visibleToClient: false });
+    return null;
+  }
+
+  const good = Number(full.goodKg) || 0;
+  const waste = Number(full.wasteKg) || 0;
+  const doubles = Number(full.doubleKg) || 0;
+  const totalKg = Math.round((good + waste + doubles) * 10) / 10;
+  const goodAmount = Number(full.goodAmount) || 0;
+  const wasteAmount = Number(full.wasteAmount) || 0;
+  const doublesAmount = Number(full.doubleAmount) || 0;
+  const netSilkValue = goodAmount - wasteAmount - doublesAmount;
+  const finalAmount = Number(full.totalAmount) || 0;
+  const rentalDeduction = Math.max(0, netSilkValue - finalAmount);
+  const location = party.city || 'Coimbatore';
+  const driverLabel = full.vehicleId?.driverName || party.driverName || 'driver';
+
+  const batchPayload = {
+    userId: new mongoose.Types.ObjectId(String(clientUserId)),
+    userName: user.name,
+    date: full.date,
+    location,
+    totalWeightKg: totalKg,
+    goodSilkKg: good,
+    quantityKg: good,
+    wasteKg: waste,
+    doubles,
+    goodSilkRatePerKg: full.goodRate,
+    wasteRatePerKg: full.wasteRate,
+    doublesRatePerKg: full.doubleRate,
+    goodSilkAmount: goodAmount,
+    wasteAmount,
+    doublesAmount,
+    ratePerKg: full.goodRate,
+    estimatedValue: finalAmount,
+    updatedBy: reviewedBy,
+    visibleToClient: true,
+    notes: `Driver entry: ${driverLabel}`,
+    driverSilkEntryId: full._id,
+    vehicleRental: {
+      ownerName: driverLabel,
+      ratePerKg: good > 0 ? Math.round((rentalDeduction / good) * 100) / 100 : 0,
+      rentalDeduction,
+      netSilkValue,
+      finalAmount
+    }
+  };
+
+  let batch = await Batch.findOne({ driverSilkEntryId: full._id });
+  if (batch) {
+    batch.set(batchPayload);
+    batch.markModified('vehicleRental');
+    await batch.save();
+  } else {
+    batch = await Batch.create(batchPayload);
+  }
+  return { batch, userName: user.name, clientUserId: String(clientUserId) };
+}
+
+async function publishDriverEntryToClient(entryId, reviewedBy) {
+  const result = await syncDriverEntryToClientBatch(entryId, reviewedBy, true);
+  if (!result?.batch?._id) {
+    const err = new Error(
+      'Could not publish to client batch history. Check the party is linked to a client user with matching phone.'
+    );
+    err.statusCode = 400;
+    throw err;
+  }
+  return result;
+}
+
 // ——— Silk entries (admin review) ———
 adminRouter.get('/entries', protect, adminOnly, async (req, res) => {
   try {
     const filter = {};
     if (req.query.status) filter.status = req.query.status;
-    const entries = await DriverSilkEntry.find(filter)
+    let entries = await DriverSilkEntry.find(filter)
       .populate('vehicleId', 'vehicleNumber driverName')
-      .populate('partyId', 'name phone village')
+      .populate('partyId', 'name phone village clientUserId')
+      .populate('clientUserId', 'name')
       .populate('submittedBy', 'name')
       .sort({ createdAt: -1 });
+
+    const approvedMissing = entries.filter((e) => e.status === 'approved');
+    for (const entry of approvedMissing) {
+      const linked = await Batch.exists({ driverSilkEntryId: entry._id, visibleToClient: true });
+      if (!linked) {
+        try {
+          await publishDriverEntryToClient(entry._id, req.user._id);
+        } catch (err) {
+          console.error('Auto-publish driver entry failed:', entry._id, err.message);
+        }
+      }
+    }
+    if (approvedMissing.some((e) => !e.clientUserId)) {
+      entries = await DriverSilkEntry.find(filter)
+        .populate('vehicleId', 'vehicleNumber driverName')
+        .populate('partyId', 'name phone village clientUserId')
+        .populate('clientUserId', 'name')
+        .populate('submittedBy', 'name')
+        .sort({ createdAt: -1 });
+    }
     res.json(entries);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -557,26 +872,95 @@ adminRouter.patch('/entries/:id/status', protect, adminOnly, async (req, res) =>
     if (!['approved', 'rejected'].includes(status)) {
       return res.status(400).json({ error: 'Invalid status' });
     }
+
+    const existing = await DriverSilkEntry.findById(req.params.id).populate('partyId');
+    if (!existing) return res.status(404).json({ error: 'Not found' });
+
+    if (status === 'approved') {
+      let clientUser = null;
+      if (existing.clientUserId) {
+        clientUser = await User.findOne({ _id: existing.clientUserId, role: 'user' }).select('name');
+      }
+      if (!clientUser) {
+        clientUser = await resolveClientUserForParty(existing.partyId);
+      }
+      if (!clientUser) {
+        return res.status(400).json({
+          error:
+            'Could not link this party to a client user. Add the user again from Admin → Driver → Parties → Add.'
+        });
+      }
+    }
+
     const entry = await DriverSilkEntry.findByIdAndUpdate(
       req.params.id,
       { status, reviewNote, reviewedBy: req.user._id },
       { new: true }
     )
       .populate('vehicleId', 'vehicleNumber driverName')
-      .populate('partyId', 'name');
-    if (!entry) return res.status(404).json({ error: 'Not found' });
-    res.json(entry);
+      .populate('partyId', 'name phone clientUserId');
+
+    let clientBatch = null;
+    if (status === 'approved') {
+      clientBatch = await publishDriverEntryToClient(entry._id, req.user._id);
+    } else if (status === 'rejected') {
+      await syncDriverEntryToClientBatch(entry._id, req.user._id, false);
+    }
+
+    res.json({
+      ...entry.toObject(),
+      clientBatchId: clientBatch?.batch?._id || null,
+      clientUserId: clientBatch?.clientUserId || null,
+      clientUserName: clientBatch?.userName || null
+    });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    const status = e.statusCode || 500;
+    res.status(status).json({ error: e.message });
+  }
+});
+
+adminRouter.post('/entries/:id/publish', protect, adminOnly, async (req, res) => {
+  try {
+    const entry = await DriverSilkEntry.findById(req.params.id);
+    if (!entry) return res.status(404).json({ error: 'Not found' });
+    if (entry.status !== 'approved') {
+      return res.status(400).json({ error: 'Approve the entry before publishing to client' });
+    }
+    const result = await publishDriverEntryToClient(entry._id, req.user._id);
+    res.json({
+      ok: true,
+      clientBatchId: result.batch._id,
+      clientUserId: result.clientUserId,
+      clientUserName: result.userName,
+      batchDate: result.batch.date,
+      batchLocation: result.batch.location
+    });
+  } catch (e) {
+    const status = e.statusCode || 500;
+    res.status(status).json({ error: e.message });
   }
 });
 
 // ——— Rates ———
 adminRouter.get('/rates', protect, adminOnly, async (req, res) => {
   try {
-    res.json(await getGlobalRates());
+    const partyId = req.query.partyId;
+    res.json(partyId ? await getRatesForParty(partyId) : await getGlobalRates());
   } catch (e) {
     res.status(500).json({ error: e.message });
+  }
+});
+
+adminRouter.put('/party-batches/:id/parties/:partyId', protect, adminOnly, async (req, res) => {
+  try {
+    const batch = await DriverPartyBatch.findById(req.params.id);
+    if (!batch) return res.status(404).json({ error: 'Batch not found' });
+    await hydrateBatchRental(batch);
+    await updateBatchPartyEntry(batch, req.params.partyId, req.body);
+    res.json(batchPayload(batch));
+  } catch (e) {
+    const status = e.statusCode || 500;
+    res.status(status).json({ error: e.message });
   }
 });
 
@@ -816,44 +1200,56 @@ async function refreshBatchRates(batch) {
   return batch;
 }
 
-async function ensureBatchesForDriver(userId, userName) {
-  const parties = await DriverParty.find({
-    driverUserId: userId,
-    assignedDate: { $exists: true, $ne: '' }
-  });
-  const groups = new Map();
-  for (const p of parties) {
-    const key = `${p.assignedDate}|${p.city || ''}`;
-    if (!groups.has(key)) {
-      groups.set(key, { assignedDate: p.assignedDate, city: p.city, parties: [] });
-    }
-    groups.get(key).parties.push(p);
+async function updateBatchPartyEntry(batch, partyId, body) {
+  const entry = batch.entries.find((e) => String(e.partyId) === String(partyId));
+  if (!entry) {
+    const err = new Error('User not in this batch');
+    err.statusCode = 404;
+    throw err;
   }
-  for (const { assignedDate, city, parties: list } of groups.values()) {
-    let batch = await findPartyBatch(userId, assignedDate, city);
-    if (!batch) {
-      batch = await DriverPartyBatch.create({
-        driverUserId: userId,
-        driverName: userName,
-        assignedDate,
-        city,
-        rentalAmount: 0,
-        entries: list.map((p) => ({
-          partyId: p._id,
-          partyName: p.name,
-          phone: p.phone
-        }))
-      });
-    } else {
-      let changed = false;
-      for (const p of list) {
-        if (!batch.entries.find((e) => String(e.partyId) === String(p._id))) {
-          batch.entries.push({ partyId: p._id, partyName: p.name, phone: p.phone });
-          changed = true;
-        }
-      }
-      if (changed) await batch.save();
+
+  const defaults = await getRatesForParty(entry.partyId);
+  const {
+    goodSilkKg,
+    goodSilkRatePerKg,
+    wasteKg,
+    wasteRatePerKg,
+    doublesKg,
+    doublesRatePerKg
+  } = body;
+
+  if (goodSilkKg != null) entry.goodSilkKg = Number(goodSilkKg) || 0;
+  if (goodSilkRatePerKg != null) entry.goodSilkRatePerKg = Number(goodSilkRatePerKg) || 0;
+  else if (!entry.goodSilkRatePerKg) entry.goodSilkRatePerKg = defaults.goodRate || 0;
+  if (wasteKg != null) entry.wasteKg = Number(wasteKg) || 0;
+  if (wasteRatePerKg != null) entry.wasteRatePerKg = Number(wasteRatePerKg) || 0;
+  else if (!entry.wasteRatePerKg) entry.wasteRatePerKg = defaults.wasteRate || 0;
+  if (doublesKg != null) entry.doublesKg = Number(doublesKg) || 0;
+  if (doublesRatePerKg != null) entry.doublesRatePerKg = Number(doublesRatePerKg) || 0;
+  else if (!entry.doublesRatePerKg) entry.doublesRatePerKg = defaults.doubleRate || 0;
+
+  if (entry.goodSilkKg <= 0) {
+    const err = new Error('Enter good silk kg');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  await refreshBatchRates(batch);
+  const rate = batch.effectiveRatePerKg;
+  Object.assign(entry, calcUserRentalEntry(entry, rate), { completed: true });
+  await batch.save();
+  return batch;
+}
+
+async function ensureBatchesForDriver(userId, userName) {
+  await syncPartyBatchesFromParties(userId);
+  const batches = await DriverPartyBatch.find({ driverUserId: userId });
+  for (const batch of batches) {
+    if (!batch.driverName && userName) {
+      batch.driverName = userName;
+      await batch.save();
     }
+    await hydrateBatchRental(batch);
   }
 }
 
@@ -872,11 +1268,13 @@ driverRouter.get('/party-batches', protect, driverOnly, async (req, res) => {
 
 driverRouter.get('/party-batches/:id', protect, driverOnly, async (req, res) => {
   try {
-    const batch = await DriverPartyBatch.findOne({
+    await ensureBatchesForDriver(req.user._id, req.user.name);
+    let batch = await DriverPartyBatch.findOne({
       _id: req.params.id,
       driverUserId: req.user._id
     });
     if (!batch) return res.status(404).json({ error: 'Batch not found' });
+    await hydrateBatchRental(batch);
     res.json(batchPayload(batch));
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -916,41 +1314,11 @@ driverRouter.put('/party-batches/:id/parties/:partyId', protect, driverOnly, asy
     if (batch.status === 'submitted') {
       return res.status(410).json({ error: 'This entry was already submitted' });
     }
-
-    const entry = batch.entries.find((e) => String(e.partyId) === String(req.params.partyId));
-    if (!entry) return res.status(404).json({ error: 'User not in this batch' });
-
-    const defaults = await getRatesForParty(entry.partyId);
-    const {
-      goodSilkKg,
-      goodSilkRatePerKg,
-      wasteKg,
-      wasteRatePerKg,
-      doublesKg,
-      doublesRatePerKg
-    } = req.body;
-
-    if (goodSilkKg != null) entry.goodSilkKg = Number(goodSilkKg) || 0;
-    if (goodSilkRatePerKg != null) entry.goodSilkRatePerKg = Number(goodSilkRatePerKg) || 0;
-    else if (!entry.goodSilkRatePerKg) entry.goodSilkRatePerKg = defaults.goodRate || 0;
-    if (wasteKg != null) entry.wasteKg = Number(wasteKg) || 0;
-    if (wasteRatePerKg != null) entry.wasteRatePerKg = Number(wasteRatePerKg) || 0;
-    else if (!entry.wasteRatePerKg) entry.wasteRatePerKg = defaults.wasteRate || 0;
-    if (doublesKg != null) entry.doublesKg = Number(doublesKg) || 0;
-    if (doublesRatePerKg != null) entry.doublesRatePerKg = Number(doublesRatePerKg) || 0;
-    else if (!entry.doublesRatePerKg) entry.doublesRatePerKg = defaults.doubleRate || 0;
-
-    if (entry.goodSilkKg <= 0) {
-      return res.status(400).json({ error: 'Enter good silk kg' });
-    }
-
-    await refreshBatchRates(batch);
-    const rate = batch.effectiveRatePerKg;
-    Object.assign(entry, calcUserRentalEntry(entry, rate), { completed: true });
-    await batch.save();
+    await updateBatchPartyEntry(batch, req.params.partyId, req.body);
     res.json(batchPayload(batch));
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    const status = e.statusCode || 500;
+    res.status(status).json({ error: e.message });
   }
 });
 
@@ -984,6 +1352,8 @@ driverRouter.post('/party-batches/:id/submit', protect, driverOnly, async (req, 
 
     for (const entry of batch.entries) {
       const calc = calcUserRentalEntry(entry, rate);
+      const partyDoc = await DriverParty.findById(entry.partyId).select('clientUserId phone name');
+      const linkedClient = partyDoc ? await resolveClientUserForParty(partyDoc) : null;
       const existing = await DriverSilkEntry.findOne({
         partyId: entry.partyId,
         vehicleId: vehicle._id,
@@ -992,6 +1362,7 @@ driverRouter.post('/party-batches/:id/submit', protect, driverOnly, async (req, 
       const payload = {
         vehicleId: vehicle._id,
         partyId: entry.partyId,
+        clientUserId: linkedClient?._id || partyDoc?.clientUserId || null,
         date: batch.assignedDate,
         goodKg: entry.goodSilkKg,
         goodRate: entry.goodSilkRatePerKg,

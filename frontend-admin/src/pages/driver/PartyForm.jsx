@@ -1,20 +1,44 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
 import AppShell from '../../components/layout/AppShell';
 import api from '../../api/client';
 import { formatINR, todayISO } from '../../utils/format';
 import be from '../admin/BatchEntry.module.css';
 import vr from '../admin/VehicleRental.module.css';
+import pe from './PartyEntryEdit.module.css';
+
+function calcPreview(entry, rate) {
+  const good = Number(entry.goodSilkKg) || 0;
+  const waste = Number(entry.wasteKg) || 0;
+  const doubles = Number(entry.doublesKg) || 0;
+  const gr = Number(entry.goodSilkRatePerKg) || 0;
+  const wr = Number(entry.wasteRatePerKg) || 0;
+  const dr = Number(entry.doublesRatePerKg) || 0;
+  const goodAmt = Math.round(good * gr);
+  const wasteAmt = Math.round(waste * wr);
+  const doublesAmt = Math.round(doubles * dr);
+  const netSilk = goodAmt - wasteAmt - doublesAmt;
+  const rental = Math.round(good * rate);
+  const finalAmount = netSilk - rental;
+  return { goodAmt, wasteAmt, doublesAmt, netSilk, rental, finalAmount };
+}
 
 function PartyEditForm({ id }) {
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [party, setParty] = useState(null);
-  const [batchEntry, setBatchEntry] = useState(null);
+  const [batch, setBatch] = useState(null);
   const [batchId, setBatchId] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { register, handleSubmit, reset } = useForm();
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    goodSilkKg: '',
+    goodSilkRatePerKg: '',
+    wasteKg: '',
+    wasteRatePerKg: '',
+    doublesKg: '',
+    doublesRatePerKg: ''
+  });
 
   useEffect(() => {
     const load = async () => {
@@ -30,22 +54,33 @@ function PartyEditForm({ id }) {
         }
         setParty(p);
 
-        const batch = batchesRes.data.find(
+        const match = batchesRes.data.find(
           (b) =>
-            b.status === 'submitted' &&
             String(b.driverUserId) === String(p.driverUserId?._id || p.driverUserId) &&
             b.assignedDate === p.assignedDate &&
             (b.city || '') === (p.city || '')
         );
-        if (batch) {
-          setBatchId(batch._id);
-          const detail = await api.get(`/admin/driver/party-batches/${batch._id}`);
-          const row = detail.data.parties?.find((x) => x._id === id);
-          setBatchEntry(row?.batchEntry || null);
-          reset({
-            goodRateOverride: p.goodRateOverride ?? '',
-            wasteRateOverride: p.wasteRateOverride ?? '',
-            doubleRateOverride: p.doubleRateOverride ?? ''
+        if (!match) {
+          setLoading(false);
+          return;
+        }
+
+        setBatchId(match._id);
+        const [batchRes, ratesRes] = await Promise.all([
+          api.get(`/admin/driver/party-batches/${match._id}`),
+          api.get('/admin/driver/rates', { params: { partyId: id } })
+        ]);
+        setBatch(batchRes.data);
+        const entry = batchRes.data.entries?.find((x) => String(x.partyId) === id);
+        const rates = ratesRes.data;
+        if (entry) {
+          setForm({
+            goodSilkKg: entry.goodSilkKg ?? '',
+            goodSilkRatePerKg: entry.goodSilkRatePerKg || rates.goodRate || '',
+            wasteKg: entry.wasteKg ?? '',
+            wasteRatePerKg: entry.wasteRatePerKg || rates.wasteRate || '',
+            doublesKg: entry.doublesKg ?? '',
+            doublesRatePerKg: entry.doublesRatePerKg || rates.doubleRate || ''
           });
         }
       } catch (err) {
@@ -55,28 +90,29 @@ function PartyEditForm({ id }) {
       }
     };
     load();
-  }, [id, reset]);
+  }, [id]);
 
-  const onSubmit = async (data) => {
+  const rate = useMemo(() => {
+    if (batch?.effectiveRatePerKg > 0) return batch.effectiveRatePerKg;
+    const total = Number(batch?.totalSilkKg) || 0;
+    if (total <= 0 || !batch?.rentalAmount) return 0;
+    const base = batch.rentalAmount / total;
+    const extra = Number(batch.manualRateExtra) || 0;
+    return Math.round((base + extra) * 100) / 100;
+  }, [batch]);
+  const preview = useMemo(() => calcPreview(form, rate), [form, rate]);
+  const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
+
+  const onSave = async () => {
     setError('');
-    const body = {
-      name: party.name,
-      phone: party.phone,
-      village: party.village,
-      clientUserId: party.clientUserId?._id || party.clientUserId || null,
-      assignedDate: party.assignedDate,
-      driverUserId: party.driverUserId?._id || party.driverUserId,
-      driverName: party.driverName,
-      city: party.city,
-      goodRateOverride: data.goodRateOverride ? Number(data.goodRateOverride) : null,
-      wasteRateOverride: data.wasteRateOverride ? Number(data.wasteRateOverride) : null,
-      doubleRateOverride: data.doubleRateOverride ? Number(data.doubleRateOverride) : null
-    };
+    setSaving(true);
     try {
-      await api.put(`/admin/driver/parties/${id}`, body);
+      await api.put(`/admin/driver/party-batches/${batchId}/parties/${id}`, form);
       navigate(batchId ? `/admin/driver/parties/batch/${batchId}` : '/admin/driver/parties');
     } catch (err) {
       setError(err.response?.data?.error || 'Save failed');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -86,7 +122,11 @@ function PartyEditForm({ id }) {
     return <p className="form-error">Party not found</p>;
   }
 
-  if (!batchEntry?.completed) {
+  const entry = batch?.entries?.find((x) => String(x.partyId) === id);
+
+  const canEdit = batch?.status === 'submitted' || entry?.completed;
+
+  if (!batchId || !entry || !canEdit) {
     return (
       <div className="card">
         <p style={{ fontSize: 13, color: '#888' }}>
@@ -99,41 +139,133 @@ function PartyEditForm({ id }) {
     );
   }
 
-  const e = batchEntry;
-
   return (
-    <form className="card" onSubmit={handleSubmit(onSubmit)}>
-      <label className="field-label">Name</label>
-      <input className="field-input" readOnly value={party.name || ''} />
+    <>
+      <div className="card" style={{ marginBottom: 12 }}>
+        <strong>{party.name}</strong>
+        <div className={pe.userMeta}>
+          {party.phone}
+          {party.village ? ` · ${party.village}` : ''}
+        </div>
+        {batch?.effectiveRatePerKg > 0 && (
+          <div className={pe.rateHint}>
+            Effective rental rate: {formatINR(batch.effectiveRatePerKg)}/kg
+            {batch.totalSilkKg ? ` · Total silk ${batch.totalSilkKg} kg` : ''}
+          </div>
+        )}
+      </div>
 
-      <label className="field-label">Phone</label>
-      <input className="field-input" readOnly value={party.phone || ''} />
+      <div className={pe.detailLayout}>
+        <div className="card" style={{ padding: 12 }}>
+          <p style={{ fontWeight: 600, marginBottom: 10 }}>Enter silk details</p>
 
-      <label className="field-label">Village</label>
-      <input className="field-input" readOnly value={party.village || ''} />
+          <div className={pe.silkBlock}>
+            <div className={`${pe.silkLabel} ${pe.silkGood}`}>Good silk (kg)</div>
+            <div className={pe.silkGrid}>
+              <input
+                className={`${pe.silkInput} ${pe.silkInputGood}`}
+                type="number"
+                min="0"
+                step="0.1"
+                value={form.goodSilkKg}
+                onChange={(e) => set('goodSilkKg', e.target.value)}
+              />
+              <div>
+                <div className={`${pe.silkLabel} ${pe.silkGood}`}>Rate (₹/kg)</div>
+                <input
+                  className={`${pe.silkInput} ${pe.silkInputGood}`}
+                  type="number"
+                  min="0"
+                  value={form.goodSilkRatePerKg}
+                  onChange={(e) => set('goodSilkRatePerKg', e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
 
-      <p className="section-title">Driver entry (submitted)</p>
-      <div style={{ fontSize: 12, color: '#444', marginBottom: 12 }}>
-        Good {e.goodSilkKg}kg @ {formatINR(e.goodSilkRatePerKg)}/kg · Waste {e.wasteKg}kg @{' '}
-        {formatINR(e.wasteRatePerKg)}/kg · Doubles {e.doublesKg}kg @ {formatINR(e.doublesRatePerKg)}/kg
-        <div style={{ marginTop: 6 }}>
-          Net {formatINR(e.netSilkValue)} · Rental −{formatINR(e.rentalAmount)} · Final{' '}
-          {formatINR(e.finalAmount)}
+          <div className={pe.silkBlock}>
+            <div className={`${pe.silkLabel} ${pe.silkWaste}`}>Waste (kg)</div>
+            <div className={pe.silkGrid}>
+              <input
+                className={pe.silkInput}
+                type="number"
+                min="0"
+                value={form.wasteKg}
+                onChange={(e) => set('wasteKg', e.target.value)}
+              />
+              <div>
+                <div className={`${pe.silkLabel} ${pe.silkWaste}`}>Rate (₹/kg)</div>
+                <input
+                  className={pe.silkInput}
+                  type="number"
+                  min="0"
+                  value={form.wasteRatePerKg}
+                  onChange={(e) => set('wasteRatePerKg', e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className={pe.silkBlock}>
+            <div className={`${pe.silkLabel} ${pe.silkDoubles}`}>Doubles (kg)</div>
+            <div className={pe.silkGrid}>
+              <input
+                className={pe.silkInput}
+                type="number"
+                min="0"
+                value={form.doublesKg}
+                onChange={(e) => set('doublesKg', e.target.value)}
+              />
+              <div>
+                <div className={`${pe.silkLabel} ${pe.silkDoubles}`}>Rate (₹/kg)</div>
+                <input
+                  className={pe.silkInput}
+                  type="number"
+                  min="0"
+                  value={form.doublesRatePerKg}
+                  onChange={(e) => set('doublesRatePerKg', e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className={pe.calcPanel}>
+          <p style={{ fontWeight: 600, marginBottom: 8 }}>Auto calculation</p>
+          <div className={pe.calcLine}>
+            <span>
+              Good: {form.goodSilkKg || 0} × {formatINR(form.goodSilkRatePerKg || 0)}
+            </span>
+            <span className={pe.pos}>+{formatINR(preview.goodAmt)}</span>
+          </div>
+          <div className={pe.calcLine}>
+            <span>
+              Waste: {form.wasteKg || 0} × {formatINR(form.wasteRatePerKg || 0)}
+            </span>
+            <span className={pe.neg}>−{formatINR(preview.wasteAmt)}</span>
+          </div>
+          <div className={pe.calcLine}>
+            <span>
+              Doubles: {form.doublesKg || 0} × {formatINR(form.doublesRatePerKg || 0)}
+            </span>
+            <span className={pe.neg}>−{formatINR(preview.doublesAmt)}</span>
+          </div>
+          <div className={pe.netBox}>
+            <span>Total value</span>
+            <span>{formatINR(preview.netSilk)}</span>
+          </div>
+          <div className={pe.finalBox}>
+            <span>Rental total value</span>
+            <span style={{ fontSize: 18 }}>−{formatINR(preview.rental)}</span>
+          </div>
         </div>
       </div>
 
-      <p className="section-title">Rate overrides (optional)</p>
-      <label className="field-label">Good rate ₹/kg</label>
-      <input type="number" className="field-input" {...register('goodRateOverride')} />
-      <label className="field-label">Waste rate ₹/kg</label>
-      <input type="number" className="field-input" {...register('wasteRateOverride')} />
-      <label className="field-label">Double rate ₹/kg</label>
-      <input type="number" className="field-input" {...register('doubleRateOverride')} />
       {error && <p className="form-error">{error}</p>}
-      <button type="submit" className="btn-primary">
-        Save rates
+      <button type="button" className="btn-primary" style={{ marginTop: 12 }} disabled={saving} onClick={onSave}>
+        {saving ? 'Saving…' : `Save ${party.name}`}
       </button>
-    </form>
+    </>
   );
 }
 
@@ -338,7 +470,7 @@ export default function PartyForm() {
 
   return (
     <AppShell
-      title={isEdit ? 'Edit Party' : 'Driver Party Entry'}
+      title={isEdit ? 'Edit driver entry' : 'Driver Party Entry'}
       backPath="/admin/driver/parties"
       driverSection
       hideNav

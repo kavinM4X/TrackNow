@@ -90,9 +90,9 @@ export default function BatchHistory() {
               <div style={{ fontSize: 12, color: '#888' }}>
                 {b.location} · {displayTotalKg(b)} kg
               </div>
-              {b.estimatedValue != null && b.estimatedValue > 0 && (
+              {(b.displayFinalAmount ?? b.estimatedValue) > 0 && (
                 <div style={{ fontSize: 12, color: 'var(--green)', marginTop: 4, fontWeight: 600 }}>
-                  {formatINR(b.estimatedValue)}
+                  {formatINR(b.displayFinalAmount ?? b.estimatedValue)}
                 </div>
               )}
               <div style={{ fontSize: 11, color: '#888', marginTop: 4 }}>

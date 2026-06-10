@@ -4,6 +4,7 @@ const driverSilkEntrySchema = new mongoose.Schema(
   {
     vehicleId: { type: mongoose.Schema.Types.ObjectId, ref: 'DriverVehicle', required: true },
     partyId: { type: mongoose.Schema.Types.ObjectId, ref: 'DriverParty', required: true },
+    clientUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     date: { type: String, required: true },
     goodKg: { type: Number, default: 0 },
     goodRate: { type: Number, default: 0 },

@@ -430,7 +430,7 @@ router.get('/batches/history', protect, adminOnly, async (req, res) => {
   try {
     const { userId, location, fromDate, toDate, search, export: exportType } = req.query;
     const q = {};
-    if (userId) q.userId = userId;
+    if (userId) q.userId = new mongoose.Types.ObjectId(String(userId));
     if (location && location !== 'all') q.location = location;
 
     let rows = await Batch.find(q).sort({ date: -1, createdAt: -1 }).lean();

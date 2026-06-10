@@ -1,0 +1,111 @@
+.detailLayout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 720px) {
+  .detailLayout {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.silkBlock {
+  margin-bottom: 10px;
+}
+
+.silkLabel {
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.silkGood {
+  color: #2e7d52;
+}
+
+.silkWaste {
+  color: #d4830a;
+}
+
+.silkDoubles {
+  color: #8b4513;
+}
+
+.silkGrid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 8px;
+}
+
+.silkInput {
+  background: #f5f5f3;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px;
+  width: 100%;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.silkInputGood {
+  background: #f0faf5;
+  border-color: #2e7d52;
+}
+
+.calcPanel {
+  background: white;
+  border: 1px solid #e0e0dc;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.calcLine {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.pos {
+  color: #2e7d52;
+  font-weight: 500;
+}
+
+.neg {
+  color: #c0392b;
+  font-weight: 500;
+}
+
+.netBox {
+  background: #e8f4ed;
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  justify-content: space-between;
+  margin: 8px 0;
+  font-weight: 600;
+  color: #2e7d52;
+}
+
+.finalBox {
+  background: #fef8ec;
+  border: 1px solid #d4a017;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  color: #8b6914;
+}
+
+.userMeta {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 12px;
+}
+
+.rateHint {
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 12px;
+}

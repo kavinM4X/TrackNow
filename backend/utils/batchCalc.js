@@ -1,3 +1,5 @@
+const mongoose = require('mongoose');
+
 const MARKET_KEYS = {
   Coimbatore: 'coimbatore',
   Mamballi: 'mamballi',
@@ -121,9 +123,10 @@ function isBatchVisibleToClient(batch) {
 
 /** Mongo filter: batches farmers may see in history, dashboard, detail */
 function clientVisibleBatchQuery(userId) {
-  const uid = typeof userId === 'string' ? userId : userId;
+  const uid = userId?._id || userId;
+  if (!uid) return { _id: null };
   return {
-    userId: uid,
+    userId: new mongoose.Types.ObjectId(String(uid)),
     $or: [
       { visibleToClient: true },
       {
