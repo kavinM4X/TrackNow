@@ -8,6 +8,8 @@ import ExpenseTrips from './pages/ExpenseTrips';
 import ExpenseEntry from './pages/ExpenseEntry';
 import SilkEntry from './pages/SilkEntry';
 import Parties from './pages/Parties';
+import HistoryTrips from './pages/HistoryTrips';
+import HistoryTripDetail from './pages/HistoryTripDetail';
 import Profile from './pages/Profile';
 
 function App() {
@@ -66,6 +68,8 @@ function App() {
             <Route path="/expense/:vehicleId" element={<ExpenseEntry />} />
             <Route path="/silk" element={<SilkEntry />} />
             <Route path="/parties" element={<Parties />} />
+            <Route path="/history" element={<HistoryTrips />} />
+            <Route path="/history/:vehicleId" element={<HistoryTripDetail />} />
             <Route path="/profile" element={<Profile onLogout={handleLogout} />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </>

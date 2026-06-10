@@ -1,0 +1,65 @@
+.rateCarousel {
+  margin-bottom: 12px;
+}
+
+.rateCardSingle {
+  background: #fff;
+  border: 1px solid #e0e0dc;
+  border-radius: 8px;
+  padding: 14px 12px;
+  text-align: center;
+  animation: rateFadeIn 0.35s ease;
+}
+
+@keyframes rateFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rateDots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.rateDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ccc;
+  transition: background 0.2s ease;
+}
+
+.rateDotOn {
+  background: var(--green);
+}
+
+.rateLoc {
+  font-size: 13px;
+  font-weight: 500;
+  color: #888;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.rateVal {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--green);
+  display: block;
+  line-height: 1.2;
+}
+
+.rateUnit {
+  font-size: 12px;
+  color: #888;
+  display: block;
+  margin-top: 4px;
+}

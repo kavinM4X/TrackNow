@@ -63,7 +63,7 @@ export default function Vehicles() {
               <div>
                 <strong>{v.vehicleNumber}</strong>
                 <div style={{ fontSize: 11, color: '#888' }}>
-                  Driver: {v.driverName}
+                  Trip · {String(v._id).slice(-8).toUpperCase()} · Driver: {v.driverName}
                   {v.city ? ` · ${v.city}` : ''} · {v.status}
                 </div>
               </div>
@@ -118,10 +118,10 @@ export default function Vehicles() {
                 className={dr.actionBtn}
                 onClick={(e) => {
                   e.stopPropagation();
-                  navigate(`/admin/driver/vehicles/${v._id}/edit`);
+                  navigate(`/admin/driver/vehicles/${v._id}/expenses`);
                 }}
               >
-                Edit
+                + Expense
               </button>
             </div>
           </div>

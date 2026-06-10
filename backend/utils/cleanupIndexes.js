@@ -16,6 +16,7 @@ async function cleanupLegacyIndexes(mongooseInstance) {
   const legacyBookingIndexes = ['batchNumber_1', 'user_1', 'bookingType_1'];
   const legacyBatchIndexes = ['batchNumber_1'];
   const legacyTrackerIndexes = ['deviceId_1', 'vehicleNumber_1'];
+  const legacyDriverVehicleIndexes = ['vehicleNumber_1'];
 
   try {
     await dropLegacyIndexes(db.collection('bookings'), legacyBookingIndexes, 'bookings');
@@ -42,6 +43,18 @@ async function cleanupLegacyIndexes(mongooseInstance) {
   } catch (err) {
     if (err.code !== 27 && err.codeName !== 'IndexNotFound') {
       console.warn('TrackerConfigs index cleanup:', err.message);
+    }
+  }
+
+  try {
+    await dropLegacyIndexes(
+      db.collection('drivervehicles'),
+      legacyDriverVehicleIndexes,
+      'drivervehicles'
+    );
+  } catch (err) {
+    if (err.code !== 27 && err.codeName !== 'IndexNotFound') {
+      console.warn('DriverVehicles index cleanup:', err.message);
     }
   }
 }

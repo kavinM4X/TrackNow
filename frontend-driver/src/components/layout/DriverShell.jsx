@@ -6,6 +6,7 @@ const NAV = [
   { to: '/expense', label: 'Expense', icon: '◎' },
   { to: '/silk', label: 'Silk', icon: '◫' },
   { to: '/parties', label: 'Parties', icon: '▤' },
+  { to: '/history', label: 'History', icon: '◷' },
   { to: '/profile', label: 'Profile', icon: '≡' }
 ];
 
@@ -37,7 +38,9 @@ export default function DriverShell({ title, backPath, headerRight, hideNav, chi
                 const active =
                   item.to === '/expense'
                     ? location.pathname.startsWith('/expense')
-                    : isActive;
+                    : item.to === '/history'
+                      ? location.pathname.startsWith('/history')
+                      : isActive;
                 return `${styles.bnavItem} ${active ? styles.active : ''}`;
               }}
             >

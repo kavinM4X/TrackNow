@@ -66,8 +66,8 @@ export default function ExpenseTrips() {
         <div className="card">
           <strong>No trips assigned</strong>
           <p style={{ fontSize: 13, color: '#888', margin: '8px 0 0' }}>
-            Ask admin to add a vehicle under <strong>Driver → Vehicles</strong> and select your
-            name ({driverName || 'your driver account'}) in the Driver Name dropdown.
+            Ask admin to assign a trip under <strong>Driver → Vehicles</strong> and select your name
+            ({driverName || 'your driver account'}) in the Driver Name dropdown.
           </p>
         </div>
       ) : (
@@ -75,19 +75,23 @@ export default function ExpenseTrips() {
           <p style={{ fontSize: 12, color: '#888', margin: '0 0 10px' }}>
             Select a trip to record expenses ({vehicles.length} trip{vehicles.length > 1 ? 's' : ''})
           </p>
-          {vehicles.map((v) => (
+          {vehicles.map((v) => {
+            const tripId = String(v._id).slice(-8).toUpperCase();
+            return (
             <button
               key={v._id}
               type="button"
               className={styles.expenseTripCard}
               onClick={() => navigate(`/expense/${v._id}`)}
             >
-              <div className={styles.expenseVehicleDate}>{todayLabel}</div>
+              <div className={styles.expenseVehicleDate}>
+                Trip · {tripId} · {todayLabel}
+              </div>
               <div className={styles.expenseVehicleHead}>
                 <div style={{ textAlign: 'left' }}>
                   <strong className={styles.expenseVehicleNum}>{v.vehicleNumber}</strong>
                   <div className={styles.expenseVehicleMeta}>
-                    Driver: {v.driverName || driverName} · {v.status}
+                    {v.tripLeg === 'come' ? 'Come' : 'Go'} · Driver: {v.driverName || driverName} · {v.status}
                     {v.city ? ` · ${v.city}` : ''}
                   </div>
                 </div>
@@ -97,7 +101,8 @@ export default function ExpenseTrips() {
                 </div>
               </div>
             </button>
-          ))}
+            );
+          })}
         </>
       )}
     </DriverShell>

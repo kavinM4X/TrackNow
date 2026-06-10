@@ -51,6 +51,9 @@ export default function Parties() {
                 <strong>{p.name}</strong>
                 <div style={{ fontSize: 11, color: '#888' }}>
                   {p.phone} · {p.village}
+                  {p.city ? ` · ${p.city}` : ''}
+                  {p.driverName ? ` · Driver: ${p.driverName}` : ''}
+                  {p.assignedDate ? ` · ${p.assignedDate}` : ''}
                 </div>
               </div>
               {p.pendingCount > 0 ? (

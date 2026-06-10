@@ -56,7 +56,16 @@ export default function DriverDashboard() {
 
           <p className="section-title">Vehicle Summary</p>
           {vehicles.map((v) => (
-            <div key={v._id} className={`card ${dr.vehicleCard}`}>
+            <div
+              key={v._id}
+              className={`card ${dr.vehicleCard} ${dr.vehicleCardClick}`}
+              role="button"
+              tabIndex={0}
+              onClick={() => navigate(`/admin/driver/vehicles/${v._id}/expenses`)}
+              onKeyDown={(e) =>
+                e.key === 'Enter' && navigate(`/admin/driver/vehicles/${v._id}/expenses`)
+              }
+            >
               <div className={dr.vehicleHead}>
                 <div>
                   <strong>{v.vehicleNumber}</strong>

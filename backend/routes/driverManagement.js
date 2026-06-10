@@ -10,6 +10,7 @@ const DriverSilkEntry = require('../models/DriverSilkEntry');
 const DriverRateConfig = require('../models/DriverRateConfig');
 const { enrichVehicle, getVehicleTotals } = require('../utils/driverBalance');
 const { getGlobalRates, getRatesForParty, calcSilkAmounts } = require('../utils/driverRates');
+const { normalizePhone } = require('../utils/phone');
 
 const adminRouter = express.Router();
 const driverRouter = express.Router();
@@ -26,41 +27,10 @@ function nameMatches(a, b) {
   return String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
 }
 
-async function linkVehicleToDriver(vehicle, userId) {
-  if (!vehicle.driverUserId) {
-    vehicle.driverUserId = userId;
-    await vehicle.save();
-  }
-  return vehicle;
-}
-
-async function listDriverVehicleDocs(userId, userName) {
-  const linked = await DriverVehicle.find({ driverUserId: userId, status: 'active' });
-
-  const driverNames = new Set();
-  if (userName) driverNames.add(String(userName).trim().toLowerCase());
-  linked.forEach((v) => {
-    if (v.driverName) driverNames.add(String(v.driverName).trim().toLowerCase());
-  });
-
-  const or = [{ driverUserId: userId }];
-  for (const name of driverNames) {
-    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    or.push({ driverName: new RegExp(`^${escaped}$`, 'i') });
-  }
-
-  const all = await DriverVehicle.find({ status: 'active', $or: or }).sort({ updatedAt: -1 });
-
-  const seen = new Set();
-  const merged = [];
-  for (const v of all) {
-    const id = String(v._id);
-    if (seen.has(id)) continue;
-    seen.add(id);
-    await linkVehicleToDriver(v, userId);
-    merged.push(v);
-  }
-  return merged;
+/** Only trips where admin selected this driver (driverUserId) in Vehicles. */
+async function listDriverVehicleDocs(userId, _userName, { activeOnly = true } = {}) {
+  const statusFilter = activeOnly ? { status: 'active' } : {};
+  return DriverVehicle.find({ driverUserId: userId, ...statusFilter }).sort({ updatedAt: -1 });
 }
 
 async function listDriverVehicles(userId, userName) {
@@ -68,8 +38,8 @@ async function listDriverVehicles(userId, userName) {
   return Promise.all(docs.map(enrichVehicle));
 }
 
-async function resolveDriverVehicle(userId, vehicleId, userName) {
-  const allowed = await listDriverVehicleDocs(userId, userName);
+async function resolveDriverVehicle(userId, vehicleId, userName, { activeOnly = true } = {}) {
+  const allowed = await listDriverVehicleDocs(userId, userName, { activeOnly });
   if (vehicleId) {
     const v = allowed.find((x) => String(x._id) === String(vehicleId));
     return v || null;
@@ -135,11 +105,13 @@ adminRouter.post('/vehicles', protect, adminOnly, async (req, res) => {
     if (!city || !cities.includes(city)) {
       return res.status(400).json({ error: 'Valid city is required' });
     }
+    const leg = req.body.tripLeg === 'come' ? 'come' : 'go';
     const v = await DriverVehicle.create({
       vehicleNumber: String(vehicleNumber).trim().toUpperCase(),
       driverName: driverName?.trim(),
       driverUserId: driverUserId || null,
       city,
+      tripLeg: leg,
       status: status || 'active'
     });
     const amt = Number(advanceAmount);
@@ -156,6 +128,12 @@ adminRouter.post('/vehicles', protect, adminOnly, async (req, res) => {
     }
     res.status(201).json(await enrichVehicle(v));
   } catch (e) {
+    if (e.code === 11000 && String(e.message).includes('vehicleNumber')) {
+      return res.status(409).json({
+        error:
+          'Vehicle number duplicate lock is still active. Restart the API once, then add the trip again (each trip gets its own ID).'
+      });
+    }
     res.status(500).json({ error: e.message });
   }
 });
@@ -169,6 +147,7 @@ adminRouter.put('/vehicles/:id', protect, adminOnly, async (req, res) => {
         driverName: req.body.driverName?.trim(),
         driverUserId: req.body.driverUserId || null,
         city: req.body.city,
+        tripLeg: req.body.tripLeg === 'come' ? 'come' : 'go',
         status: req.body.status
       },
       { new: true }
@@ -190,6 +169,28 @@ adminRouter.get('/vehicles/:id/expenses', protect, adminOnly, async (req, res) =
     });
     const totals = await getVehicleTotals(vehicle._id);
     res.json({ vehicle: await enrichVehicle(vehicle), expenses, totals });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+adminRouter.post('/expenses', protect, adminOnly, async (req, res) => {
+  try {
+    const vehicle = await DriverVehicle.findById(req.body.vehicleId);
+    if (!vehicle) return res.status(404).json({ error: 'Trip not found' });
+    const amount = Number(req.body.amount);
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'Valid amount is required' });
+    }
+    const expense = await DriverExpense.create({
+      vehicleId: vehicle._id,
+      category: req.body.category || 'other',
+      amount,
+      date: req.body.date || new Date().toISOString().split('T')[0],
+      remarks: req.body.remarks,
+      createdBy: req.user._id
+    });
+    res.status(201).json({ expense, vehicle: await enrichVehicle(vehicle) });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -267,6 +268,56 @@ adminRouter.post('/advances', protect, adminOnly, async (req, res) => {
 });
 
 // ——— Parties ———
+adminRouter.get('/client-users', protect, adminOnly, async (req, res) => {
+  try {
+    const users = await User.find({ role: 'user', isActive: true })
+      .sort({ name: 1 })
+      .select('name phone address farmDetails');
+
+    res.json(
+      users.map((u) => ({
+        _id: u._id,
+        name: u.name,
+        phone: u.phone,
+        village: u.farmDetails?.farmLocation || u.address || ''
+      }))
+    );
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+adminRouter.get('/client-users/search', protect, adminOnly, async (req, res) => {
+  try {
+    const q = String(req.query.q || '').trim();
+    if (q.length < 2) return res.json([]);
+
+    const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const normalized = normalizePhone(q);
+    const or = [{ name: new RegExp(escaped, 'i') }];
+    if (normalized.length >= 2) {
+      or.push({ phone: normalized });
+      or.push({ phone: new RegExp(normalized.replace(/\D/g, ''), 'i') });
+    }
+
+    const users = await User.find({ role: 'user', isActive: true, $or: or })
+      .sort({ name: 1 })
+      .limit(12)
+      .select('name phone address farmDetails');
+
+    res.json(
+      users.map((u) => ({
+        _id: u._id,
+        name: u.name,
+        phone: u.phone,
+        village: u.farmDetails?.farmLocation || u.address || ''
+      }))
+    );
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 adminRouter.get('/parties', protect, adminOnly, async (req, res) => {
   try {
     const parties = await DriverParty.find().sort({ name: 1 });
@@ -287,9 +338,94 @@ adminRouter.get('/parties', protect, adminOnly, async (req, res) => {
   }
 });
 
+function partyPayload(body) {
+  return {
+    name: body.name?.trim(),
+    phone: body.phone ? normalizePhone(body.phone) : undefined,
+    village: body.village?.trim(),
+    clientUserId: body.clientUserId || null,
+    driverUserId: body.driverUserId || null,
+    driverName: body.driverName?.trim(),
+    city: body.city || undefined,
+    assignedDate: body.assignedDate?.trim() || undefined,
+    goodRateOverride: body.goodRateOverride != null && body.goodRateOverride !== ''
+      ? Number(body.goodRateOverride)
+      : null,
+    wasteRateOverride: body.wasteRateOverride != null && body.wasteRateOverride !== ''
+      ? Number(body.wasteRateOverride)
+      : null,
+    doubleRateOverride: body.doubleRateOverride != null && body.doubleRateOverride !== ''
+      ? Number(body.doubleRateOverride)
+      : null
+  };
+}
+
+adminRouter.post('/parties/bulk', protect, adminOnly, async (req, res) => {
+  try {
+    const userIds = Array.isArray(req.body.userIds) ? req.body.userIds : [];
+    if (userIds.length === 0) {
+      return res.status(400).json({ error: 'Add at least one user' });
+    }
+    if (!req.body.driverUserId) {
+      return res.status(400).json({ error: 'Select a driver' });
+    }
+    const cities = ['Coimbatore', 'Ramnagar', 'Mamballi', 'Dharmapuri'];
+    const city = req.body.city || req.body.location;
+    if (!city || !cities.includes(city)) {
+      return res.status(400).json({ error: 'Valid market is required' });
+    }
+
+    const driver = await User.findById(req.body.driverUserId);
+    if (!driver || !['driver', 'staff'].includes(driver.role)) {
+      return res.status(400).json({ error: 'Invalid driver' });
+    }
+
+    const assignedDate =
+      req.body.assignedDate?.trim() || new Date().toISOString().split('T')[0];
+
+    const parties = [];
+    for (const userId of userIds) {
+      const user = await User.findById(userId);
+      if (!user || user.role !== 'user') continue;
+
+      const village = user.farmDetails?.farmLocation || user.address || '';
+      const payload = {
+        name: user.name,
+        phone: normalizePhone(user.phone),
+        village,
+        clientUserId: user._id,
+        driverUserId: driver._id,
+        driverName: driver.name,
+        city,
+        assignedDate
+      };
+
+      let party = await DriverParty.findOne({ clientUserId: user._id, driverUserId: driver._id });
+      if (!party) {
+        party = await DriverParty.findOne({ clientUserId: user._id, driverUserId: null });
+      }
+      if (party) {
+        Object.assign(party, payload);
+        await party.save();
+      } else {
+        party = await DriverParty.create(payload);
+      }
+      parties.push(party);
+    }
+
+    if (parties.length === 0) {
+      return res.status(400).json({ error: 'No valid users selected' });
+    }
+
+    res.status(201).json({ parties, count: parties.length, assignedDate });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 adminRouter.post('/parties', protect, adminOnly, async (req, res) => {
   try {
-    const party = await DriverParty.create(req.body);
+    const party = await DriverParty.create(partyPayload(req.body));
     res.status(201).json(party);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -298,7 +434,9 @@ adminRouter.post('/parties', protect, adminOnly, async (req, res) => {
 
 adminRouter.put('/parties/:id', protect, adminOnly, async (req, res) => {
   try {
-    const party = await DriverParty.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const party = await DriverParty.findByIdAndUpdate(req.params.id, partyPayload(req.body), {
+      new: true
+    });
     if (!party) return res.status(404).json({ error: 'Not found' });
     res.json(party);
   } catch (e) {
@@ -459,6 +597,60 @@ driverRouter.get('/me', protect, driverOnly, async (req, res) => {
   }
 });
 
+driverRouter.get('/history', protect, driverOnly, async (req, res) => {
+  try {
+    const docs = await listDriverVehicleDocs(req.user._id, req.user.name, { activeOnly: false });
+    const trips = await Promise.all(
+      docs.map(async (v) => {
+        const totals = await getVehicleTotals(v._id);
+        const expenseCount = await DriverExpense.countDocuments({ vehicleId: v._id });
+        const firstAdvance = await DriverAdvance.findOne({ vehicleId: v._id }).sort({ date: 1, createdAt: 1 });
+        const obj = v.toObject();
+        return {
+          ...obj,
+          ...totals,
+          expenseCount,
+          tripDate: firstAdvance?.date || obj.createdAt?.toISOString?.()?.split('T')[0] || null
+        };
+      })
+    );
+    trips.sort((a, b) => {
+      const da = a.tripDate || '';
+      const db = b.tripDate || '';
+      if (da !== db) return db.localeCompare(da);
+      return new Date(b.updatedAt) - new Date(a.updatedAt);
+    });
+    res.json(trips);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+driverRouter.get('/history/:id', protect, driverOnly, async (req, res) => {
+  try {
+    const vehicle = await resolveDriverVehicle(req.user._id, req.params.id, req.user.name, {
+      activeOnly: false
+    });
+    if (!vehicle) return res.status(404).json({ error: 'Trip not found' });
+    const expenses = await DriverExpense.find({ vehicleId: vehicle._id }).sort({
+      date: -1,
+      createdAt: -1
+    });
+    const advances = await DriverAdvance.find({ vehicleId: vehicle._id }).sort({ date: 1, createdAt: 1 });
+    const totals = await getVehicleTotals(vehicle._id);
+    const enriched = await enrichVehicle(vehicle);
+    res.json({
+      vehicle: enriched,
+      expenses,
+      advances,
+      totals,
+      tripDate: advances[0]?.date || enriched.createdAt?.toISOString?.()?.split('T')[0] || null
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 driverRouter.get('/dashboard', protect, driverOnly, async (req, res) => {
   try {
     const vehicles = await listDriverVehicles(req.user._id, req.user.name);
@@ -503,7 +695,9 @@ driverRouter.get('/dashboard', protect, driverOnly, async (req, res) => {
 
 driverRouter.get('/parties', protect, driverOnly, async (req, res) => {
   try {
-    const parties = await DriverParty.find().sort({ name: 1 });
+    const parties = await DriverParty.find({
+      $or: [{ driverUserId: req.user._id }, { driverUserId: null }, { driverUserId: { $exists: false } }]
+    }).sort({ name: 1 });
     const withMeta = await Promise.all(
       parties.map(async (p) => {
         const last = await DriverSilkEntry.findOne({ partyId: p._id }).sort({ date: -1 });
