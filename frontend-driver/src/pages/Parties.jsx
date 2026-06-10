@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import DriverShell from '../components/layout/DriverShell';
 import api from '../api/client';
-import { formatINR, formatDateDayMonth } from '../utils/format';
+import { formatDateDayMonth } from '../utils/format';
+import styles from '../components/layout/DriverShell.module.css';
 
 export default function Parties() {
-  const [parties, setParties] = useState([]);
+  const navigate = useNavigate();
+  const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     api
-      .get('/driver/parties')
-      .then((res) => setParties(res.data))
+      .get('/driver/party-batches')
+      .then((res) => setBatches(res.data))
       .catch((err) => {
         setError(err.response?.data?.error || 'Could not load parties');
       })
@@ -24,36 +27,45 @@ export default function Parties() {
         <div className="spinner" />
       ) : error ? (
         <p className="form-error">{error}</p>
-      ) : parties.length === 0 ? (
-        <p style={{ fontSize: 13, color: '#888' }}>No parties configured yet. Ask admin to add parties.</p>
+      ) : batches.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#888' }}>No party batches assigned yet. Ask admin to add parties.</p>
       ) : (
-        parties.map((p) => (
-          <div key={p._id} className="card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
-                <strong>{p.name}</strong>
-                <div style={{ fontSize: 11, color: '#888' }}>
-                  {p.village || '—'}
-                  {p.phone ? ` · ${p.phone}` : ''}
+        batches.map((batch) => {
+          const pendingTotal = (batch.entries || []).filter((e) => !e.completed).length;
+          const isSubmitted = batch.status === 'submitted';
+
+          return (
+            <button
+              key={batch._id}
+              type="button"
+              className={styles.partyBatchCard}
+              onClick={() => navigate(`/parties/${batch._id}`)}
+            >
+              <div className={styles.partyBatchHead} style={{ padding: 0, border: 'none' }}>
+                <div style={{ textAlign: 'left' }}>
+                  <strong className={styles.partyBatchDate}>
+                    {batch.assignedDate ? formatDateDayMonth(batch.assignedDate) : 'No date'}
+                  </strong>
+                  <div className={styles.partyBatchMeta}>
+                    {batch.city ? `${batch.city} · ` : ''}
+                    {batch.userCount || batch.entries?.length || 0} user
+                    {(batch.userCount || batch.entries?.length || 0) !== 1 ? 's' : ''}
+                  </div>
+                </div>
+                <div className={styles.partyBatchRight}>
+                  {isSubmitted ? (
+                    <span className="badge badge-green">Submitted</span>
+                  ) : pendingTotal > 0 ? (
+                    <span className="badge badge-pending">{pendingTotal} pending</span>
+                  ) : (
+                    <span className="badge badge-green">Ready</span>
+                  )}
+                  <span className={styles.partyBatchChevron}>›</span>
                 </div>
               </div>
-              {p.pendingCount > 0 && (
-                <span className="badge badge-pending">{p.pendingCount} pending</span>
-              )}
-            </div>
-            <div style={{ fontSize: 11, color: '#888', marginTop: 6 }}>
-              Rates: Good {formatINR(p.goodRateOverride ?? '—')} · Waste{' '}
-              {formatINR(p.wasteRateOverride ?? '—')} · Double{' '}
-              {formatINR(p.doubleRateOverride ?? '—')}
-            </div>
-            {p.lastEntry && (
-              <div style={{ fontSize: 11, marginTop: 4 }}>
-                Last entry: {formatDateDayMonth(p.lastEntry.date)} ·{' '}
-                {formatINR(p.lastEntry.totalAmount)}
-              </div>
-            )}
-          </div>
-        ))
+            </button>
+          );
+        })
       )}
     </DriverShell>
   );

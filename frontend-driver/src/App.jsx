@@ -8,6 +8,8 @@ import ExpenseTrips from './pages/ExpenseTrips';
 import ExpenseEntry from './pages/ExpenseEntry';
 import SilkEntry from './pages/SilkEntry';
 import Parties from './pages/Parties';
+import PartyBatchPortal from './pages/PartyBatchPortal';
+import PartyBatchUser from './pages/PartyBatchUser';
 import HistoryTrips from './pages/HistoryTrips';
 import HistoryTripDetail from './pages/HistoryTripDetail';
 import Profile from './pages/Profile';
@@ -68,6 +70,8 @@ function App() {
             <Route path="/expense/:vehicleId" element={<ExpenseEntry />} />
             <Route path="/silk" element={<SilkEntry />} />
             <Route path="/parties" element={<Parties />} />
+            <Route path="/parties/:batchId" element={<PartyBatchPortal />} />
+            <Route path="/parties/:batchId/user/:partyId" element={<PartyBatchUser />} />
             <Route path="/history" element={<HistoryTrips />} />
             <Route path="/history/:vehicleId" element={<HistoryTripDetail />} />
             <Route path="/profile" element={<Profile onLogout={handleLogout} />} />

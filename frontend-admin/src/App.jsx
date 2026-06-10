@@ -26,6 +26,7 @@ import VehicleExpenses from './pages/driver/VehicleExpenses';
 import Entries from './pages/driver/Entries';
 import Parties from './pages/driver/Parties';
 import PartyForm from './pages/driver/PartyForm';
+import PartyBatchDetail from './pages/driver/PartyBatchDetail';
 import Reports from './pages/driver/Reports';
 import RateSettings from './pages/driver/RateSettings';
 import './styles/tracknow.css';
@@ -108,6 +109,7 @@ function App() {
             <Route path="/admin/driver/entries" element={<Entries />} />
             <Route path="/admin/driver/parties" element={<Parties />} />
             <Route path="/admin/driver/parties/new" element={<PartyForm />} />
+            <Route path="/admin/driver/parties/batch/:batchId" element={<PartyBatchDetail />} />
             <Route path="/admin/driver/parties/:id/edit" element={<PartyForm />} />
             <Route path="/admin/driver/reports" element={<Reports />} />
             <Route path="/admin/driver/rates" element={<RateSettings />} />

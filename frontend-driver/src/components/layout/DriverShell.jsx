@@ -40,7 +40,9 @@ export default function DriverShell({ title, backPath, headerRight, hideNav, chi
                     ? location.pathname.startsWith('/expense')
                     : item.to === '/history'
                       ? location.pathname.startsWith('/history')
-                      : isActive;
+                      : item.to === '/parties'
+                        ? location.pathname.startsWith('/parties')
+                        : isActive;
                 return `${styles.bnavItem} ${active ? styles.active : ''}`;
               }}
             >
