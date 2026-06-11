@@ -325,19 +325,42 @@ router.post('/users/:id/reset-password', protect, adminOnly, async (req, res) =>
 // GET /api/admin/logs/filter-options — users & screens for filter dropdowns
 router.get('/logs/filter-options', protect, adminOnly, async (req, res) => {
   try {
-    const [screens, users] = await Promise.all([
+    const [screens, users, drivers] = await Promise.all([
       Log.distinct('page', { page: { $nin: [null, ''] } }),
       Log.aggregate([
-        { $match: { userId: { $exists: true, $ne: null } } },
+        {
+          $match: {
+            userId: { $exists: true, $ne: null },
+            $or: [{ userRole: 'user' }, { userRole: { $exists: false } }]
+          }
+        },
         { $group: { _id: '$userId', userName: { $first: '$userName' } } },
         { $sort: { userName: 1 } },
         { $limit: 300 }
+      ]),
+      Log.aggregate([
+        {
+          $match: {
+            userId: { $exists: true, $ne: null },
+            $or: [
+              { userRole: { $in: ['driver', 'staff'] } },
+              { page: { $in: ['driver-login', 'driver-register'] } }
+            ]
+          }
+        },
+        { $group: { _id: '$userId', userName: { $first: '$userName' } } },
+        { $sort: { userName: 1 } },
+        { $limit: 100 }
       ])
     ]);
 
     res.json({
       screens: screens.filter(Boolean).sort(),
       users: users.map((u) => ({
+        userId: String(u._id),
+        userName: u.userName || 'Unknown'
+      })),
+      drivers: drivers.map((u) => ({
         userId: String(u._id),
         userName: u.userName || 'Unknown'
       }))
@@ -347,10 +370,27 @@ router.get('/logs/filter-options', protect, adminOnly, async (req, res) => {
   }
 });
 
-function buildLogsQuery({ type, fromDate, toDate, userId, screen, search }) {
+function buildLogsQuery({ type, fromDate, toDate, userId, screen, search, role }) {
   const query = {};
 
-  if (type && type !== 'all') query.type = type;
+  if (role === 'driver') {
+    query.type = 'login';
+    query.$or = [
+      { userRole: { $in: ['driver', 'staff'] } },
+      { page: { $in: ['driver-login', 'driver-register'] } }
+    ];
+  } else if (role === 'client') {
+    query.type = 'login';
+    query.$or = [
+      { userRole: 'user' },
+      {
+        userRole: { $exists: false },
+        page: { $nin: ['driver-login', 'driver-register'] }
+      }
+    ];
+  } else if (type && type !== 'all') {
+    query.type = type;
+  }
   if (userId && userId !== 'all') query.userId = userId;
   if (screen && screen !== 'all') query.page = screen;
 
@@ -375,8 +415,8 @@ function buildLogsQuery({ type, fromDate, toDate, userId, screen, search }) {
 // GET /api/admin/logs (admin only)
 router.get('/logs', protect, adminOnly, async (req, res) => {
   try {
-    const { type, fromDate, toDate, page = 1, limit = 50, userId, screen, search } = req.query;
-    const query = buildLogsQuery({ type, fromDate, toDate, userId, screen, search });
+    const { type, fromDate, toDate, page = 1, limit = 50, userId, screen, search, role } = req.query;
+    const query = buildLogsQuery({ type, fromDate, toDate, userId, screen, search, role });
 
     const lim = Number(limit) || 50;
     const pg = Number(page) || 1;
@@ -401,12 +441,25 @@ router.get('/logs', protect, adminOnly, async (req, res) => {
 router.get('/active-users-count', protect, adminOnly, async (req, res) => {
   try {
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const ids = await Log.distinct('userId', {
+    const base = {
       type: 'login',
       timestamp: { $gte: twentyFourHoursAgo },
       userId: { $exists: true, $ne: null }
-    });
-    res.json({ count: ids.length });
+    };
+    const [clientIds, driverIds] = await Promise.all([
+      Log.distinct('userId', {
+        ...base,
+        $or: [{ userRole: 'user' }, { userRole: { $exists: false }, page: { $ne: 'driver-login' } }]
+      }),
+      Log.distinct('userId', {
+        ...base,
+        $or: [
+          { userRole: { $in: ['driver', 'staff'] } },
+          { page: { $in: ['driver-login', 'driver-register'] } }
+        ]
+      })
+    ]);
+    res.json({ count: clientIds.length, driverCount: driverIds.length });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

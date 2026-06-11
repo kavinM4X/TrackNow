@@ -6,7 +6,6 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import ExpenseTrips from './pages/ExpenseTrips';
 import ExpenseEntry from './pages/ExpenseEntry';
-import SilkEntry from './pages/SilkEntry';
 import Parties from './pages/Parties';
 import PartyBatchPortal from './pages/PartyBatchPortal';
 import PartyBatchUser from './pages/PartyBatchUser';
@@ -68,7 +67,6 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/expense" element={<ExpenseTrips />} />
             <Route path="/expense/:vehicleId" element={<ExpenseEntry />} />
-            <Route path="/silk" element={<SilkEntry />} />
             <Route path="/parties" element={<Parties />} />
             <Route path="/parties/:batchId" element={<PartyBatchPortal />} />
             <Route path="/parties/:batchId/user/:partyId" element={<PartyBatchUser />} />

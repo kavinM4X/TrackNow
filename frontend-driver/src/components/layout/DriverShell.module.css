@@ -99,51 +99,52 @@
   color: #856404;
 }
 
+.partyBatchList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .partyBatchCard {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
   background: #fff;
   border: 1px solid #e0e0dc;
   border-radius: 8px;
-  margin-bottom: 10px;
-  overflow: hidden;
-}
-
-.partyBatchHead {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
   padding: 12px 14px;
-  border: none;
-  background: #fff;
-  cursor: pointer;
   text-align: left;
+  cursor: pointer;
 }
 
-.partyBatchHead:hover {
+.partyBatchCard:hover {
   background: #fafaf8;
 }
 
 .partyBatchDate {
   font-size: 15px;
+  font-weight: 600;
   display: block;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 .partyBatchMeta {
   font-size: 12px;
   color: #888;
+  display: block;
+  margin-bottom: 8px;
 }
 
-.partyBatchRight {
+.partyBatchFooter {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
 }
 
 .partyBatchChevron {
-  font-size: 10px;
+  font-size: 18px;
   color: #888;
+  line-height: 1;
 }
 
 .partyBatchBody {

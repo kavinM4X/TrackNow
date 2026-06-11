@@ -11,6 +11,7 @@ router.post('/', protect, async (req, res) => {
     await Log.create({
       userId: req.user.id,
       userName: req.user.name,
+      userRole: req.user.role,
       action,
       type,
       page

@@ -6,6 +6,10 @@ const logSchema = new mongoose.Schema({
     ref: 'User' 
   },
   userName: String,
+  userRole: {
+    type: String,
+    enum: ['user', 'driver', 'staff', 'admin']
+  },
   action: { 
     type: String, 
     required: true 

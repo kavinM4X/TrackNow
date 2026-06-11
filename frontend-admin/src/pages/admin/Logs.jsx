@@ -7,18 +7,23 @@ import styles from './Logs.module.css';
 const TYPE_BADGE = {
   login: 'blue',
   click: 'gray',
-  admin: 'purple'
+  admin: 'purple',
+  driver: 'amber'
 };
 
 const TYPE_TABS = [
   { key: 'all', label: 'All' },
-  { key: 'login', label: 'Login' },
+  { key: 'login', label: 'Client login' },
+  { key: 'driver', label: 'Driver login' },
   { key: 'click', label: 'Page views' },
   { key: 'admin', label: 'Admin' }
 ];
 
 const SCREEN_LABELS = {
-  login: 'Login',
+  login: 'Login (client)',
+  register: 'Register (client)',
+  'driver-login': 'Login (driver)',
+  'driver-register': 'Register (driver)',
   dashboard: 'Dashboard (client)',
   booking: 'Booking (client)',
   'batch-history': 'Batch history (client)',
@@ -39,6 +44,27 @@ function screenLabel(key) {
   return SCREEN_LABELS[key] || key.replace(/-/g, ' ');
 }
 
+function isDriverLog(log) {
+  return (
+    log.userRole === 'driver' ||
+    log.userRole === 'staff' ||
+    log.page === 'driver-login' ||
+    log.page === 'driver-register'
+  );
+}
+
+function logBadge(log) {
+  if (isDriverLog(log)) return { class: TYPE_BADGE.driver, label: 'driver' };
+  return { class: TYPE_BADGE[log.type] || 'gray', label: log.type };
+}
+
+function tabQueryParams(tab) {
+  if (tab === 'driver') return { role: 'driver' };
+  if (tab === 'login') return { role: 'client' };
+  if (tab !== 'all') return { type: tab };
+  return {};
+}
+
 export default function Logs() {
   const [logs, setLogs] = useState([]);
   const [type, setType] = useState('all');
@@ -51,14 +77,15 @@ export default function Logs() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [activeCount, setActiveCount] = useState(0);
+  const [activeDriverCount, setActiveDriverCount] = useState(0);
   const [users, setUsers] = useState([]);
+  const [drivers, setDrivers] = useState([]);
   const [screens, setScreens] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const buildParams = useCallback(
     (p = 1) => {
-      const params = { page: p, limit: 50 };
-      if (type !== 'all') params.type = type;
+      const params = { page: p, limit: 50, ...tabQueryParams(type) };
       if (userId !== 'all') params.userId = userId;
       if (screen !== 'all') params.screen = screen;
       if (search.trim()) params.search = search.trim();
@@ -88,11 +115,15 @@ export default function Logs() {
   );
 
   useEffect(() => {
-    api.get('/admin/active-users-count').then((r) => setActiveCount(r.data.count));
+    api.get('/admin/active-users-count').then((r) => {
+      setActiveCount(r.data.count);
+      setActiveDriverCount(r.data.driverCount || 0);
+    });
     api
       .get('/admin/logs/filter-options')
       .then((r) => {
         setUsers(r.data.users || []);
+        setDrivers(r.data.drivers || []);
         setScreens(r.data.screens || []);
       })
       .catch(console.error);
@@ -125,10 +156,9 @@ export default function Logs() {
 
   const onTypeTab = (t) => {
     setType(t);
+    setUserId('all');
     setPage(1);
-    const params = { page: 1, limit: 50 };
-    if (t !== 'all') params.type = t;
-    if (userId !== 'all') params.userId = userId;
+    const params = { page: 1, limit: 50, ...tabQueryParams(t) };
     if (screen !== 'all') params.screen = screen;
     if (search.trim()) params.search = search.trim();
     if (fromDate) params.fromDate = fromDate;
@@ -148,6 +178,9 @@ export default function Logs() {
     if (page < totalPages) fetchLogs(page + 1, true);
   };
 
+  const whoList = type === 'driver' ? drivers : users;
+  const whoLabel = type === 'driver' ? 'Which driver' : 'Who (client user)';
+
   const hasFilters =
     type !== 'all' ||
     userId !== 'all' ||
@@ -159,7 +192,11 @@ export default function Logs() {
   return (
     <AppShell
       title="System Logs"
-      headerRight={<span style={{ fontSize: 12, opacity: 0.8 }}>{activeCount} active</span>}
+      headerRight={
+        <span style={{ fontSize: 12, opacity: 0.8 }}>
+          {activeCount} clients · {activeDriverCount} drivers
+        </span>
+      }
     >
       <div className="tabs">
         {TYPE_TABS.map(({ key, label }) => (
@@ -176,14 +213,14 @@ export default function Logs() {
 
       <div className={styles.filters}>
         <div className={styles.filterRow}>
-          <span className={styles.filterLabel}>Who (user)</span>
+          <span className={styles.filterLabel}>{whoLabel}</span>
           <select
             className="field-select"
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
           >
-            <option value="all">All users</option>
-            {users.map((u) => (
+            <option value="all">{type === 'driver' ? 'All drivers' : 'All users'}</option>
+            {whoList.map((u) => (
               <option key={u.userId} value={u.userId}>
                 {u.userName}
               </option>
@@ -212,7 +249,7 @@ export default function Logs() {
           <input
             className="field-input"
             style={{ margin: 0 }}
-            placeholder="e.g. logged in, viewed booking, confirmed…"
+            placeholder="e.g. logged in, driver logged in…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
@@ -260,41 +297,47 @@ export default function Logs() {
       {!loading && logs.length === 0 ? (
         <p className="empty-text">No logs match these filters.</p>
       ) : (
-        logs.map((log) => (
-          <div
-            key={log._id}
-            className="card"
-            style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}
-          >
+        logs.map((log) => {
+          const badge = logBadge(log);
+          const driver = isDriverLog(log);
+          return (
             <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: '50%',
-                background: 'var(--blue-light)',
-                color: 'var(--blue)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 11,
-                fontWeight: 600,
-                flexShrink: 0
-              }}
+              key={log._id}
+              className="card"
+              style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}
             >
-              {initials(log.userName || 'AD')}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 500 }}>{log.action}</div>
-              <div className={styles.logMeta}>
-                {log.userName || 'Unknown'} · {new Date(log.timestamp).toLocaleString('en-IN')}
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: '50%',
+                  background: driver ? '#fdf5e0' : 'var(--blue-light)',
+                  color: driver ? '#856404' : 'var(--blue)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  flexShrink: 0
+                }}
+              >
+                {initials(log.userName || 'AD')}
               </div>
-              {log.page && (
-                <span className={styles.screenTag}>{screenLabel(log.page)}</span>
-              )}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 500 }}>{log.action}</div>
+                <div className={styles.logMeta}>
+                  {log.userName || 'Unknown'}
+                  {log.userRole ? ` (${log.userRole})` : ''} ·{' '}
+                  {new Date(log.timestamp).toLocaleString('en-IN')}
+                </div>
+                {log.page && (
+                  <span className={styles.screenTag}>{screenLabel(log.page)}</span>
+                )}
+              </div>
+              <span className={`badge badge-${badge.class}`}>{badge.label}</span>
             </div>
-            <span className={`badge badge-${TYPE_BADGE[log.type] || 'gray'}`}>{log.type}</span>
-          </div>
-        ))
+          );
+        })
       )}
 
       {page < totalPages && (

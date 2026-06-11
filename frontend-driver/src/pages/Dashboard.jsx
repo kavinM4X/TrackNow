@@ -108,8 +108,8 @@ export default function Dashboard() {
                   <Link to="/expense" className={`${styles.heroBtn} ${styles.heroBtnPrimary}`}>
                     + Record Expense
                   </Link>
-                  <Link to="/silk" className={`${styles.heroBtn} ${styles.heroBtnSecondary}`}>
-                    + Silk Entry
+                  <Link to="/parties" className={`${styles.heroBtn} ${styles.heroBtnSecondary}`}>
+                    + Party Entry
                   </Link>
                 </div>
               </div>
@@ -153,23 +153,6 @@ export default function Dashboard() {
                 ))
               )}
 
-              <p className="section-title">Recent Silk Entries</p>
-              {(data?.recentEntries || []).length === 0 ? (
-                <p style={{ fontSize: 12, color: '#888' }}>No silk entries yet.</p>
-              ) : (
-                data.recentEntries.map((e) => (
-                  <div key={e._id} className="card">
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <strong>{e.partyId?.name || 'Party'}</strong>
-                      <span className="badge badge-pending">{e.status}</span>
-                    </div>
-                    <div style={{ fontSize: 11, color: '#888' }}>
-                      {formatDateDayMonth(e.date)} · Good {e.goodKg}kg, Waste {e.wasteKg}kg
-                    </div>
-                    <div style={{ fontSize: 12, marginTop: 4 }}>{formatINR(e.totalAmount)}</div>
-                  </div>
-                ))
-              )}
             </>
           )}
         </>

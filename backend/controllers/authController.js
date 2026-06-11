@@ -40,12 +40,14 @@ exports.register = async (req, res) => {
       role: safeRole
     });
 
+    const isDriver = ['driver', 'staff'].includes(user.role);
     await Log.create({
       userId: user._id,
       userName: user.name,
-      action: `registered as ${user.role}`,
+      userRole: user.role,
+      action: isDriver ? `driver registered (${user.role})` : `registered as ${user.role}`,
       type: 'login',
-      page: 'register'
+      page: isDriver ? 'driver-register' : 'register'
     });
 
     // Generate token
@@ -108,12 +110,14 @@ exports.login = async (req, res) => {
     const isPasswordMatch = await user.comparePassword(password);
     
     if (!isPasswordMatch) {
+      const isDriver = ['driver', 'staff'].includes(user.role);
       await Log.create({
         userId: user._id,
         userName: user.name,
-        action: 'Invalid password attempt',
+        userRole: user.role,
+        action: isDriver ? 'driver login failed (wrong password)' : 'Invalid password attempt',
         type: 'login',
-        page: 'login'
+        page: isDriver ? 'driver-login' : 'login'
       });
       
       return res.status(401).json({ 
@@ -126,12 +130,14 @@ exports.login = async (req, res) => {
     user.lastLogin = Date.now();
     await user.save();
 
+    const isDriver = ['driver', 'staff'].includes(user.role);
     await Log.create({
       userId: user._id,
       userName: user.name,
-      action: 'logged in',
+      userRole: user.role,
+      action: isDriver ? 'driver logged in' : 'logged in',
       type: 'login',
-      page: 'login'
+      page: isDriver ? 'driver-login' : 'login'
     });
 
     // Generate token

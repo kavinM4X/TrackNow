@@ -4,7 +4,6 @@ import styles from './DriverShell.module.css';
 const NAV = [
   { to: '/dashboard', label: 'Dash', icon: '⌂' },
   { to: '/expense', label: 'Expense', icon: '◎' },
-  { to: '/silk', label: 'Silk', icon: '◫' },
   { to: '/parties', label: 'Parties', icon: '▤' },
   { to: '/history', label: 'History', icon: '◷' },
   { to: '/profile', label: 'Profile', icon: '≡' }
