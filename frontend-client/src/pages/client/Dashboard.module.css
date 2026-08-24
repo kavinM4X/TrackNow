@@ -1,30 +1,205 @@
-.rateStrip {
-  background: var(--green);
-  color: #fff;
-  border-radius: 6px;
-  padding: 6px 10px;
+.dashboardContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: var(--max-width, 520px);
+  margin: 0 auto;
+  padding-bottom: 24px;
+  animation: pageFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Skeleton Loading Shimmer */
+.skeleton {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 12px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeletonRateCard {
+  height: 180px;
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid var(--green-border, #bde0cc);
+}
+
+.skeletonCard {
+  height: 70px;
+  width: 100%;
+  border-radius: 12px;
+}
+
+.skeletonStat {
+  height: 76px;
+  width: 100%;
+  border-radius: 12px;
+}
+
+.skeletonRow {
+  height: 64px;
+  width: 100%;
+  border-radius: 12px;
+}
+
+/* Welcome Banner */
+.welcomeBanner {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.welcomeHead {
   display: flex;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 4px;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.welcomeTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 4px;
+  letter-spacing: -0.3px;
+}
+
+.welcomeSub {
+  font-size: 13px;
+  color: var(--text-muted, #64748b);
+  margin: 0;
+}
+
+.roleChip {
   font-size: 11px;
+  font-weight: 700;
+  color: var(--green, #2e7d52);
+  background: var(--green-light, #e8f4ed);
+  border: 1px solid var(--green-border, #bde0cc);
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* Action Grid Shortcuts */
+.actionGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.actionBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--green-light, #e8f4ed);
+  border: 1px solid var(--green-border, #bde0cc);
+  border-radius: 10px;
+  padding: 10px 4px;
+  color: var(--green, #2e7d52);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.actionBtn:hover {
+  background: var(--green, #2e7d52);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(46, 125, 82, 0.2);
+}
+
+.actionIcon {
+  font-size: 18px;
+}
+
+/* Section Common Headers */
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 10px;
 }
 
-.rateCarousel {
-  margin-bottom: 12px;
+.sectionTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.rateCardSingle {
-  background: #fff;
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
-  padding: 14px 12px;
-  text-align: center;
-  animation: rateFadeIn 0.35s ease;
+.dateBadge {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+  background: #f1f5f9;
+  padding: 4px 10px;
+  border-radius: 20px;
 }
 
-@keyframes rateFadeIn {
+.viewAllBtn {
+  background: none;
+  border: none;
+  color: var(--green, #2e7d52);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.viewAllBtn:hover {
+  text-decoration: underline;
+}
+
+/* Live Market Rates Hero Card */
+.marketSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.marketCard {
+  background: #ffffff;
+  border: 1px solid var(--green-border, #bde0cc);
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 4px 14px rgba(46, 125, 82, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.marketSlide {
+  animation: slideFadeIn 0.35s ease;
+}
+
+@keyframes slideFadeIn {
   from {
     opacity: 0;
     transform: translateY(6px);
@@ -35,94 +210,317 @@
   }
 }
 
-.rateDots {
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.rateDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #ccc;
-  transition: background 0.2s ease;
-}
-
-.rateDotOn {
-  background: var(--green);
-}
-
-.rateLoc {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-muted);
-  display: block;
-  margin-bottom: 4px;
-}
-
-.rateVal {
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--green);
-  display: block;
-  line-height: 1.2;
-}
-
-.rateUnit {
-  font-size: 12px;
-  color: var(--text-muted);
-  display: block;
-  margin-top: 4px;
-}
-
-.upcoming {
+.marketLocMeta {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 10px;
 }
 
-.upLabel {
+.locBadge {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+  background: #f1f5f9;
+  padding: 4px 12px;
+  border-radius: 6px;
+}
+
+.livePulse {
   font-size: 11px;
-  color: var(--text-muted);
+  font-weight: 800;
+  color: var(--green, #2e7d52);
+  letter-spacing: 0.5px;
 }
 
-.upMain {
-  font-size: 15px;
+.rateDisplay {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  margin: 12px 0 16px;
+}
+
+.rateCurrency {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--green, #2e7d52);
+}
+
+.rateNumber {
+  font-size: 42px;
+  font-weight: 800;
+  color: var(--green, #2e7d52);
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.rateUnit {
+  font-size: 14px;
   font-weight: 600;
+  color: var(--text-muted, #64748b);
 }
 
-.upSub {
+.rateBreakdownGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.breakdownPill {
+  background: var(--green-light, #e8f4ed);
+  border: 1px solid var(--green-border, #bde0cc);
+  padding: 8px 12px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.breakdownLbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+  margin-bottom: 2px;
+}
+
+.breakdownVal {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+/* Dots Row */
+.dotsRow {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.dotBtn {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: #cbd5e1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.dotBtnActive {
+  width: 22px;
+  border-radius: 10px;
+  background: var(--green, #2e7d52);
+}
+
+/* Upcoming Booking Card */
+.upcomingCard {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-left: 5px solid var(--green, #2e7d52);
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.upcomingHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.upcomingTag {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--green, #2e7d52);
+  letter-spacing: 0.8px;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.upcomingMainText {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 6px;
+}
+
+.upcomingDateText {
+  font-size: 13px;
+  color: var(--text-muted, #64748b);
+  margin: 0;
+}
+
+/* No Upcoming State Card */
+.noUpcomingCard {
+  background: #ffffff;
+  border: 1px dashed var(--card-border, #e0e0dc);
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.noUpcomingTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+  display: block;
+}
+
+.noUpcomingSub {
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--text-muted, #64748b);
+  margin: 2px 0 0;
 }
 
-.batchRow {
+.bookNowBtn {
+  background: var(--green, #2e7d52);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+}
+
+.bookNowBtn:hover {
+  opacity: 0.9;
+}
+
+/* Stats Section Grid */
+.statsSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.statCard {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.statIconBox {
+  font-size: 22px;
+  background: var(--green-light, #e8f4ed);
+  border: 1px solid var(--green-border, #bde0cc);
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.statContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.statNumber {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1.1;
+}
+
+.statLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+  margin-top: 2px;
+}
+
+/* Recent Batches List */
+.recentSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.batchList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.batchCardRow {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 12px;
+  padding: 14px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.batchCardRow:hover {
+  border-color: var(--green-border, #bde0cc);
+  transform: translateX(3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.batchLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.batchLocTitle {
   font-size: 14px;
-  transition: background 0.15s ease;
+  font-weight: 700;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.batchRow:active {
-  background: #f5f5f5;
+.batchMetaSub {
+  font-size: 12px;
+  color: var(--text-muted, #64748b);
 }
 
-.statsRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+.batchRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.statNum {
-  font-size: 22px;
-  font-weight: 600;
+.batchValueBadge {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--green, #2e7d52);
+  background: var(--green-light, #e8f4ed);
+  border: 1px solid var(--green-border, #bde0cc);
+  padding: 4px 10px;
+  border-radius: 6px;
 }
 
-.statLbl {
-  font-size: 11px;
-  color: var(--text-muted);
+.batchChevron {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-muted, #64748b);
+}
+
+@media (max-width: 420px) {
+  .actionGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }

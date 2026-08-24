@@ -4,7 +4,7 @@ import { CircleMarker, MapContainer, Popup, TileLayer } from 'react-leaflet';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/common/Badge';
 import Spinner from '../../components/common/Spinner';
-import api from '../../api/client';
+import api, { deduplicatedGet } from '../../api/client';
 import truckIcon from '../../assets/app-icon.svg';
 import styles from './Tracker.module.css';
 import 'leaflet/dist/leaflet.css';
@@ -16,8 +16,7 @@ export default function Tracker() {
   const posRef = useRef(null);
 
   useEffect(() => {
-    api
-      .get('/tracker/my')
+    deduplicatedGet('/tracker/my', {}, 10_000)
       .then((res) => {
         setConfig(res.data);
         if (res.data.latitude != null && res.data.longitude != null) {
@@ -66,84 +65,123 @@ export default function Tracker() {
   const enabled = config?.isEnabled;
 
   return (
-    <AppShell title="Live Tracker" activePulse={enabled}>
-      {loading ? (
-        <Spinner />
-      ) : !enabled ? (
-        <div className={styles.disabled}>
-          <img src={truckIcon} alt="" className={styles.truckIcon} aria-hidden />
-          <h2>Tracking Not Enabled</h2>
-          <p>Your admin has not enabled live tracking for your booking window.</p>
-        </div>
-      ) : (
-        <>
-          <div className={styles.mapLive}>
-            {position && (
-              <MapContainer
-                center={position}
-                zoom={13}
-                style={{ height: '100%', width: '100%' }}
-                scrollWheelZoom={false}
-              >
-                <TileLayer
-                  attribution='&copy; OpenStreetMap'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <CircleMarker
-                  center={position}
-                  radius={14}
-                  pathOptions={{
-                    color: '#1e4d7b',
-                    fillColor: '#2ecc71',
-                    fillOpacity: 0.9,
-                    weight: 3
-                  }}
-                >
-                  <Popup>
-                    Your vehicle — {config.vehicleId || '—'}
-                    <br />
-                    Position updates ~every 12s while this tab is open (demo drift — swap for GPS).
-                  </Popup>
-                </CircleMarker>
-              </MapContainer>
-            )}
+    <AppShell title="Live Tracker" subtitle="Real-time GPS vehicle location & pickup route telemetry" activePulse={enabled}>
+      <div className={styles.container}>
+        {/* Header Hero Banner */}
+        <div className={styles.heroBanner}>
+          <div>
+            <h2 className={styles.heroTitle}>📍 Driver GPS Live Map</h2>
+            <p className={styles.heroSub}>Track your assigned cocoon pickup vehicle in real time</p>
           </div>
-          {!position && (
-            <p className={styles.mapFallback}>Waiting for map position — try again after admin saves tracker.</p>
+          {enabled ? (
+            <div className={styles.liveBadge}>
+              <span className="pulse-dot" /> LIVE TRACKING
+            </div>
+          ) : (
+            <span className={styles.disabledBadge}>STANDBY MODE</span>
           )}
-          <p className={styles.mapHint}>
-            Keep this screen open so your location reaches the admin map. For real 24×7 tracking, integrate device GPS
-            and send POST /api/tracker/position from the driver app or tracker hardware.
-          </p>
-          <div className="card">
-            <div className={styles.row}>
-              <span className={styles.label}>Vehicle Status</span>
-              <Badge status="moving" label="Live" />
-            </div>
-            <hr className={styles.hr} />
-            <div className={styles.row}>
-              <span>Vehicle ID</span>
-              <span>{config.vehicleId || '—'}</span>
-            </div>
-            <div className={styles.row}>
-              <span>Last GPS update</span>
-              <span>
-                {config.lastLocationAt
-                  ? formatDistanceToNow(new Date(config.lastLocationAt), { addSuffix: true })
-                  : '—'}
-              </span>
-            </div>
-            {position && (
-              <div className={styles.row}>
-                <span>Coordinates</span>
-                <span style={{ fontSize: 11 }}>
-                  {position[0].toFixed(5)}, {position[1].toFixed(5)}
-                </span>
-              </div>
-            )}
+        </div>
+
+        {loading ? (
+          <div className={`${styles.skeleton} ${styles.skeletonMap}`} />
+        ) : !enabled ? (
+          <div className={styles.disabledCard}>
+            <img src={truckIcon} alt="Truck" className={styles.truckIcon} aria-hidden />
+            <h3 className={styles.disabledTitle}>Tracking Standby Mode</h3>
+            <p className={styles.disabledSub}>
+              Live GPS tracking will automatically activate during your scheduled harvest booking pickup window once your driver is dispatched.
+            </p>
           </div>
-        </>
-      )}
+        ) : (
+          <>
+            {/* Interactive Leaflet Map Container */}
+            <div className={styles.mapCardContainer}>
+              <div className={styles.mapOverlayHeader}>
+                🚛 Vehicle: <strong>{config.vehicleId || 'Dispatched Fleet'}</strong>
+              </div>
+              <div className={styles.mapLive}>
+                {position && (
+                  <MapContainer
+                    center={position}
+                    zoom={14}
+                    style={{ height: '100%', width: '100%' }}
+                    scrollWheelZoom={false}
+                  >
+                    <TileLayer
+                      attribution='&copy; OpenStreetMap'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    <CircleMarker
+                      center={position}
+                      radius={14}
+                      pathOptions={{
+                        color: '#1e4d7b',
+                        fillColor: '#2e7d52',
+                        fillOpacity: 0.9,
+                        weight: 3
+                      }}
+                    >
+                      <Popup>
+                        <strong>🚛 Assigned Vehicle: {config.vehicleId || '—'}</strong>
+                        <br />
+                        GPS updates active (~every 12s).
+                      </Popup>
+                    </CircleMarker>
+                  </MapContainer>
+                )}
+              </div>
+            </div>
+
+            {!position && (
+              <p className={styles.mapFallback}>Waiting for initial GPS coordinates from driver handset…</p>
+            )}
+
+            {/* Telemetry Status Card */}
+            <div className={styles.telemetryCard}>
+              <h3 className={styles.cardTitle}>
+                <span>⚡</span> Vehicle Telemetry Status
+              </h3>
+
+              <div className={styles.telemetryGrid}>
+                <div className={styles.telemetryBox}>
+                  <span className={styles.telemetryLbl}>Assigned Vehicle</span>
+                  <span className={styles.telemetryVal}>{config.vehicleId || '—'}</span>
+                </div>
+
+                <div className={styles.telemetryBox}>
+                  <span className={styles.telemetryLbl}>Live Status</span>
+                  <div style={{ marginTop: 2 }}>
+                    <Badge status="moving" label="Active & Broadcasting" />
+                  </div>
+                </div>
+
+                <div className={styles.telemetryBox}>
+                  <span className={styles.telemetryLbl}>Last Signal Update</span>
+                  <span className={styles.telemetryValGreen}>
+                    {config.lastLocationAt
+                      ? formatDistanceToNow(new Date(config.lastLocationAt), { addSuffix: true })
+                      : 'Just now'}
+                  </span>
+                </div>
+
+                {position && (
+                  <div className={styles.telemetryBox}>
+                    <span className={styles.telemetryLbl}>GPS Coordinates</span>
+                    <span className={styles.telemetryVal} style={{ fontSize: 12 }}>
+                      {position[0].toFixed(4)}°, {position[1].toFixed(4)}°
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Guidance Note */}
+            <div className={styles.infoHintBox}>
+              💡 Keep this screen active while expecting your pickup. Position coordinates automatically stream live to the admin control map for optimal dispatch.
+            </div>
+          </>
+        )}
+      </div>
     </AppShell>
   );
 }

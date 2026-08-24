@@ -1,116 +1,240 @@
-.disabled {
-  text-align: center;
-  padding: 40px 16px;
-  background: #ededeb;
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: var(--max-width, 520px);
+  margin: 0 auto;
+  padding-bottom: 24px;
+  animation: pageFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Skeleton Loading Shimmer */
+.skeleton {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 12px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeletonMap {
+  height: min(300px, 50vh);
+  width: 100%;
+  border-radius: 16px;
+}
+
+/* Header Banner */
+.heroBanner {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.heroTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.heroSub {
+  font-size: 13px;
+  color: var(--text-muted, #64748b);
+  margin: 0;
+}
+
+.liveBadge {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--green, #2e7d52);
+  background: var(--green-light, #e8f4ed);
+  border: 1px solid var(--green-border, #bde0cc);
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.disabledBadge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* Live Map Viewport */
+.mapCardContainer {
+  background: #ffffff;
+  border: 1px solid var(--green-border, #bde0cc);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(46, 125, 82, 0.08);
+  position: relative;
+}
+
+.mapLive {
+  height: min(300px, 50vh);
+  width: 100%;
+}
+
+.mapOverlayHeader {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(189, 224, 204, 0.8);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e293b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Telemetry Grid */
+.telemetryCard {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cardTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.telemetryGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.telemetryBox {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.telemetryLbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+}
+
+.telemetryVal {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.telemetryValGreen {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--green, #2e7d52);
+}
+
+.infoHintBox {
+  background: #f8fafc;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 12px;
+  color: var(--text-muted, #64748b);
+  line-height: 1.5;
+}
+
+/* Disabled State Card */
+.disabledCard {
+  background: #ffffff;
+  border: 1px dashed var(--card-border, #e0e0dc);
+  border-radius: 16px;
+  padding: 36px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .truckIcon {
   width: 72px;
   height: 72px;
-  margin: 0 auto 12px;
-  display: block;
-  opacity: 0.55;
+  margin-bottom: 16px;
+  opacity: 0.65;
   object-fit: contain;
 }
 
-.disabled h2 {
-  margin: 0 0 8px;
-  color: #bbb;
-  font-size: 16px;
+.disabledTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 6px;
 }
 
-.disabled p {
+.disabledSub {
+  font-size: 13px;
+  color: var(--text-muted, #64748b);
   margin: 0;
-  font-size: 13px;
-  color: #aaa;
-}
-
-.mapPlaceholder {
-  height: 200px;
-  background: #d4ebd4;
-  border: 1px solid #b5d5b5;
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  margin-bottom: 12px;
-  text-align: center;
-  font-size: 13px;
-}
-
-.mapPlaceholder::before,
-.mapPlaceholder::after {
-  content: '';
-  position: absolute;
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.mapPlaceholder::before {
-  width: 100%;
-  height: 1px;
-  top: 50%;
-}
-
-.mapPlaceholder::after {
-  height: 100%;
-  width: 1px;
-  left: 50%;
-}
-
-.pin {
-  width: 32px;
-  height: 32px;
-  background: var(--green);
-  color: #fff;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1;
-  font-size: 14px;
-}
-
-.mapLive {
-  height: min(260px, 45vh);
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid #b5d5b5;
-  margin-bottom: 8px;
+  max-width: 340px;
+  line-height: 1.5;
 }
 
 .mapFallback {
   font-size: 12px;
-  color: #888;
-  margin-bottom: 8px;
-}
-
-.mapHint {
-  font-size: 11px;
-  color: #666;
-  margin: 0 0 12px;
-  line-height: 1.4;
-}
-
-.row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  margin-bottom: 6px;
-}
-
-.row span:first-child {
-  color: var(--text-muted);
-}
-
-.label {
-  font-weight: 600;
-}
-
-.hr {
-  border: none;
-  border-top: 1px solid #e5e5e0;
-  margin: 8px 0;
+  color: var(--text-muted, #64748b);
+  text-align: center;
+  margin: 0;
 }

@@ -3,10 +3,12 @@ import { useForm } from 'react-hook-form';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/common/Badge';
 import Spinner from '../../components/common/Spinner';
-import api from '../../api/client';
-import { formatDateShort, todayISO } from '../../utils/format';
+import api, { deduplicatedGet } from '../../api/client';
+import { formatDateDayMonth, todayISO } from '../../utils/format';
+import styles from './Booking.module.css';
 
 const LOCATIONS = ['Coimbatore', 'Mamballi', 'Ramnagar', 'Dharmapuri'];
+const WEIGHT_PRESETS = [50, 100, 250, 500];
 
 export default function Booking() {
   const [bookings, setBookings] = useState([]);
@@ -20,6 +22,7 @@ export default function Booking() {
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors }
   } = useForm({
     defaultValues: {
@@ -31,10 +34,11 @@ export default function Booking() {
   });
 
   const dateVal = watch('date');
+  const selectedLocation = watch('location');
 
   const fetchBookings = async () => {
     try {
-      const res = await api.get('/bookings/my');
+      const res = await deduplicatedGet('/bookings/my', {}, 15_000);
       setBookings(res.data || []);
     } catch (e) {
       console.error(e);
@@ -63,7 +67,7 @@ export default function Booking() {
         notes: data.notes || ''
       });
       localStorage.setItem('last_location', data.location);
-      setSuccess('✓ Booking confirmed!');
+      setSuccess('✓ Booking submitted successfully! Driver tracking will activate on date of pickup.');
       reset({
         date: todayISO(),
         location: data.location,
@@ -83,80 +87,141 @@ export default function Booking() {
   };
 
   return (
-    <AppShell title="Booking">
-      <form className="card" onSubmit={handleSubmit(onSubmit)}>
-        <p className="section-title">New Booking</p>
+    <AppShell title="Book Pickup" subtitle="Schedule silk cocoon pickup & driver dispatch">
+      <div className={styles.container}>
+        {/* Header Hero Banner */}
+        <div className={styles.heroBanner}>
+          <h2 className={styles.heroTitle}>📦 Farmer Harvest Pickup Booking</h2>
+          <p className={styles.heroSub}>
+            Schedule your cocoon harvest pickup date and nearest market center.
+          </p>
+        </div>
 
-        <label className="field-label">Date</label>
-        <input
-          type="date"
-          className="field-input"
-          min={todayISO()}
-          {...register('date', { required: true })}
-        />
-        {dateVal && dateVal < todayISO() && (
-          <p className="form-error">⚠ Past dates are not allowed</p>
-        )}
-
-        <label className="field-label">Location</label>
-        <select className="field-select" {...register('location', { required: true })}>
-          {LOCATIONS.map((loc) => (
-            <option key={loc} value={loc}>
-              {loc}
-            </option>
-          ))}
-        </select>
-
-        <label className="field-label">Qty (kg)</label>
-        <input
-          type="number"
-          className="field-input"
-          min={1}
-          max={9999}
-          placeholder="Enter weight"
-          {...register('quantityKg', {
-            required: 'Quantity required',
-            min: { value: 1, message: 'Min 1 kg' }
-          })}
-        />
-        {errors.quantityKg && (
-          <p className="form-error">{errors.quantityKg.message}</p>
-        )}
-
-        <label className="field-label">Notes</label>
-        <textarea
-          className="field-textarea"
-          maxLength={200}
-          placeholder="Optional..."
-          {...register('notes')}
-        />
-
-        {apiError && <p className="form-error">{apiError}</p>}
-        {success && <p className="form-success">{success}</p>}
-
-        <button type="submit" className="btn-primary" disabled={submitting}>
-          {submitting ? 'Saving…' : 'Confirm Booking'}
-        </button>
-      </form>
-
-      <p className="section-title">My Bookings</p>
-      {loading ? (
-        <Spinner />
-      ) : bookings.length === 0 ? (
-        <p className="empty-text">No bookings yet. Make your first booking above.</p>
-      ) : (
-        bookings.map((b) => (
-          <div key={b._id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <strong>
-                {formatDateShort(b.date)} · {b.location}
-              </strong>
-              <div style={{ fontSize: 12, color: '#888' }}>{b.quantityKg} kg</div>
-            </div>
-            <Badge status={b.status} />
+        {/* New Booking Form */}
+        <form className={styles.formCard} onSubmit={handleSubmit(onSubmit)}>
+          <div className={styles.sectionHeader}>
+            <h3 className={styles.formTitle}>✨ Create New Booking</h3>
           </div>
-        ))
-      )}
+
+          {/* Date Picker */}
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>🗓️ Pickup Date</label>
+            <input
+              type="date"
+              className={styles.fieldInput}
+              min={todayISO()}
+              {...register('date', { required: true })}
+            />
+            {dateVal && dateVal < todayISO() && (
+              <p className="form-error">⚠ Past dates are not allowed</p>
+            )}
+          </div>
+
+          {/* Location Chip Selector */}
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>🏛️ Delivery Market Center</label>
+            <div className={styles.locationGrid}>
+              {LOCATIONS.map((loc) => (
+                <button
+                  key={loc}
+                  type="button"
+                  className={`${styles.locationChip} ${
+                    selectedLocation === loc ? styles.locationChipOn : ''
+                  }`}
+                  onClick={() => setValue('location', loc)}
+                >
+                  📍 {loc}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Quantity Input & Preset Buttons */}
+          <div className={styles.fieldGroup}>
+            <div className={styles.labelRow}>
+              <label className={styles.fieldLabel}>⚖️ Quantity (kg)</label>
+              <span style={{ fontSize: 11, color: '#64748b' }}>Quick Select:</span>
+            </div>
+            <input
+              type="number"
+              className={styles.fieldInput}
+              min={1}
+              max={9999}
+              placeholder="Enter weight in kg (e.g. 100)"
+              {...register('quantityKg', {
+                required: 'Quantity required',
+                min: { value: 1, message: 'Minimum 1 kg required' }
+              })}
+            />
+            <div className={styles.presetRow}>
+              {WEIGHT_PRESETS.map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  className={styles.presetBtn}
+                  onClick={() => setValue('quantityKg', preset)}
+                >
+                  {preset} kg
+                </button>
+              ))}
+            </div>
+            {errors.quantityKg && (
+              <p className="form-error">{errors.quantityKg.message}</p>
+            )}
+          </div>
+
+          {/* Optional Notes */}
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>📝 Notes / Farmer Instructions (Optional)</label>
+            <textarea
+              className={styles.fieldTextarea}
+              maxLength={200}
+              placeholder="e.g. Call before coming, pickup location landmark..."
+              {...register('notes')}
+            />
+          </div>
+
+          {apiError && <p className="form-error">{apiError}</p>}
+          {success && <p className="form-success">{success}</p>}
+
+          <button type="submit" className={styles.submitBtn} disabled={submitting}>
+            {submitting ? 'Saving Booking…' : '✓ Confirm Pickup Booking'}
+          </button>
+        </form>
+
+        {/* Existing Bookings List */}
+        <div className={styles.historySection}>
+          <h3 className={styles.historyTitle}>
+            <span>📜</span> My Scheduled Bookings ({bookings.length})
+          </h3>
+
+          {loading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div className={`${styles.skeleton} ${styles.skeletonRow}`} />
+              <div className={`${styles.skeleton} ${styles.skeletonRow}`} />
+            </div>
+          ) : bookings.length === 0 ? (
+            <div className={styles.emptyState}>
+              No bookings created yet. Complete the form above to schedule your first pickup.
+            </div>
+          ) : (
+            bookings.map((b) => (
+              <div key={b._id} className={styles.bookingCard}>
+                <div className={styles.bookingLeft}>
+                  <div className={styles.bookingMainText}>
+                    📍 {b.location} · 🗓️ {formatDateDayMonth(b.date)}
+                  </div>
+                  <div className={styles.bookingSubText}>
+                    📦 Harvest Weight: <strong>{b.quantityKg} kg</strong>
+                    {b.notes ? ` · 📝 "${b.notes}"` : ''}
+                  </div>
+                </div>
+                <Badge status={b.status} />
+              </div>
+            ))
+          )}
+        </div>
+      </div>
     </AppShell>
   );
 }

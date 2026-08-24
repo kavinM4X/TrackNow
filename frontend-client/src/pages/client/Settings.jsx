@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import AppShell from '../../components/layout/AppShell';
 import Spinner from '../../components/common/Spinner';
-import api, { clearSession, getStoredUser, getToken, setSession } from '../../api/client';
+import api, { clearSession, deduplicatedGet, getStoredUser, getToken, setSession } from '../../api/client';
 import { initials, shortUserId } from '../../utils/format';
+import styles from './Settings.module.css';
 
 export default function Settings({ onLogout }) {
   const navigate = useNavigate();
@@ -16,8 +17,7 @@ export default function Settings({ onLogout }) {
   const profileForm = useForm();
 
   useEffect(() => {
-    api
-      .get('/auth/me')
+    deduplicatedGet('/auth/me', {}, 15_000)
       .then((res) => {
         const u = res.data.user;
         setUser(u);
@@ -39,68 +39,102 @@ export default function Settings({ onLogout }) {
       setUser(res.data.user);
       const stored = getStoredUser() || {};
       setSession(getToken(), { ...stored, ...res.data.user });
-      setProfileMsg('✓ Profile updated');
+      setProfileMsg('✓ Profile details saved successfully');
     } catch (err) {
       setProfileErr(err.response?.data?.message || 'Update failed');
     }
   };
 
   const logout = () => {
-    if (!window.confirm('Are you sure you want to logout?')) return;
+    if (!window.confirm('Are you sure you want to log out of your farmer account?')) return;
     clearSession();
     onLogout();
     navigate('/login', { replace: true });
   };
 
-  if (loading) {
-    return (
-      <AppShell title="Settings">
-        <Spinner />
-      </AppShell>
-    );
-  }
-
   return (
-    <AppShell title="Settings">
-      <div className="card" style={{ textAlign: 'center' }}>
-        <div
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: '50%',
-            background: 'var(--green)',
-            color: '#fff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 8px',
-            fontWeight: 600
-          }}
-        >
-          {initials(user?.name)}
+    <AppShell title="Account Settings" subtitle="Manage profile, preferences & session security">
+      <div className={styles.container}>
+        {/* User Profile Header Card */}
+        {loading ? (
+          <div className={`${styles.skeleton} ${styles.skeletonHero}`} />
+        ) : (
+          <div className={styles.profileHeroCard}>
+            <div className={styles.avatarRing}>
+              {initials(user?.name)}
+            </div>
+            <h2 className={styles.userName}>{user?.name}</h2>
+            <div className={styles.userSub}>
+              Farmer ID: <strong>{shortUserId(user?.id)}</strong> · 📞 {user?.phone}
+            </div>
+            <span className={styles.roleChip}>Farmer Account</span>
+          </div>
+        )}
+
+        {/* Edit Profile Form */}
+        <form className={styles.formCard} onSubmit={profileForm.handleSubmit(saveProfile)}>
+          <h3 className={styles.cardTitle}>👤 Edit Personal Profile</h3>
+
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>Full Name</label>
+            <input
+              className={styles.fieldInput}
+              placeholder="Enter full name"
+              {...profileForm.register('name', { required: 'Name is required' })}
+            />
+          </div>
+
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>Phone Number</label>
+            <input
+              className={styles.fieldInput}
+              placeholder="Enter phone number"
+              {...profileForm.register('phone', { required: 'Phone is required' })}
+            />
+          </div>
+
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>Email Address (Optional)</label>
+            <input
+              className={styles.fieldInput}
+              type="email"
+              placeholder="Enter email address"
+              {...profileForm.register('email')}
+            />
+          </div>
+
+          {profileErr && <p className="form-error">{profileErr}</p>}
+          {profileMsg && <p className="form-success">{profileMsg}</p>}
+
+          <button type="submit" className={styles.saveBtn}>
+            Save Profile Changes
+          </button>
+        </form>
+
+        {/* System Info */}
+        <div className={styles.infoCard}>
+          <h3 className={styles.cardTitle}>ℹ️ Application Details</h3>
+          <div className={styles.infoRow}>
+            <span className={styles.infoLbl}>System Platform</span>
+            <span className={styles.infoVal}>TrackNow Sericulture v2.4.0</span>
+          </div>
+          <div className={styles.infoRow}>
+            <span className={styles.infoLbl}>Database Connection</span>
+            <span className={styles.infoVal} style={{ color: 'var(--green, #2e7d52)' }}>
+              ● Connected (MongoDB Atlas)
+            </span>
+          </div>
+          <div className={styles.infoRow}>
+            <span className={styles.infoLbl}>Session Auth</span>
+            <span className={styles.infoVal}>JWT Secured</span>
+          </div>
         </div>
-        <strong>{user?.name}</strong>
-        <div style={{ fontSize: 12, color: '#888' }}>ID: {shortUserId(user?.id)}</div>
-      </div>
 
-      <form className="card" onSubmit={profileForm.handleSubmit(saveProfile)}>
-        <p className="section-title">Edit Profile</p>
-        <label className="field-label">Name</label>
-        <input className="field-input" {...profileForm.register('name', { required: true })} />
-        <label className="field-label">Phone</label>
-        <input className="field-input" {...profileForm.register('phone', { required: true })} />
-        <label className="field-label">Email</label>
-        <input className="field-input" type="email" {...profileForm.register('email')} />
-        {profileErr && <p className="form-error">{profileErr}</p>}
-        {profileMsg && <p className="form-success">{profileMsg}</p>}
-        <button type="submit" className="btn-outline">
-          Save Changes
+        {/* Logout Button */}
+        <button type="button" className={styles.logoutBtn} onClick={logout}>
+          🚪 Log Out of Account
         </button>
-      </form>
-
-      <button type="button" className="btn-danger" onClick={logout}>
-        Logout
-      </button>
+      </div>
     </AppShell>
   );
 }

@@ -1,52 +1,110 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: var(--max-width, 520px);
+  margin: 0 auto;
+  padding-bottom: 28px;
+  animation: pageFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header Summary Card */
 .headerCard {
   text-align: center;
-  padding: 16px;
+  background: #ffffff;
+  border: 1px solid var(--green-border, #bde0cc);
+  border-radius: 16px;
+  padding: 22px 20px;
+  box-shadow: 0 4px 16px rgba(46, 125, 82, 0.06);
+  position: relative;
+}
+
+.topPillRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
 .headerDate {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+  background: #f1f5f9;
+  padding: 4px 12px;
+  border-radius: 20px;
 }
 
 .headerLoc {
   font-size: 12px;
-  color: #888;
-  margin-top: 4px;
+  font-weight: 700;
+  color: var(--green, #2e7d52);
+  background: var(--green-light, #e8f4ed);
+  border: 1px solid var(--green-border, #bde0cc);
+  padding: 4px 12px;
+  border-radius: 20px;
 }
 
 .headerTotal {
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--green);
-  margin-top: 8px;
+  font-size: 42px;
+  font-weight: 800;
+  color: var(--green, #2e7d52);
+  margin: 8px 0 2px;
+  line-height: 1;
+  letter-spacing: -1px;
 }
 
 .headerTotal span {
-  font-size: 14px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
 }
 
 .headerSub {
-  font-size: 11px;
-  color: #bbb;
+  font-size: 12px;
+  color: var(--text-muted, #64748b);
   margin-top: 4px;
 }
 
-.breakdownTitle {
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 12px;
+/* Section Card Blocks */
+.cardBlock {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-/* One row: label | stretch bar | kg (bar never gets misplaced under label) */
+.breakdownTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Breakdown Row */
 .breakdownRow {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 12px;
-}
-
-.breakdownRow:last-child {
-  margin-bottom: 0;
+  padding: 2px 0;
 }
 
 .rowLabel {
@@ -54,6 +112,8 @@
   align-items: center;
   gap: 8px;
   font-size: 13px;
+  font-weight: 700;
+  color: #334155;
   flex-shrink: 0;
   min-width: 6.5rem;
 }
@@ -61,12 +121,12 @@
 .dot {
   width: 10px;
   height: 10px;
-  border-radius: 2px;
+  border-radius: 50%;
   flex-shrink: 0;
 }
 
 .dotGood {
-  background: var(--green);
+  background: var(--green, #2e7d52);
 }
 
 .dotWaste {
@@ -80,19 +140,20 @@
 .barTrack {
   flex: 1;
   min-width: 0;
-  height: 8px;
-  background: #f0f0ee;
-  border-radius: 4px;
+  height: 9px;
+  background: #f1f5f9;
+  border-radius: 6px;
   overflow: hidden;
 }
 
 .barFill {
   height: 100%;
-  border-radius: 4px;
+  border-radius: 6px;
+  transition: width 0.3s ease;
 }
 
 .barFillGood {
-  background: var(--green);
+  background: var(--green, #2e7d52);
 }
 
 .barFillWaste {
@@ -104,11 +165,11 @@
 }
 
 .kgGood {
-  color: var(--green);
+  color: var(--green, #2e7d52);
 }
 
 .kgWaste {
-  color: #f5a623;
+  color: #d97706;
 }
 
 .kgDoubles {
@@ -118,81 +179,130 @@
 .kgValue {
   flex-shrink: 0;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   text-align: right;
-  min-width: 3.75rem;
+  min-width: 4rem;
+}
+
+.pctBadge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 4px;
+}
+
+/* Value & Financial Breakdown */
+.financialList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .valueRow {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
-  margin-bottom: 6px;
+  align-items: center;
+  font-size: 13px;
+  color: #475569;
+  padding: 2px 0;
   gap: 8px;
 }
 
 .valueRow span:first-child {
-  color: #888;
+  color: var(--text-muted, #64748b);
 }
 
-.estimated {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 8px;
-  border-top: 1px solid #e5e5ea;
-  margin-top: 4px;
+.itemAmt {
+  font-weight: 700;
+  color: #1e293b;
 }
 
 .netSilkRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #e8f4ed;
-  border-radius: 6px;
-  padding: 10px 12px;
-  margin-top: 10px;
-  font-size: 13px;
+  background: var(--green-light, #e8f4ed);
+  border: 1px solid var(--green-border, #bde0cc);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-top: 6px;
 }
 
+.netSilkLbl {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--green, #2e7d52);
+}
+
+.netSilkVal {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--green, #2e7d52);
+}
+
+.estimated {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Driver / Logistics Card */
 .rentalCard {
-  background: #fef8ec;
-  border: 1px solid #d4a017;
-  border-radius: 8px;
-  padding: 14px;
-  margin-bottom: 12px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 2px 10px rgba(180, 83, 9, 0.04);
 }
 
 .rentalTitle {
-  font-size: 13px;
-  font-weight: 600;
-  color: #8b6914;
-  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #92400e;
+  margin: 0 0 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .rentalFinal {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid #d4a017;
-  font-weight: 600;
-  color: #5a3a0a;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #fef3c7;
+  font-weight: 700;
+  color: #78350f;
 }
 
 .rentalFinal strong:last-child {
-  font-size: 20px;
-  color: #8b6914;
+  font-size: 22px;
+  font-weight: 800;
+  color: #92400e;
 }
 
 .readOnlyNote {
-  background: #f8f8f6;
-  border: 1px solid #e0e0dc;
-  border-radius: 8px;
-  padding: 10px;
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 12px;
+  padding: 12px;
   text-align: center;
-  font-size: 11px;
-  color: #aaa;
-  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-muted, #64748b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
