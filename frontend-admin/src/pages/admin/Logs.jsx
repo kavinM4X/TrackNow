@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import AppShell from '../../components/layout/AppShell';
-import api from '../../api/client';
+import api, { deduplicatedGet } from '../../api/client';
 import { initials } from '../../utils/format';
 import styles from './Logs.module.css';
 
@@ -101,7 +101,8 @@ export default function Logs() {
     async (p = 1, append = false) => {
       setLoading(!append);
       try {
-        const res = await api.get('/admin/logs', { params: buildParams(p) });
+        const queryStr = new URLSearchParams(buildParams(p)).toString();
+        const res = await deduplicatedGet(`/admin/logs?${queryStr}`, {}, 5_000);
         setLogs((prev) => (append ? [...prev, ...res.data.logs] : res.data.logs));
         setTotalPages(res.data.totalPages);
         setTotal(res.data.total);
@@ -116,12 +117,11 @@ export default function Logs() {
   );
 
   useEffect(() => {
-    api.get('/admin/active-users-count').then((r) => {
+    deduplicatedGet('/admin/active-users-count', {}, 15_000).then((r) => {
       setActiveCount(r.data.count);
       setActiveDriverCount(r.data.driverCount || 0);
     });
-    api
-      .get('/admin/logs/filter-options')
+    deduplicatedGet('/admin/logs/filter-options', {}, 300_000)
       .then((r) => {
         setUsers(r.data.users || []);
         setDrivers(r.data.drivers || []);

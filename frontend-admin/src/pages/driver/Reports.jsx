@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import AppShell from '../../components/layout/AppShell';
-import api from '../../api/client';
+import api, { deduplicatedGet } from '../../api/client';
 import { formatINR, todayISO } from '../../utils/format';
 import styles from './Reports.module.css';
 
@@ -23,8 +23,7 @@ export default function Reports() {
       return;
     }
     setLoading(true);
-    api
-      .get(`/admin/driver/reports/daily?date=${date}`)
+    deduplicatedGet(`/admin/driver/reports/daily?date=${date}`, {}, 30_000)
       .then((r) => setReport(r.data))
       .catch(console.error)
       .finally(() => setLoading(false));

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
-import api from '../../api/client';
+import api, { deduplicatedGet } from '../../api/client';
 import { formatINR } from '../../utils/format';
 import styles from './Vehicles.module.css';
 
@@ -14,8 +14,7 @@ export default function Vehicles() {
 
   const load = () => {
     setLoading(true);
-    api
-      .get('/admin/driver/vehicles')
+    deduplicatedGet('/admin/driver/vehicles', {}, 30_000)
       .then((r) => setVehicles(r.data || []))
       .catch(console.error)
       .finally(() => setLoading(false));

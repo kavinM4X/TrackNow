@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import AppShell from '../../components/layout/AppShell';
-import api from '../../api/client';
+import api, { deduplicatedGet } from '../../api/client';
 import { formatDateShort, initials, shortUserId, todayISO } from '../../utils/format';
 import styles from './TrackerControl.module.css';
 import TrackerLiveMap from './TrackerLiveMap';
@@ -26,7 +26,7 @@ export default function TrackerControl() {
 
   const loadLiveMap = useCallback(async () => {
     try {
-      const res = await api.get('/admin/tracker/live-map');
+      const res = await deduplicatedGet('/admin/tracker/live-map', {}, 5_000);
       setLiveMarkers(res.data.markers || []);
     } catch (e) {
       console.error(e);
@@ -41,8 +41,8 @@ export default function TrackerControl() {
     setLoadError('');
     try {
       const [byDate, hist] = await Promise.all([
-        api.get('/admin/tracker/by-date', { params: { date } }),
-        api.get('/admin/tracker/history', { params: { date } })
+        deduplicatedGet(`/admin/tracker/by-date?date=${encodeURIComponent(date)}`, {}, 5_000),
+        deduplicatedGet(`/admin/tracker/history?date=${encodeURIComponent(date)}`, {}, 5_000)
       ]);
       setRows(byDate.data.rows || []);
       setHistory(hist.data || []);
@@ -70,8 +70,7 @@ export default function TrackerControl() {
   }, [loadLiveMap]);
 
   useEffect(() => {
-    api
-      .get('/admin/tracker/booking-dates')
+    deduplicatedGet('/admin/tracker/booking-dates', {}, 60_000)
       .then((r) => setBookingDates(r.data || []))
       .catch(console.error);
   }, []);

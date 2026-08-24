@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
-import api, { getStoredUser } from '../../api/client';
+import api, { deduplicatedGet, getStoredUser } from '../../api/client';
 import { formatDateShort, initials } from '../../utils/format';
 import styles from './Bookings.module.css';
 
@@ -61,12 +61,8 @@ export default function Bookings() {
     setLoading(true);
     setLoadError('');
     try {
-      const res = await api.get('/admin/bookings', {
-        params: {
-          search: search.trim() || undefined,
-          _t: Date.now()
-        }
-      });
+      const q = search.trim() ? `?search=${encodeURIComponent(search.trim())}` : '';
+      const res = await deduplicatedGet(`/admin/bookings${q}`, {}, 15_000);
       const { bookings: list, counts: apiCounts } = parseBookingsResponse(res.data);
       setAllBookings(list);
       setCounts(apiCounts?.all !== undefined ? apiCounts : buildCounts(list));

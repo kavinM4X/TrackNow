@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
-import api from '../../api/client';
+import api, { deduplicatedGet } from '../../api/client';
 import { formatDateShort } from '../../utils/format';
 import styles from './MarketRates.module.css';
 
@@ -62,8 +62,7 @@ export default function MarketRates() {
 
   useEffect(() => {
     let cancelled = false;
-    api
-      .get('/market-rates')
+    deduplicatedGet('/market-rates', {}, 60_000)
       .then((res) => {
         if (cancelled) return;
         const data = res.data;

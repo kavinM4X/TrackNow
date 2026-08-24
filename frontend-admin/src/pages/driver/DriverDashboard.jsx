@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
-import api from '../../api/client';
+import api, { deduplicatedGet } from '../../api/client';
 import { formatINR } from '../../utils/format';
 import styles from './DriverDashboard.module.css';
 
@@ -12,7 +12,10 @@ export default function DriverDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([api.get('/admin/driver/stats'), api.get('/admin/driver/vehicles')])
+    Promise.all([
+      deduplicatedGet('/admin/driver/stats', {}, 30_000),
+      deduplicatedGet('/admin/driver/vehicles', {}, 30_000)
+    ])
       .then(([s, v]) => {
         setStats(s.data);
         setVehicles(v.data || []);

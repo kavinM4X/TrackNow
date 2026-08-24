@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
-import api from '../../api/client';
+import api, { deduplicatedGet } from '../../api/client';
 import { formatDateDayMonth } from '../../utils/format';
 import styles from './Parties.module.css';
 
@@ -16,11 +16,7 @@ export default function Parties() {
   const load = useCallback(() => {
     setLoading(true);
     setError('');
-    api
-      .get('/admin/driver/party-batches', {
-        params: { _: Date.now() },
-        headers: { 'Cache-Control': 'no-cache' }
-      })
+    deduplicatedGet('/admin/driver/party-batches', {}, 30_000)
       .then((r) => setBatches(Array.isArray(r.data) ? r.data : []))
       .catch((err) => {
         setBatches([]);

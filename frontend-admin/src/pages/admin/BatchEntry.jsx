@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
-import api from '../../api/client';
+import api, { deduplicatedGet } from '../../api/client';
 import { formatDateShort } from '../../utils/format';
 import styles from './BatchEntryDashboard.module.css';
 
@@ -18,13 +18,12 @@ export default function BatchEntry() {
     setLoading(true);
     setError('');
     try {
-      const res = await api.get('/admin/bookings/date-summary', {
-        params: {
-          search: search.trim() || undefined,
-          date: dateFilter || undefined,
-          _t: Date.now()
-        }
-      });
+      const queryParams = new URLSearchParams();
+      if (search.trim()) queryParams.set('search', search.trim());
+      if (dateFilter) queryParams.set('date', dateFilter);
+      const url = `/admin/bookings/date-summary${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+
+      const res = await deduplicatedGet(url, {}, 15_000);
       setSummary(res.data.summary || { totalDates: 0, totalUsers: 0, totalWeightKg: 0 });
       setByDate(res.data.byDate || []);
     } catch (err) {

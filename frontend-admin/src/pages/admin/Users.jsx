@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
-import api from '../../api/client';
+import api, { deduplicatedGet } from '../../api/client';
 import { initials, shortUserId } from '../../utils/format';
 import styles from './Users.module.css';
 
@@ -13,8 +13,7 @@ export default function Users() {
   const [loading, setLoading] = useState(true);
 
   const load = () => {
-    api
-      .get('/admin/users')
+    deduplicatedGet('/admin/users', {}, 30_000)
       .then((r) => setUsers(r.data))
       .catch(console.error)
       .finally(() => setLoading(false));

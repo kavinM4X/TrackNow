@@ -41,6 +41,58 @@ api.interceptors.response.use(
   }
 );
 
+const inFlightRequests = new Map();
+const responseCache = new Map();
+
+/**
+ * Deduplicated & Client-Cached GET request wrapper.
+ * Prevents React 18 StrictMode double fetching and duplicate component calls.
+ */
+export function deduplicatedGet(url, options = {}, cacheTtlMs = 0) {
+  const cacheKey = typeof url === 'string' ? url : JSON.stringify(url);
+
+  if (cacheTtlMs > 0) {
+    const cached = responseCache.get(cacheKey);
+    if (cached && Date.now() < cached.expiresAt) {
+      return Promise.resolve(cached.data);
+    }
+  }
+
+  if (inFlightRequests.has(cacheKey)) {
+    return inFlightRequests.get(cacheKey);
+  }
+
+  const promise = api
+    .get(url, options)
+    .then((res) => {
+      if (cacheTtlMs > 0) {
+        responseCache.set(cacheKey, {
+          data: res,
+          expiresAt: Date.now() + cacheTtlMs
+        });
+      }
+      return res;
+    })
+    .finally(() => {
+      inFlightRequests.delete(cacheKey);
+    });
+
+  inFlightRequests.set(cacheKey, promise);
+  return promise;
+}
+
+export function invalidateClientCache(urlPrefix = '') {
+  if (!urlPrefix) {
+    responseCache.clear();
+    return;
+  }
+  for (const key of responseCache.keys()) {
+    if (key.startsWith(urlPrefix)) {
+      responseCache.delete(key);
+    }
+  }
+}
+
 export function getToken() {
   return localStorage.getItem(TOKEN_KEY);
 }
@@ -60,6 +112,7 @@ export function setSession(token, user) {
 }
 
 export function clearSession() {
+  invalidateClientCache();
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
   localStorage.removeItem(LEGACY_TOKEN_KEY);
