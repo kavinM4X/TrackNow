@@ -854,32 +854,14 @@ adminRouter.get('/entries', protect, adminOnly, async (req, res) => {
   try {
     const filter = {};
     if (req.query.status) filter.status = req.query.status;
-    let entries = await DriverSilkEntry.find(filter)
+    const entries = await DriverSilkEntry.find(filter)
       .populate('vehicleId', 'vehicleNumber driverName')
       .populate('partyId', 'name phone village clientUserId')
       .populate('clientUserId', 'name')
       .populate('submittedBy', 'name')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    const approvedMissing = entries.filter((e) => e.status === 'approved');
-    for (const entry of approvedMissing) {
-      const linked = await Batch.exists({ driverSilkEntryId: entry._id, visibleToClient: true });
-      if (!linked) {
-        try {
-          await publishDriverEntryToClient(entry._id, req.user._id);
-        } catch (err) {
-          console.error('Auto-publish driver entry failed:', entry._id, err.message);
-        }
-      }
-    }
-    if (approvedMissing.some((e) => !e.clientUserId)) {
-      entries = await DriverSilkEntry.find(filter)
-        .populate('vehicleId', 'vehicleNumber driverName')
-        .populate('partyId', 'name phone village clientUserId')
-        .populate('clientUserId', 'name')
-        .populate('submittedBy', 'name')
-        .sort({ createdAt: -1 });
-    }
     res.json(entries);
   } catch (e) {
     res.status(500).json({ error: e.message });

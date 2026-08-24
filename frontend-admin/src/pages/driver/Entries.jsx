@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
-import api from '../../api/client';
+import api, { deduplicatedGet } from '../../api/client';
 import { formatDateShort } from '../../utils/format';
 import { groupEntries } from './entryShared';
 import styles from './Entries.module.css';
@@ -17,8 +17,7 @@ export default function Entries() {
   const load = (status) => {
     setLoading(true);
     const q = status ? `?status=${status}` : '';
-    api
-      .get(`/admin/driver/entries${q}`)
+    deduplicatedGet(`/admin/driver/entries${q}`, {}, 15_000)
       .then((r) => setEntries(r.data || []))
       .catch(console.error)
       .finally(() => setLoading(false));
