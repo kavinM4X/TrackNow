@@ -89,24 +89,34 @@ router.post('/backups/run', protect, adminOnly, async (req, res) => {
   }
 });
 
+const cache = require('../utils/cache');
+
 // GET /api/admin/stats (admin only)
 router.get('/stats', protect, adminOnly, async (req, res) => {
   try {
-    const totalUsers = await User.countDocuments({ role: 'user' });
-    const totalDrivers = await User.countDocuments({ role: { $in: ['driver', 'staff'] } });
-    const pendingBookings = await Booking.countDocuments({ status: 'pending' });
-    const activeUsers = await User.countDocuments({ role: 'user', isActive: true });
-    const activeDrivers = await User.countDocuments({ role: { $in: ['driver', 'staff'] }, isActive: true });
-    
-    res.json({ 
-      totalUsers, 
+    const cached = cache.get('admin:stats');
+    if (cached) return res.json(cached);
+
+    const [totalUsers, totalDrivers, pendingBookings, activeUsers, activeDrivers] = await Promise.all([
+      User.countDocuments({ role: 'user' }),
+      User.countDocuments({ role: { $in: ['driver', 'staff'] } }),
+      Booking.countDocuments({ status: 'pending' }),
+      User.countDocuments({ role: 'user', isActive: true }),
+      User.countDocuments({ role: { $in: ['driver', 'staff'] }, isActive: true })
+    ]);
+
+    const result = {
+      totalUsers,
       totalDrivers,
       totalAccounts: totalUsers + totalDrivers,
-      pendingBookings, 
+      pendingBookings,
       activeUsers,
       activeDrivers,
       activeAccounts: activeUsers + activeDrivers
-    });
+    };
+
+    cache.set('admin:stats', result, 30_000);
+    res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -115,6 +125,9 @@ router.get('/stats', protect, adminOnly, async (req, res) => {
 // GET /api/admin/batch-chart (admin only)
 router.get('/batch-chart', protect, adminOnly, async (req, res) => {
   try {
+    const cached = cache.get('admin:batch-chart');
+    if (cached) return res.json(cached);
+
     const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const months = [];
     const now = new Date();
@@ -130,10 +143,10 @@ router.get('/batch-chart', protect, adminOnly, async (req, res) => {
     const firstMonthStart = new Date(now.getFullYear(), now.getMonth() - 11, 1);
     const firstMonthKey = `${firstMonthStart.getFullYear()}-${String(firstMonthStart.getMonth() + 1).padStart(2, '0')}`;
 
-    // Pull lightweight rows and normalize in JS to avoid date-type mismatch issues.
+    // Pull lightweight indexed rows
     const [batches, completedBookings] = await Promise.all([
-      Batch.find({}).select('date').lean(),
-      Booking.find({ status: 'completed' }).select('date').lean()
+      Batch.find({ date: { $gte: firstMonthKey } }).select('date').lean(),
+      Booking.find({ status: 'completed', date: { $gte: firstMonthKey } }).select('date').lean()
     ]);
 
     const monthDates = new Map(months.map((m) => [m.key, new Set()]));
@@ -160,7 +173,9 @@ router.get('/batch-chart', protect, adminOnly, async (req, res) => {
       monthDates.get(monthKey).add(bk.date);
     }
 
-    res.json(months.map((m) => ({ month: m.label, doneDays: monthDates.get(m.key)?.size || 0 })));
+    const response = months.map((m) => ({ month: m.label, doneDays: monthDates.get(m.key)?.size || 0 }));
+    cache.set('admin:batch-chart', response, 300_000);
+    res.json(response);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -172,6 +187,7 @@ router.get('/recent-bookings', protect, adminOnly, async (req, res) => {
     const bookings = await Booking.find({})
       .sort({ createdAt: -1 })
       .limit(5)
+      .select('userName date location quantityKg status createdAt')
       .lean();
     res.set('Cache-Control', 'no-store');
     res.json(bookings);

@@ -16,4 +16,8 @@ const driverExpenseSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+driverExpenseSchema.index({ vehicleId: 1, amount: 1 });
+driverExpenseSchema.index({ vehicleId: 1, date: -1 });
+driverExpenseSchema.index({ date: 1 });
+
 module.exports = mongoose.model('DriverExpense', driverExpenseSchema);

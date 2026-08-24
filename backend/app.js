@@ -16,6 +16,18 @@ app.use(cors(corsOrigins.length ? { origin: corsOrigins } : {}));
 app.use(express.json());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
+app.use((req, res, next) => {
+  const start = process.hrtime.bigint();
+  res.on('finish', () => {
+    const end = process.hrtime.bigint();
+    const duration = Number(end - start) / 1_000_000;
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[PERF] ${req.method} ${req.originalUrl} - ${duration.toFixed(2)}ms`);
+    }
+  });
+  next();
+});
+
 function rootPayload() {
   return {
     name: 'TrackNow API',

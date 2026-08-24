@@ -27,4 +27,7 @@ const driverSilkEntrySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+driverSilkEntrySchema.index({ status: 1, date: 1 });
+driverSilkEntrySchema.index({ vehicleId: 1, status: 1 });
+
 module.exports = mongoose.model('DriverSilkEntry', driverSilkEntrySchema);

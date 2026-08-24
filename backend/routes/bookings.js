@@ -3,6 +3,7 @@ const router = express.Router();
 const { protect } = require('../middleware/auth');
 const Booking = require('../models/Booking');
 const Log = require('../models/Log');
+const cache = require('../utils/cache');
 
 const LOCATIONS = ['Coimbatore', 'Mamballi', 'Ramnagar', 'Dharmapuri'];
 
@@ -18,7 +19,9 @@ router.get('/upcoming', protect, async (req, res) => {
       userId: req.user._id,
       status: { $in: ['pending', 'confirmed'] },
       date: { $gte: today }
-    }).sort({ date: 1 });
+    })
+      .sort({ date: 1 })
+      .lean();
     res.json(booking || null);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -30,7 +33,8 @@ router.get('/my', protect, async (req, res) => {
   try {
     const bookings = await Booking.find({ userId: req.user._id })
       .sort({ date: -1 })
-      .limit(50);
+      .limit(50)
+      .lean();
     res.json(bookings);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -62,6 +66,9 @@ router.post('/', protect, async (req, res) => {
       quantityKg: qty,
       notes: notes || ''
     });
+
+    cache.delete('admin:stats');
+    cache.delete('admin:batch-chart');
 
     try {
       await Log.create({
@@ -102,6 +109,9 @@ router.put('/:id', protect, async (req, res) => {
       { date, location, quantityKg, notes, status },
       { new: true, runValidators: true }
     );
+
+    cache.delete('admin:stats');
+    cache.delete('admin:batch-chart');
 
     try {
       await Log.create({

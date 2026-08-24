@@ -21,4 +21,6 @@ const driverPartySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+driverPartySchema.index({ driverUserId: 1, assignedDate: 1, city: 1 });
+
 module.exports = mongoose.model('DriverParty', driverPartySchema);

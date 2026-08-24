@@ -10,7 +10,8 @@ const DriverSilkEntry = require('../models/DriverSilkEntry');
 const DriverPartyBatch = require('../models/DriverPartyBatch');
 const Batch = require('../models/Batch');
 const DriverRateConfig = require('../models/DriverRateConfig');
-const { enrichVehicle, getVehicleTotals } = require('../utils/driverBalance');
+const { enrichVehicle, getVehicleTotals, getBatchVehicleTotals, enrichVehiclesBatch } = require('../utils/driverBalance');
+const cache = require('../utils/cache');
 const { getGlobalRates, getRatesForParty, calcSilkAmounts } = require('../utils/driverRates');
 const { normalizePhone, phonesMatch } = require('../utils/phone');
 const {
@@ -37,12 +38,12 @@ function nameMatches(a, b) {
 /** Only trips where admin selected this driver (driverUserId) in Vehicles. */
 async function listDriverVehicleDocs(userId, _userName, { activeOnly = true } = {}) {
   const statusFilter = activeOnly ? { status: 'active' } : {};
-  return DriverVehicle.find({ driverUserId: userId, ...statusFilter }).sort({ updatedAt: -1 });
+  return DriverVehicle.find({ driverUserId: userId, ...statusFilter }).sort({ updatedAt: -1 }).lean();
 }
 
 async function listDriverVehicles(userId, userName) {
   const docs = await listDriverVehicleDocs(userId, userName);
-  return Promise.all(docs.map(enrichVehicle));
+  return enrichVehiclesBatch(docs);
 }
 
 async function resolveDriverVehicle(userId, vehicleId, userName, { activeOnly = true } = {}) {
@@ -57,18 +58,31 @@ async function resolveDriverVehicle(userId, vehicleId, userName, { activeOnly = 
 // ——— Admin: dashboard stats ———
 adminRouter.get('/stats', protect, adminOnly, async (req, res) => {
   try {
-    const vehicles = await DriverVehicle.find({ status: 'active' });
+    const cacheKey = 'driver:admin-stats';
+    const cached = cache.get(cacheKey);
+    if (cached) return res.json(cached);
+
+    const vehicles = await DriverVehicle.find({ status: 'active' }).select('_id').lean();
+    const vIds = vehicles.map((v) => v._id);
+
+    const [totalsMap, pendingEntries] = await Promise.all([
+      getBatchVehicleTotals(vIds),
+      DriverSilkEntry.countDocuments({ status: 'pending' })
+    ]);
+
     let totalCash = 0;
     let totalAdvance = 0;
     let totalExpense = 0;
-    for (const v of vehicles) {
-      const t = await getVehicleTotals(v._id);
+
+    for (const t of totalsMap.values()) {
       totalCash += t.balance;
       totalAdvance += t.advanceTotal;
       totalExpense += t.expenseTotal;
     }
-    const pendingEntries = await DriverSilkEntry.countDocuments({ status: 'pending' });
-    res.json({ totalCash, totalAdvance, totalExpense, pendingEntries, vehicleCount: vehicles.length });
+
+    const payload = { totalCash, totalAdvance, totalExpense, pendingEntries, vehicleCount: vehicles.length };
+    cache.set(cacheKey, payload, 30_000);
+    res.json(payload);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -78,7 +92,8 @@ adminRouter.get('/driver-users', protect, adminOnly, async (req, res) => {
   try {
     const users = await User.find({ role: { $in: ['driver', 'staff'] } })
       .sort({ name: 1 })
-      .select('name phone role');
+      .select('name phone role')
+      .lean();
     res.json(users);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -88,8 +103,8 @@ adminRouter.get('/driver-users', protect, adminOnly, async (req, res) => {
 // ——— Vehicles ———
 adminRouter.get('/vehicles', protect, adminOnly, async (req, res) => {
   try {
-    const list = await DriverVehicle.find().sort({ vehicleNumber: 1 });
-    const enriched = await Promise.all(list.map(enrichVehicle));
+    const list = await DriverVehicle.find().sort({ vehicleNumber: 1 }).lean();
+    const enriched = await enrichVehiclesBatch(list);
     res.json(enriched);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -347,11 +362,12 @@ adminRouter.get('/parties', protect, adminOnly, async (req, res) => {
 
 adminRouter.get('/party-batches', protect, adminOnly, async (req, res) => {
   try {
-    await syncPartyBatchesFromParties();
-    const batches = await DriverPartyBatch.find().sort({ assignedDate: -1, updatedAt: -1 });
+    const batches = await DriverPartyBatch.find().sort({ assignedDate: -1, updatedAt: -1 }).lean();
     const rows = [];
     for (const batch of batches) {
-      await hydrateBatchRental(batch);
+      if ((!batch.rentalAmount || batch.rentalAmount <= 0) || !batch.city) {
+        await hydrateBatchRental(batch);
+      }
       rows.push(batchPayload(batch));
     }
     res.json(rows);
@@ -1264,11 +1280,9 @@ async function ensureBatchesForDriver(userId, userName) {
 
 driverRouter.get('/party-batches', protect, driverOnly, async (req, res) => {
   try {
-    await ensureBatchesForDriver(req.user._id, req.user.name);
-    const batches = await DriverPartyBatch.find({ driverUserId: req.user._id }).sort({
-      assignedDate: -1,
-      updatedAt: -1
-    });
+    const batches = await DriverPartyBatch.find({ driverUserId: req.user._id })
+      .sort({ assignedDate: -1, updatedAt: -1 })
+      .lean();
     res.json(batches.map(batchPayload));
   } catch (e) {
     res.status(500).json({ error: e.message });

@@ -4,11 +4,16 @@ const router = express.Router();
 const { protect, adminOnly } = require('../middleware/auth');
 const MarketRate = require('../models/MarketRate');
 const Log = require('../models/Log');
+const cache = require('../utils/cache');
 
 // GET /api/market-rates/latest (auth required, all users)
 router.get('/latest', protect, async (req, res) => {
   try {
-    const rate = await MarketRate.findOne({}).sort({ date: -1 });
+    const cached = cache.get('market-rates:latest');
+    if (cached) return res.json(cached);
+
+    const rate = await MarketRate.findOne({}).sort({ date: -1 }).lean();
+    cache.set('market-rates:latest', rate, 60_000);
     res.json(rate);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -18,8 +23,13 @@ router.get('/latest', protect, async (req, res) => {
 // GET /api/market-rates (admin only) — history + latest in one response
 router.get('/', protect, adminOnly, async (req, res) => {
   try {
-    const history = await MarketRate.find({}).sort({ date: -1 }).limit(30);
-    res.json({ history, latest: history[0] || null });
+    const cached = cache.get('market-rates:history');
+    if (cached) return res.json(cached);
+
+    const history = await MarketRate.find({}).sort({ date: -1 }).limit(30).lean();
+    const result = { history, latest: history[0] || null };
+    cache.set('market-rates:history', result, 60_000);
+    res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -28,7 +38,7 @@ router.get('/', protect, adminOnly, async (req, res) => {
 // GET /api/market-rates/for-date/:date (admin — batch entry auto-fill)
 router.get('/for-date/:date', protect, adminOnly, async (req, res) => {
   try {
-    const rate = await MarketRate.findOne({ date: req.params.date });
+    const rate = await MarketRate.findOne({ date: req.params.date }).lean();
     res.json(rate);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -41,7 +51,7 @@ router.get('/:id', protect, adminOnly, async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(400).json({ error: 'Invalid id' });
     }
-    const rate = await MarketRate.findById(req.params.id);
+    const rate = await MarketRate.findById(req.params.id).lean();
     if (!rate) return res.status(404).json({ error: 'Not found' });
     res.json(rate);
   } catch (error) {
@@ -79,7 +89,7 @@ router.post('/', protect, adminOnly, async (req, res) => {
       : Math.round(rates.reduce((a,b)=>a+b,0)/4);
     
     // Check for duplicate date
-    const existing = await MarketRate.findOne({ date });
+    const existing = await MarketRate.findOne({ date }).lean();
     if (existing) return res.status(409).json({ error: 'Rate already exists for this date', id: existing._id });
     
     const rate = await MarketRate.create({ 
@@ -98,6 +108,8 @@ router.post('/', protect, adminOnly, async (req, res) => {
       dharmapuriMin: dharmapuriMin ?? null,
       topRate, topMarket, minAvg, updatedBy: req.user.id 
     });
+
+    cache.invalidatePrefix('market-rates');
     
     await Log.create({ 
       userId: req.user.id, userName: req.user.name, 
@@ -159,6 +171,8 @@ router.put('/:id', protect, adminOnly, async (req, res) => {
       },
       { new: true }
     );
+
+    cache.invalidatePrefix('market-rates');
     
     await Log.create({ 
       userId: req.user.id, userName: req.user.name, 

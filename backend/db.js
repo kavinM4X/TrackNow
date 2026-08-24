@@ -15,8 +15,10 @@ async function connectDB() {
 
   connectPromise = mongoose
     .connect(mongoUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
+      maxPoolSize: 10,
+      minPoolSize: 2,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000
     })
     .then(() => mongoose.connection)
     .catch((err) => {

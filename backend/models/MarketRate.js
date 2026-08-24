@@ -27,4 +27,6 @@ const marketRateSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+marketRateSchema.index({ date: -1 });
+
 module.exports = mongoose.model('MarketRate', marketRateSchema);

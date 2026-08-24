@@ -12,4 +12,7 @@ const driverAdvanceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+driverAdvanceSchema.index({ vehicleId: 1, amount: 1 });
+driverAdvanceSchema.index({ vehicleId: 1, date: -1 });
+
 module.exports = mongoose.model('DriverAdvance', driverAdvanceSchema);

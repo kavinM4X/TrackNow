@@ -15,4 +15,7 @@ const driverVehicleSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+driverVehicleSchema.index({ status: 1, driverUserId: 1 });
+driverVehicleSchema.index({ vehicleNumber: 1 });
+
 module.exports = mongoose.model('DriverVehicle', driverVehicleSchema);
