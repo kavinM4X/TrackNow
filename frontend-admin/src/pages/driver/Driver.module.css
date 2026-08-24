@@ -1,0 +1,635 @@
+.statGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.statCard {
+  text-align: center;
+  margin: 0;
+  padding: 10px;
+}
+
+.statVal {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.statLbl {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.pos {
+  color: #2e7d52;
+}
+
+.neg {
+  color: #a93226;
+}
+
+.bal {
+  color: #1a3c5e;
+}
+
+.vehicleCard {
+  margin-bottom: 8px;
+}
+
+.vehicleHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 6px;
+}
+
+.miniGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.miniBox {
+  background: #f0f4f9;
+  border-radius: 4px;
+  padding: 6px;
+  text-align: center;
+  font-size: 11px;
+}
+
+.miniBoxExp {
+  background: #fdf0f0;
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+}
+
+.actionBtn {
+  flex: 1;
+  border: none;
+  border-radius: 4px;
+  padding: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  background: #eaf0f6;
+  color: #1a3c5e;
+}
+
+.filterRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.filterChip {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  background: #f0f0ee;
+  color: #888;
+}
+
+.filterChipOn {
+  background: #1a3c5e;
+  color: #fff;
+}
+
+.entryGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.entryCell {
+  border-radius: 4px;
+  padding: 6px;
+  text-align: center;
+  font-size: 10px;
+}
+
+.good {
+  background: #e8f4ed;
+}
+
+.waste {
+  background: #fdf5e0;
+}
+
+.double {
+  background: #f5ede8;
+}
+
+.approveBtn {
+  flex: 1;
+  background: #e8f4ed;
+  border: 1px solid #2e7d52;
+  color: #2e7d52;
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rejectBtn {
+  flex: 1;
+  background: #fdeded;
+  border: 1px solid #a93226;
+  color: #a93226;
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.entryGroupCard {
+  margin-bottom: 12px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.entryGroupClickable {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  border: 1px solid #e0e6ed;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.entryGroupClickable:hover {
+  border-color: #1a3c5e;
+  box-shadow: 0 2px 8px rgba(26, 60, 94, 0.08);
+}
+
+.entryGroupRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.entryGroupChevron {
+  font-size: 20px;
+  color: #888;
+  line-height: 1;
+}
+
+.entryGroupHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 14px;
+  background: #f0f4f9;
+  border-bottom: 1px solid #e0e6ed;
+}
+
+.entryGroupTitle {
+  font-size: 15px;
+  color: #1a3c5e;
+}
+
+.entryGroupSub {
+  font-size: 11px;
+  color: #888;
+  margin-top: 2px;
+}
+
+.entryUserBlock {
+  padding: 12px 14px;
+  border-bottom: 1px solid #eee;
+}
+
+.entryUserBlock:last-child {
+  border-bottom: none;
+}
+
+.entryUserHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.entryTotalRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.entryLotRow {
+  font-size: 11px;
+  color: #6b4c9a;
+  margin-bottom: 8px;
+}
+
+.entryActions {
+  display: flex;
+  gap: 6px;
+}
+
+.entryClientActions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.entryClientLink {
+  font-size: 11px;
+  color: #2e7d52;
+  margin: 0;
+}
+
+.ledgerRow {
+  display: grid;
+  grid-template-columns: 1.2fr 1.5fr 1fr 1fr;
+  gap: 4px;
+  font-size: 11px;
+  padding: 6px;
+}
+
+.previewBox {
+  background: #eaf0f6;
+  border: 1px solid #b0c8e0;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+
+.chartBar {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 60px;
+  margin-top: 8px;
+}
+
+.chartCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.chartFill {
+  width: 100%;
+  background: #1a3c5e;
+  border-radius: 3px 3px 0 0;
+  min-height: 4px;
+}
+
+.vehicleCardClick {
+  cursor: pointer;
+}
+
+.vehicleCardClick:hover {
+  border-color: #1a3c5e;
+}
+
+.expenseTripDate {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 6px;
+}
+
+.advanceRowAdmin {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+  font-size: 13px;
+}
+
+.expenseLineAdmin {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e0e0dc;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.editExpBtn {
+  border: 1px solid #1a3c5e;
+  background: #eaf0f6;
+  color: #1a3c5e;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.expenseTotalsAdmin {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f0f4f9;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.previewRowAdmin {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.balanceAfterAdmin {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #ccc;
+  font-weight: 600;
+}
+
+.userSearchList {
+  border: 1px solid #e0e0dc;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.userSearchItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-bottom: 1px solid #eee;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+}
+
+.userSearchItem:hover {
+  background: #f0f4f9;
+}
+
+.userSearchItem:last-child {
+  border-bottom: none;
+}
+
+.linkedUserChip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #e8f4ed;
+  border: 1px solid #2e7d52;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.clearLinkBtn {
+  border: none;
+  background: transparent;
+  color: #a93226;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.catGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.catBtn {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px 4px;
+  font-size: 11px;
+  background: #fff;
+  cursor: pointer;
+  text-transform: capitalize;
+}
+
+.catBtnOn {
+  border-color: #1a3c5e;
+  background: #eaf0f6;
+  color: #1a3c5e;
+  font-weight: 600;
+}
+
+.addLineBtn {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border: 1px dashed #1a3c5e;
+  border-radius: 8px;
+  background: #eaf0f6;
+  color: #1a3c5e;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.expenseSummaryCard {
+  background: #eaf0f6;
+  border: 1px solid #b0c8e0;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.expenseSummaryTitle {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.removeLineBtn {
+  border: none;
+  background: #fdecea;
+  color: #a93226;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.partyCard {
+  margin-bottom: 8px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.partyCardHead {
+  margin-bottom: 10px;
+}
+
+.partyEditBtn {
+  margin-top: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 13px;
+  padding: 8px 10px;
+}
+
+.partyName {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.partyPhone {
+  font-size: 13px;
+  color: #444;
+  margin-bottom: 2px;
+}
+
+.partyLocation {
+  font-size: 12px;
+  color: #888;
+}
+
+.partySilkRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  min-width: 0;
+}
+
+.partyGoodSilk {
+  background: #e8f4ed;
+  border: 1px solid #b8dfc8;
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.partyGoodSilkLbl {
+  display: block;
+  font-size: 11px;
+  color: var(--green);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.partyGoodSilkVal {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--green);
+  word-break: break-word;
+}
+
+.partyRate {
+  background: var(--blue-light);
+  border: 1px solid var(--blue-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.partyRateLbl {
+  display: block;
+  font-size: 11px;
+  color: var(--blue);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.partyRateVal {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--blue);
+  word-break: break-word;
+}
+
+.entryBreakdown {
+  background: #fafafa;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.entryCalcLine {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 4px;
+  gap: 8px;
+}
+
+.entryNetRow {
+  display: flex;
+  justify-content: space-between;
+  background: #e8f4ed;
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin: 6px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2e7d52;
+}
+
+.entryRentalRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #8b6914;
+  margin-bottom: 4px;
+}
+
+.entryRentalBox {
+  background: #fef8ec;
+  border: 1px solid #d4a017;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 8px 0;
+}
+
+.entryRentalTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #8b6914;
+  margin-bottom: 6px;
+}
+
+.entryRentalTotal {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #d4a017;
+  font-size: 13px;
+  font-weight: 600;
+  color: #8b6914;
+}
+
+.entryFinalRow {
+  display: flex;
+  justify-content: space-between;
+  background: #fef8ec;
+  border: 1px solid #d4a017;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #8b6914;
+}

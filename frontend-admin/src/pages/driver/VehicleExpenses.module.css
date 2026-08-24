@@ -1,0 +1,340 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Vehicle Trip Hero Banner */
+.heroBanner {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #ffffff;
+  padding: 22px;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tripTag {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.heroHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.vehicleTitle {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vehicleSub {
+  font-size: 13px;
+  color: #cbd5e1;
+}
+
+.balanceBox {
+  text-align: right;
+}
+
+.balanceVal {
+  font-size: 24px;
+  font-weight: 800;
+  color: #10b981;
+}
+
+.balanceLbl {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.heroFoot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 13px;
+}
+
+.advanceText {
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+/* Card Section */
+.sectionCard {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sectionHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Category Grid */
+.categoryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 8px;
+}
+
+.categoryBtn {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: capitalize;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.categoryBtn:hover {
+  background: #e2e8f0;
+}
+
+.categoryBtnActive {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+.categoryBtnActive:hover {
+  background: #1e293b;
+}
+
+/* Form Inputs */
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.formLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.fieldInput,
+.fieldSelect {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  background: #f8fafc;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.fieldInput:focus,
+.fieldSelect:focus {
+  background: #ffffff;
+  border-color: var(--blue-accent);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.addLineBtn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: var(--text-primary);
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.addLineBtn:hover {
+  background: #f1f5f9;
+}
+
+/* Expenses List */
+.expenseList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.expenseRow {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.expenseCategory {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: capitalize;
+}
+
+.expenseMeta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.expenseAmount {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ef4444;
+}
+
+.editBtn {
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.editBtn:hover {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.saveExpenseBtn {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  border: none;
+  padding: 12px 18px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+}
+
+.saveExpenseBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+}
+
+/* Totals Preview Card */
+.totalsCard {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.totalRowBold {
+  display: flex;
+  justify-content: space-between;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-primary);
+  padding-top: 8px;
+  border-top: 1px solid #cbd5e1;
+}
+
+/* Mobile Responsiveness Improvements */
+@media (max-width: 640px) {
+  .container {
+    gap: 14px;
+  }
+
+  .heroBanner {
+    padding: 16px;
+    border-radius: var(--radius-md);
+    gap: 10px;
+  }
+
+  .vehicleTitle {
+    font-size: 18px;
+  }
+
+  .balanceVal {
+    font-size: 20px;
+  }
+
+  .sectionCard {
+    padding: 14px 12px;
+    border-radius: var(--radius-md);
+  }
+
+  .categoryGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .categoryBtn {
+    padding: 8px;
+    font-size: 11px;
+  }
+
+  .fieldInput,
+  .fieldSelect {
+    padding: 9px 12px;
+    font-size: 13px;
+    border-radius: var(--radius-sm);
+  }
+
+  .expenseRow {
+    padding: 12px 10px;
+  }
+
+  .expenseCategory {
+    font-size: 14px;
+  }
+
+  .expenseAmount {
+    font-size: 15px;
+  }
+}

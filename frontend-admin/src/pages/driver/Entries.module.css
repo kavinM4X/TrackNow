@@ -1,0 +1,210 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Header Bar */
+.headerBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.headerTitleGroup h2 {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.4px;
+}
+
+.headerSub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.pendingChip {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #b45309;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Filter Segmented Tabs */
+.filterRow {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.filterChip {
+  background: #f1f5f9;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.filterChip:hover {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.filterChipOn {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.filterChipOn:hover {
+  background: #1e293b;
+  color: #ffffff;
+}
+
+/* Group Feed Cards */
+.entriesFeed {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.entryGroupCard {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.entryGroupCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--card-shadow-hover);
+  border-color: #bfdbfe;
+}
+
+.groupLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.groupTitle {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.groupSub {
+  font-size: 13px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.groupRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pendingBadge {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #b45309;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.chevron {
+  font-size: 18px;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.emptyState {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* Mobile Responsiveness Improvements */
+@media (max-width: 640px) {
+  .container {
+    gap: 14px;
+  }
+
+  .headerBar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .headerTitleGroup h2 {
+    font-size: 18px;
+  }
+
+  .headerSub {
+    font-size: 12px;
+  }
+
+  .pendingChip {
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+
+  .filterChip {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  .entryGroupCard {
+    padding: 14px;
+    border-radius: var(--radius-md);
+  }
+
+  .groupTitle {
+    font-size: 15px;
+  }
+
+  .groupSub {
+    font-size: 12px;
+  }
+
+  .pendingBadge {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+}

@@ -1,0 +1,294 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Header Bar */
+.headerBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.headerTitleGroup h2 {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.4px;
+}
+
+.headerSub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Report Type Tabs */
+.tabsRow {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabBtn {
+  background: #f1f5f9;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.tabBtn:hover {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.tabBtnActive {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.tabBtnActive:hover {
+  background: #1e293b;
+  color: #ffffff;
+}
+
+/* Date Selector Box */
+.dateCard {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dateLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.dateInput {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  background: #f8fafc;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.dateInput:focus {
+  background: #ffffff;
+  border-color: var(--blue-accent);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Chart Container Card */
+.chartCard {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chartTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chartBarContainer {
+  height: 180px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  gap: 12px;
+  padding: 20px 0 10px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.chartCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.barValue {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.barFill {
+  width: 28px;
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+  border-radius: 6px 6px 0 0;
+  transition: height 0.4s ease;
+  min-height: 8px;
+}
+
+.barName {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70px;
+}
+
+/* Totals Summary Card */
+.totalsCard {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.valPos {
+  color: #059669;
+  font-weight: 700;
+}
+
+.valNeg {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  margin: 4px 0;
+}
+
+.netRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.emptyState {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* Mobile Responsiveness Improvements */
+@media (max-width: 640px) {
+  .container {
+    gap: 14px;
+  }
+
+  .headerBar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .headerTitleGroup h2 {
+    font-size: 18px;
+  }
+
+  .headerSub {
+    font-size: 12px;
+  }
+
+  .tabBtn {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  .dateCard {
+    padding: 12px;
+    border-radius: var(--radius-md);
+  }
+
+  .dateInput {
+    padding: 9px 12px;
+    font-size: 13px;
+    border-radius: var(--radius-sm);
+  }
+
+  .chartCard {
+    padding: 14px 12px;
+    border-radius: var(--radius-md);
+  }
+
+  .chartBarContainer {
+    height: 140px;
+    gap: 8px;
+  }
+
+  .barFill {
+    width: 20px;
+  }
+
+  .barValue {
+    font-size: 9px;
+  }
+
+  .barName {
+    font-size: 9px;
+  }
+
+  .totalsCard {
+    padding: 14px 12px;
+    border-radius: var(--radius-md);
+  }
+
+  .totalRow {
+    font-size: 13px;
+  }
+
+  .netRow {
+    font-size: 15px;
+  }
+}

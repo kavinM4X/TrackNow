@@ -1,0 +1,73 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import api, { getStoredUser, getToken, setSession } from '../../api/client';
+import BrandLogo from '../../components/common/BrandLogo';
+import styles from './AdminLogin.module.css';
+
+export default function AdminLogin({ onLogin }) {
+  const navigate = useNavigate();
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { register, handleSubmit } = useForm();
+
+  useEffect(() => {
+    const user = getStoredUser();
+    if (user?.role === 'admin' && getToken()) {
+      navigate('/admin/dashboard', { replace: true });
+    }
+  }, [navigate]);
+
+  const onSubmit = async (data) => {
+    setError('');
+    setLoading(true);
+    try {
+      const res = await api.post('/auth/login', {
+        phone: data.phone.trim(),
+        password: data.password
+      });
+      const { token, user } = res.data;
+      if (user.role !== 'admin') {
+        setError('Access denied. Admin credentials required.');
+        return;
+      }
+      setSession(token, user);
+      onLogin(token, user);
+      navigate('/admin/dashboard', { replace: true });
+    } catch (err) {
+      if (err.code === 'ERR_NETWORK' || !err.response) {
+        setError(
+          'Cannot reach API server. Start backend (npm start) or set VITE_API_URL in frontend-admin/.env to your Render URL.'
+        );
+      } else {
+        setError(err.response?.data?.message || err.response?.data?.error || 'Invalid credentials');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className={styles.page}>
+      <BrandLogo className={styles.brandMark} />
+      <div className={styles.inner}>
+        <h1>Admin Portal</h1>
+        <p className={styles.sub}>TrackNow Administration</p>
+        <form className={styles.card} onSubmit={handleSubmit(onSubmit)}>
+          <label className="field-label">Phone</label>
+          <input className="field-input" type="tel" {...register('phone', { required: true })} />
+          <label className="field-label">Password</label>
+          <input
+            className="field-input"
+            type="password"
+            {...register('password', { required: true, minLength: 6 })}
+          />
+          {error && <p className="form-error">{error}</p>}
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? 'Logging in…' : 'Admin Login'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}

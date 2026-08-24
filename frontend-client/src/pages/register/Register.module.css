@@ -1,0 +1,59 @@
+.page {
+  position: relative;
+  min-height: 100vh;
+  background: var(--page-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.brandMark {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 96px;
+  height: 96px;
+}
+
+.inner {
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+}
+
+.brand {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.tagline {
+  margin: 4px 0 20px;
+  font-size: 13px;
+  color: #aaa;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: left;
+}
+
+.note {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: #666;
+}
+
+.loginLink {
+  margin-top: 18px;
+  font-size: 14px;
+  color: #555;
+}
+
+.loginLink a {
+  color: var(--link-color);
+}

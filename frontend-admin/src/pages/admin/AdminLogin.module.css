@@ -1,0 +1,42 @@
+.page {
+  position: relative;
+  min-height: 100vh;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.brandMark {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 96px;
+  height: 96px;
+}
+
+.inner {
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+}
+
+.inner h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.sub {
+  color: #aaa;
+  font-size: 13px;
+  margin: 4px 0 20px;
+}
+
+.card {
+  background: #f0f4f9;
+  border: 1px solid #cadaeb;
+  border-radius: 10px;
+  padding: 16px;
+  text-align: left;
+}
