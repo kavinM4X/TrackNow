@@ -91,31 +91,111 @@ router.post('/backups/run', protect, adminOnly, async (req, res) => {
 
 const cache = require('../utils/cache');
 
+async function getAdminStatsData() {
+  const cached = cache.get('admin:stats');
+  if (cached) return cached;
+
+  const [totalUsers, totalDrivers, pendingBookings, activeUsers, activeDrivers] = await Promise.all([
+    User.countDocuments({ role: 'user' }),
+    User.countDocuments({ role: { $in: ['driver', 'staff'] } }),
+    Booking.countDocuments({ status: 'pending' }),
+    User.countDocuments({ role: 'user', isActive: true }),
+    User.countDocuments({ role: { $in: ['driver', 'staff'] }, isActive: true })
+  ]);
+
+  const result = {
+    totalUsers,
+    totalDrivers,
+    totalAccounts: totalUsers + totalDrivers,
+    pendingBookings,
+    activeUsers,
+    activeDrivers,
+    activeAccounts: activeUsers + activeDrivers
+  };
+
+  cache.set('admin:stats', result, 30_000);
+  return result;
+}
+
+async function getAdminBatchChartData() {
+  const cached = cache.get('admin:batch-chart');
+  if (cached) return cached;
+
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const months = [];
+  const now = new Date();
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({
+      key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+      label: monthNames[d.getMonth()],
+      doneDays: 0
+    });
+  }
+
+  const firstMonthStart = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+  const firstMonthKey = `${firstMonthStart.getFullYear()}-${String(firstMonthStart.getMonth() + 1).padStart(2, '0')}`;
+
+  const [batches, completedBookings] = await Promise.all([
+    Batch.find({ date: { $gte: firstMonthKey } }).select('date').lean(),
+    Booking.find({ status: 'completed', date: { $gte: firstMonthKey } }).select('date').lean()
+  ]);
+
+  const monthDates = new Map(months.map((m) => [m.key, new Set()]));
+
+  for (const b of batches) {
+    let monthKey = null;
+    if (typeof b.date === 'string') {
+      monthKey = b.date.slice(0, 7);
+    } else if (b.date instanceof Date) {
+      monthKey = `${b.date.getFullYear()}-${String(b.date.getMonth() + 1).padStart(2, '0')}`;
+    }
+    if (!monthKey || monthKey.length !== 7 || monthKey < firstMonthKey) continue;
+    if (!monthDates.has(monthKey)) continue;
+    const dayKey = typeof b.date === 'string'
+      ? b.date
+      : `${b.date.getFullYear()}-${String(b.date.getMonth() + 1).padStart(2, '0')}-${String(b.date.getDate()).padStart(2, '0')}`;
+    if (dayKey.length !== 10) continue;
+    monthDates.get(monthKey).add(dayKey);
+  }
+  for (const bk of completedBookings) {
+    if (typeof bk.date !== 'string' || bk.date.length < 10) continue;
+    const monthKey = bk.date.slice(0, 7);
+    if (monthKey < firstMonthKey || !monthDates.has(monthKey)) continue;
+    monthDates.get(monthKey).add(bk.date);
+  }
+
+  const response = months.map((m) => ({ month: m.label, doneDays: monthDates.get(m.key)?.size || 0 }));
+  cache.set('admin:batch-chart', response, 300_000);
+  return response;
+}
+
+async function getAdminRecentBookingsData() {
+  return Booking.find({})
+    .sort({ createdAt: -1 })
+    .limit(5)
+    .select('userName date location quantityKg status createdAt')
+    .lean();
+}
+
+// GET /api/admin/dashboard-summary (admin only)
+router.get('/dashboard-summary', protect, adminOnly, async (req, res) => {
+  try {
+    const [stats, chart, recentBookings] = await Promise.all([
+      getAdminStatsData(),
+      getAdminBatchChartData(),
+      getAdminRecentBookingsData()
+    ]);
+    res.json({ stats, chart, recentBookings });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET /api/admin/stats (admin only)
 router.get('/stats', protect, adminOnly, async (req, res) => {
   try {
-    const cached = cache.get('admin:stats');
-    if (cached) return res.json(cached);
-
-    const [totalUsers, totalDrivers, pendingBookings, activeUsers, activeDrivers] = await Promise.all([
-      User.countDocuments({ role: 'user' }),
-      User.countDocuments({ role: { $in: ['driver', 'staff'] } }),
-      Booking.countDocuments({ status: 'pending' }),
-      User.countDocuments({ role: 'user', isActive: true }),
-      User.countDocuments({ role: { $in: ['driver', 'staff'] }, isActive: true })
-    ]);
-
-    const result = {
-      totalUsers,
-      totalDrivers,
-      totalAccounts: totalUsers + totalDrivers,
-      pendingBookings,
-      activeUsers,
-      activeDrivers,
-      activeAccounts: activeUsers + activeDrivers
-    };
-
-    cache.set('admin:stats', result, 30_000);
+    const result = await getAdminStatsData();
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -125,56 +205,7 @@ router.get('/stats', protect, adminOnly, async (req, res) => {
 // GET /api/admin/batch-chart (admin only)
 router.get('/batch-chart', protect, adminOnly, async (req, res) => {
   try {
-    const cached = cache.get('admin:batch-chart');
-    if (cached) return res.json(cached);
-
-    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const months = [];
-    const now = new Date();
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      months.push({
-        key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`, // YYYY-MM
-        label: monthNames[d.getMonth()],
-        doneDays: 0
-      });
-    }
-
-    const firstMonthStart = new Date(now.getFullYear(), now.getMonth() - 11, 1);
-    const firstMonthKey = `${firstMonthStart.getFullYear()}-${String(firstMonthStart.getMonth() + 1).padStart(2, '0')}`;
-
-    // Pull lightweight indexed rows
-    const [batches, completedBookings] = await Promise.all([
-      Batch.find({ date: { $gte: firstMonthKey } }).select('date').lean(),
-      Booking.find({ status: 'completed', date: { $gte: firstMonthKey } }).select('date').lean()
-    ]);
-
-    const monthDates = new Map(months.map((m) => [m.key, new Set()]));
-
-    for (const b of batches) {
-      let monthKey = null;
-      if (typeof b.date === 'string') {
-        monthKey = b.date.slice(0, 7);
-      } else if (b.date instanceof Date) {
-        monthKey = `${b.date.getFullYear()}-${String(b.date.getMonth() + 1).padStart(2, '0')}`;
-      }
-      if (!monthKey || monthKey.length !== 7 || monthKey < firstMonthKey) continue;
-      if (!monthDates.has(monthKey)) continue;
-      const dayKey = typeof b.date === 'string'
-        ? b.date
-        : `${b.date.getFullYear()}-${String(b.date.getMonth() + 1).padStart(2, '0')}-${String(b.date.getDate()).padStart(2, '0')}`;
-      if (dayKey.length !== 10) continue;
-      monthDates.get(monthKey).add(dayKey);
-    }
-    for (const bk of completedBookings) {
-      if (typeof bk.date !== 'string' || bk.date.length < 10) continue;
-      const monthKey = bk.date.slice(0, 7);
-      if (monthKey < firstMonthKey || !monthDates.has(monthKey)) continue;
-      monthDates.get(monthKey).add(bk.date);
-    }
-
-    const response = months.map((m) => ({ month: m.label, doneDays: monthDates.get(m.key)?.size || 0 }));
-    cache.set('admin:batch-chart', response, 300_000);
+    const response = await getAdminBatchChartData();
     res.json(response);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -184,11 +215,7 @@ router.get('/batch-chart', protect, adminOnly, async (req, res) => {
 // GET /api/admin/recent-bookings (admin only)
 router.get('/recent-bookings', protect, adminOnly, async (req, res) => {
   try {
-    const bookings = await Booking.find({})
-      .sort({ createdAt: -1 })
-      .limit(5)
-      .select('userName date location quantityKg status createdAt')
-      .lean();
+    const bookings = await getAdminRecentBookingsData();
     res.set('Cache-Control', 'no-store');
     res.json(bookings);
   } catch (error) {

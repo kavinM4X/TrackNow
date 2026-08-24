@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
-import api, { clearSession } from '../../api/client';
+import api, { clearSession, deduplicatedGet } from '../../api/client';
 import { formatDateDayMonth, todayDayMonthLabel } from '../../utils/format';
 import styles from './AdminDashboard.module.css';
 
@@ -139,18 +139,23 @@ export default function AdminDashboard({ onLogout }) {
   }, []);
 
   useEffect(() => {
-    Promise.all([
-      api.get('/admin/stats'),
-      api.get('/admin/batch-chart'),
-      api.get('/admin/recent-bookings')
-    ])
-      .then(([s, c, b]) => {
-        setStats(s.data);
-        setChart(ensure12Months(c.data));
-        setBookings(b.data || []);
+    let isMounted = true;
+    deduplicatedGet('/admin/dashboard-summary', {}, 30_000)
+      .then((res) => {
+        if (!isMounted) return;
+        const { stats, chart, recentBookings } = res.data || {};
+        setStats(stats || null);
+        setChart(ensure12Months(chart));
+        setBookings(recentBookings || []);
       })
       .catch(console.error)
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const logout = () => {
