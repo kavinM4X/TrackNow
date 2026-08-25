@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DriverShell from '../components/layout/DriverShell';
-import api from '../api/client';
+import { deduplicatedGet } from '../api/client';
 import { formatINR, formatDateDayMonth, todayISO } from '../utils/format';
 import styles from './History.module.css';
 
@@ -14,8 +14,7 @@ export default function HistoryTrips() {
   useEffect(() => {
     const load = async () => {
       try {
-        // Fetch driver assigned vehicle trips cleanly
-        const r = await api.get('/driver/vehicles');
+        const r = await deduplicatedGet('/driver/vehicles', {}, 15_000);
         const list = Array.isArray(r.data)
           ? r.data
           : r.data?.vehicles || (r.data?.vehicle ? [r.data.vehicle] : []);
@@ -33,13 +32,12 @@ export default function HistoryTrips() {
             }))
           );
         } else {
-          // Attempt history endpoint fallback
-          const hist = await api.get('/driver/history');
+          const hist = await deduplicatedGet('/driver/history', {}, 15_000);
           setTrips(hist.data || []);
         }
       } catch (err) {
         try {
-          const hist = await api.get('/driver/history');
+          const hist = await deduplicatedGet('/driver/history', {}, 15_000);
           setTrips(hist.data || []);
         } catch {
           setError('Could not load trip history');

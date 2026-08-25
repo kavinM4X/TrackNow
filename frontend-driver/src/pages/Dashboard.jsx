@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import DriverShell from '../components/layout/DriverShell';
-import api from '../api/client';
+import { deduplicatedGet } from '../api/client';
 import { formatINR, formatDateDayMonth } from '../utils/format';
 import styles from './Dashboard.module.css';
 
@@ -30,8 +30,7 @@ export default function Dashboard() {
   const [apiError, setApiError] = useState('');
 
   useEffect(() => {
-    api
-      .get('/driver/dashboard')
+    deduplicatedGet('/driver/dashboard', {}, 10_000)
       .then((res) => setData(res.data))
       .catch((err) => {
         if (err.response?.status === 404) {
@@ -44,12 +43,11 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    api
-      .get('/market-rates/latest')
+    deduplicatedGet('/market-rates/latest', {}, 60_000)
       .then((r) => setMarketRate(r.data))
       .catch(() => {});
     const interval = setInterval(() => {
-      api.get('/market-rates/latest').then((r) => setMarketRate(r.data)).catch(() => {});
+      deduplicatedGet('/market-rates/latest', {}, 60_000).then((r) => setMarketRate(r.data)).catch(() => {});
     }, 10 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);

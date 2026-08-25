@@ -2,41 +2,39 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import DriverShell from '../components/layout/DriverShell';
-import api, { clearSession, getStoredUser, getToken, setSession } from '../api/client';
+import api, { clearSession, deduplicatedGet, getStoredUser, getToken, setSession } from '../api/client';
 import { initials } from '../utils/format';
 import styles from './Profile.module.css';
 
 export default function Profile({ onLogout }) {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
+  const storedUser = getStoredUser();
+  const [loading, setLoading] = useState(!storedUser);
   const [saveMsg, setSaveMsg] = useState('');
   const [saveErr, setSaveErr] = useState('');
-  const [driverName, setDriverName] = useState('');
-  const { register, handleSubmit, reset } = useForm();
+  const [driverName, setDriverName] = useState(storedUser?.name || 'Driver');
+  const { register, handleSubmit, reset } = useForm({
+    defaultValues: {
+      name: storedUser?.name || '',
+      phone: storedUser?.phone || '',
+      email: storedUser?.email || ''
+    }
+  });
 
   useEffect(() => {
-    api
-      .get('/auth/me')
+    deduplicatedGet('/auth/me', {}, 15_000)
       .then((res) => {
         const u = res.data.user;
-        setDriverName(u.name || 'Driver');
-        reset({
-          name: u.name || '',
-          phone: u.phone || '',
-          email: u.email || ''
-        });
-      })
-      .catch(() => {
-        const stored = getStoredUser();
-        if (stored) {
-          setDriverName(stored.name || 'Driver');
+        if (u) {
+          setDriverName(u.name || 'Driver');
           reset({
-            name: stored.name || '',
-            phone: stored.phone || '',
-            email: stored.email || ''
+            name: u.name || '',
+            phone: u.phone || '',
+            email: u.email || ''
           });
         }
       })
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, [reset]);
 

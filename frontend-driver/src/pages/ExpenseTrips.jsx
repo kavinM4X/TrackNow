@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DriverShell from '../components/layout/DriverShell';
-import api, { getStoredUser } from '../api/client';
+import { deduplicatedGet, getStoredUser } from '../api/client';
 import { formatINR, todayISO, formatDateDayMonth } from '../utils/format';
 import styles from './Expense.module.css';
 
@@ -29,26 +29,20 @@ export default function ExpenseTrips() {
 
   useEffect(() => {
     const load = async () => {
-      const results = [];
-      try {
-        const r = await api.get('/driver/vehicles');
-        results.push(r.data);
-      } catch {
-        /* older backend fallback */
+      const settle = await Promise.allSettled([
+        deduplicatedGet('/driver/vehicles', {}, 15_000),
+        deduplicatedGet('/driver/me', {}, 15_000),
+        deduplicatedGet('/driver/dashboard', {}, 15_000)
+      ]);
+      const results = settle
+        .filter((s) => s.status === 'fulfilled' && s.value?.data)
+        .map((s) => s.value.data);
+
+      const list = pickVehicleList(...results);
+      setVehicles(list);
+      if (list.length === 0 && settle[1].status === 'rejected') {
+        setError(settle[1].reason?.response?.data?.error || 'Could not load trips');
       }
-      try {
-        const r = await api.get('/driver/me');
-        results.push(r.data);
-      } catch (err) {
-        setError(err.response?.data?.error || 'Could not load trips');
-      }
-      try {
-        const r = await api.get('/driver/dashboard');
-        results.push(r.data);
-      } catch {
-        /* optional fallback */
-      }
-      setVehicles(pickVehicleList(...results));
       setLoading(false);
     };
     load();

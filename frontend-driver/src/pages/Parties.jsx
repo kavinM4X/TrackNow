@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DriverShell from '../components/layout/DriverShell';
-import api from '../api/client';
+import { deduplicatedGet } from '../api/client';
 import { formatDateDayMonth } from '../utils/format';
 import styles from './Parties.module.css';
 
@@ -12,8 +12,7 @@ export default function Parties() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    api
-      .get('/driver/party-batches')
+    deduplicatedGet('/driver/party-batches', {}, 15_000)
       .then((res) => setBatches(res.data))
       .catch((err) => {
         setError(err.response?.data?.error || 'Could not load party assignments');
