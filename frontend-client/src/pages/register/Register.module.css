@@ -1,59 +1,204 @@
 .page {
   position: relative;
   min-height: 100vh;
-  background: var(--page-bg);
+  background: var(--page-bg, #f7f7f5);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 24px 16px;
+  animation: pageFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .brandMark {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 96px;
-  height: 96px;
+  top: 16px;
+  right: 16px;
+  width: 72px;
+  height: 72px;
+  opacity: 0.8;
 }
 
 .inner {
   width: 100%;
-  max-width: 360px;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.headerSection {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logoRing {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: var(--green-light, #e8f4ed);
+  border: 1px solid var(--green-border, #bde0cc);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 14px rgba(46, 125, 82, 0.12);
+}
+
+.brandTitle {
+  margin: 0 0 4px;
+  font-size: 24px;
+  font-weight: 800;
+  color: #1e293b;
+  letter-spacing: -0.5px;
+}
+
+.brandSub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted, #64748b);
+  line-height: 1.4;
+  max-width: 320px;
+}
+
+/* Registration Form Card */
+.card {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 16px;
+  padding: 24px 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formHeaderTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 2px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fieldLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.inputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 14px;
+  font-size: 15px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.fieldInput {
+  width: 100%;
+  padding: 12px 14px 12px 40px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+  font-size: 14px;
+  color: #0f172a;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.fieldInput:focus {
+  border-color: var(--green, #2e7d52);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(46, 125, 82, 0.12);
+}
+
+.roleNotePill {
+  font-size: 12px;
+  color: var(--text-muted, #64748b);
+  background: #f1f5f9;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  background: var(--green, #2e7d52);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 4px;
+  box-shadow: 0 4px 12px rgba(46, 125, 82, 0.25);
+}
+
+.submitBtn:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.footerSection {
   text-align: center;
 }
 
-.brand {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 600;
-}
-
-.tagline {
-  margin: 4px 0 20px;
+.loginCard {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 12px;
+  padding: 14px;
   font-size: 13px;
-  color: #aaa;
-}
-
-.card {
-  background: #fff;
-  border: 1px solid var(--card-border);
-  border-radius: 10px;
-  padding: 16px;
-  text-align: left;
-}
-
-.note {
-  margin: 10px 0 0;
-  font-size: 13px;
-  color: #666;
+  color: #475569;
+  text-align: center;
 }
 
 .loginLink {
-  margin-top: 18px;
-  font-size: 14px;
-  color: #555;
+  color: var(--green, #2e7d52);
+  font-weight: 700;
+  text-decoration: none;
 }
 
-.loginLink a {
-  color: var(--link-color);
+.loginLink:hover {
+  text-decoration: underline;
 }

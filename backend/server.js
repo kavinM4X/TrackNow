@@ -1,4 +1,5 @@
 const { app, initApp } = require('./app');
+const { startSelfPing } = require('./utils/selfPing');
 
 const PORT = process.env.PORT || 5000;
 
@@ -6,6 +7,7 @@ initApp()
   .then(() => {
     const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server running on port ${PORT}`);
+      startSelfPing();
     });
     server.on('error', (err) => {
       if (err.code === 'EADDRINUSE') {

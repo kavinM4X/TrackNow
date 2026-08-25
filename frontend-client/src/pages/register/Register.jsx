@@ -25,7 +25,6 @@ export default function Register() {
   });
 
   const password = watch('password');
-  const confirmPassword = watch('confirmPassword');
 
   const onSubmit = async (data) => {
     setError('');
@@ -49,7 +48,7 @@ export default function Register() {
       setError(
         err.response?.data?.message ||
           err.response?.data?.error ||
-          'Registration failed. Please try again.'
+          'Registration failed. Phone number may already be registered.'
       );
     } finally {
       setSubmitting(false);
@@ -58,67 +57,105 @@ export default function Register() {
 
   return (
     <div className={styles.page}>
-      <BrandLogo className={styles.brandMark} />
       <div className={styles.inner}>
-        <h1 className={styles.brand}>TrackNow</h1>
-        <p className={styles.tagline}>Create your farmer account</p>
+        {/* Header Branding */}
+        <div className={styles.headerSection}>
+          <BrandLogo className={styles.brandLogoCenter} />
+          <h1 className={styles.brandTitle}>Create Farmer Account</h1>
+          <p className={styles.brandSub}>
+            Register for TrackNow to schedule cocoon harvest pickups & track market rates
+          </p>
+        </div>
 
+        {/* Registration Form Card */}
         <form className={styles.card} onSubmit={handleSubmit(onSubmit)}>
-          <label className="field-label">Full name</label>
-          <input
-            className="field-input"
-            type="text"
-            placeholder="Enter your full name"
-            {...register('name', { required: 'Name is required' })}
-          />
-          {errors.name && <p className="form-error">{errors.name.message}</p>}
+          <h2 className={styles.formHeaderTitle}>📝 Farmer Registration Form</h2>
 
-          <label className="field-label">Phone</label>
-          <input
-            className="field-input"
-            type="tel"
-            placeholder="Enter phone number"
-            {...register('phone', { required: 'Phone is required' })}
-          />
-          {errors.phone && <p className="form-error">{errors.phone.message}</p>}
+          {/* Full Name */}
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>👤 Full Name</label>
+            <div className={styles.inputWrap}>
+              <span className={styles.inputIcon}>👤</span>
+              <input
+                className={styles.fieldInput}
+                type="text"
+                placeholder="Enter your full name"
+                {...register('name', { required: 'Name is required' })}
+              />
+            </div>
+            {errors.name && <p className="form-error">{errors.name.message}</p>}
+          </div>
 
-          <label className="field-label">Password</label>
-          <input
-            className="field-input"
-            type="password"
-            placeholder="Create a password"
-            {...register('password', {
-              required: 'Password is required',
-              minLength: { value: 6, message: 'Min 6 characters' }
-            })}
-          />
-          {errors.password && <p className="form-error">{errors.password.message}</p>}
+          {/* Phone Number */}
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>📱 Phone Number</label>
+            <div className={styles.inputWrap}>
+              <span className={styles.inputIcon}>📞</span>
+              <input
+                className={styles.fieldInput}
+                type="tel"
+                placeholder="Enter 10-digit phone number"
+                {...register('phone', { required: 'Phone number is required' })}
+              />
+            </div>
+            {errors.phone && <p className="form-error">{errors.phone.message}</p>}
+          </div>
 
-          <label className="field-label">Confirm password</label>
-          <input
-            className="field-input"
-            type="password"
-            placeholder="Confirm password"
-            {...register('confirmPassword', {
-              required: 'Confirm password is required',
-              validate: (value) => value === password || 'Passwords must match'
-            })}
-          />
-          {errors.confirmPassword && (
-            <p className="form-error">{errors.confirmPassword.message}</p>
-          )}
+          {/* Password */}
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>🔒 Create Password</label>
+            <div className={styles.inputWrap}>
+              <span className={styles.inputIcon}>🔑</span>
+              <input
+                className={styles.fieldInput}
+                type="password"
+                placeholder="Create a secure password"
+                {...register('password', {
+                  required: 'Password is required',
+                  minLength: { value: 6, message: 'Minimum 6 characters required' }
+                })}
+              />
+            </div>
+            {errors.password && <p className="form-error">{errors.password.message}</p>}
+          </div>
 
-          <p className={styles.note}>Role will be set to <strong>user</strong>.</p>
+          {/* Confirm Password */}
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>🔒 Confirm Password</label>
+            <div className={styles.inputWrap}>
+              <span className={styles.inputIcon}>✓</span>
+              <input
+                className={styles.fieldInput}
+                type="password"
+                placeholder="Re-enter password"
+                {...register('confirmPassword', {
+                  required: 'Please confirm password',
+                  validate: (value) => value === password || 'Passwords do not match'
+                })}
+              />
+            </div>
+            {errors.confirmPassword && (
+              <p className="form-error">{errors.confirmPassword.message}</p>
+            )}
+          </div>
+
+
 
           {error && <p className="form-error">{error}</p>}
 
-          <button type="submit" className="btn-primary" disabled={submitting}>
-            {submitting ? 'Creating…' : 'Register'}
+          <button type="submit" className={styles.submitBtn} disabled={submitting}>
+            {submitting ? 'Creating Farmer Account…' : '✓ Complete Registration'}
           </button>
         </form>
 
-        <div className={styles.loginLink}>
-          Already have an account? <Link to="/login">Login</Link>
+        {/* Footer Login Shortcut */}
+        <div className={styles.footerSection}>
+          <div className={styles.loginCard}>
+            Already have a registered account?{' '}
+            <Link to="/login" className={styles.loginLink}>
+              Sign In Now →
+            </Link>
+          </div>
         </div>
       </div>
     </div>

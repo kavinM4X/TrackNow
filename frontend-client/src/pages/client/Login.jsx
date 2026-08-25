@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import api, { getStoredUser, getToken, setSession } from '../../api/client';
 import { hasUpcomingBooking } from '../../utils/bookingGate';
-import BrandLogo from '../../components/common/BrandLogo';
 import styles from './Login.module.css';
 
 export default function Login({ onLogin }) {
@@ -62,8 +61,8 @@ export default function Login({ onLogin }) {
         err.response?.data?.message ||
         err.response?.data?.error ||
         (err.response?.status === 401
-          ? 'Invalid phone or password. Use the same phone you entered when the admin created your account.'
-          : 'Login failed. Check phone and password.');
+          ? 'Invalid phone or password. Use the same phone registered with your farmer account.'
+          : 'Login failed. Please check phone and password.');
       setError(msg);
     } finally {
       setLoading(false);
@@ -72,52 +71,81 @@ export default function Login({ onLogin }) {
 
   return (
     <div className={styles.page}>
-      <BrandLogo className={styles.brandMark} />
       <div className={styles.inner}>
-        <h1 className={styles.brand}>TrackNow</h1>
-        <p className={styles.tagline}>Sericulture Management</p>
+        {/* Header Branding */}
+        <div className={styles.headerSection}>
+          <div className={styles.logoRing}>🌾</div>
+          <h1 className={styles.brandTitle}>TrackNow Farmer Portal</h1>
+          <p className={styles.brandSub}>
+            Sericulture Logistics, Live Harvest Pickup Tracking & Payout Ledger
+          </p>
+        </div>
 
+        {/* Login Form Card */}
         <form className={styles.card} onSubmit={handleSubmit(onSubmit)}>
-          <label className="field-label">Phone</label>
-          <input
-            className="field-input"
-            type="tel"
-            placeholder="Enter phone number"
-            {...register('phone', { required: 'Phone is required' })}
-          />
-          {errors.phone && <p className="form-error">{errors.phone.message}</p>}
+          <h2 className={styles.formHeaderTitle}>🔑 Sign In to Your Account</h2>
 
-          <label className="field-label">Password</label>
-          <div className={styles.passWrap}>
-            <input
-              className="field-input"
-              type={showPass ? 'text' : 'password'}
-              placeholder="••••••••"
-              {...register('password', {
-                required: 'Password is required',
-                minLength: { value: 6, message: 'Min 6 characters' }
-              })}
-            />
-            <button
-              type="button"
-              className={styles.eye}
-              onClick={() => setShowPass((v) => !v)}
-              aria-label="Toggle password"
-            >
-              {showPass ? '🙈' : '👁'}
-            </button>
+          {/* Phone Field */}
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>📱 Registered Phone Number</label>
+            <div className={styles.inputWrap}>
+              <span className={styles.inputIcon}>📞</span>
+              <input
+                className={styles.fieldInput}
+                type="tel"
+                placeholder="Enter 10-digit phone number"
+                {...register('phone', { required: 'Phone number is required' })}
+              />
+            </div>
+            {errors.phone && <p className="form-error">{errors.phone.message}</p>}
           </div>
-          {errors.password && <p className="form-error">{errors.password.message}</p>}
+
+          {/* Password Field */}
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>🔒 Password</label>
+            <div className={styles.passWrap}>
+              <span className={styles.inputIcon}>🔑</span>
+              <input
+                className={styles.fieldInput}
+                type={showPass ? 'text' : 'password'}
+                placeholder="••••••••"
+                {...register('password', {
+                  required: 'Password is required',
+                  minLength: { value: 6, message: 'Minimum 6 characters' }
+                })}
+              />
+              <button
+                type="button"
+                className={styles.eyeBtn}
+                onClick={() => setShowPass((v) => !v)}
+                aria-label="Toggle password visibility"
+              >
+                {showPass ? '🙈' : '👁'}
+              </button>
+            </div>
+            {errors.password && <p className="form-error">{errors.password.message}</p>}
+          </div>
 
           {error && <p className="form-error">{error}</p>}
 
-          <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? 'Logging in…' : 'Login'}
+          <button type="submit" className={styles.submitBtn} disabled={loading}>
+            {loading ? 'Authenticating Account…' : '✓ Sign In to Portal'}
           </button>
         </form>
 
-        <p className={styles.forgot}>Forgot password? Contact your admin</p>
-        <p className={styles.signup}>Don't have an account? <a href="/register">Register</a></p>
+        {/* Footer & Registration Cues */}
+        <div className={styles.footerSection}>
+          <div className={styles.signupCard}>
+            Don't have a farmer account yet?{' '}
+            <a href="/register" className={styles.signupLink}>
+              Register New Farmer Account →
+            </a>
+          </div>
+
+          <p className={styles.forgotText}>
+            Forgotten your credentials? Contact your local admin or logistics manager for account assistance.
+          </p>
+        </div>
       </div>
     </div>
   );
