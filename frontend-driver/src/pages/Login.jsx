@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import api, { getStoredUser, getToken, setSession } from '../api/client';
-import styles from '../components/layout/DriverShell.module.css';
+import styles from './Auth.module.css';
 
 export default function Login({ onLogin }) {
   const navigate = useNavigate();
@@ -37,7 +37,7 @@ export default function Login({ onLogin }) {
       if (err.code === 'ERR_NETWORK' || !err.response) {
         setError('Cannot reach API server. Check VITE_API_URL or start the backend.');
       } else {
-        setError(err.response?.data?.message || err.response?.data?.error || 'Invalid credentials');
+        setError(err.response?.data?.message || err.response?.data?.error || 'Invalid driver credentials');
       }
     } finally {
       setLoading(false);
@@ -45,27 +45,54 @@ export default function Login({ onLogin }) {
   };
 
   return (
-    <div className={styles.loginPage}>
-      <div className={styles.loginCard}>
-        <h1 className={styles.loginTitle}>SilkRoute</h1>
-        <p className={styles.loginSub}>Driver Portal</p>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <label className="field-label">Phone</label>
-          <input className="field-input" type="tel" {...register('phone', { required: true })} />
-          <label className="field-label">Password</label>
-          <input
-            className="field-input"
-            type="password"
-            {...register('password', { required: true })}
-          />
-          {error && <p className={styles.err}>{error}</p>}
-          <button type="submit" className="btn-amber" disabled={loading}>
-            {loading ? 'Signing in…' : 'Sign In'}
+    <div className={styles.authPage}>
+      <div className={styles.authCard}>
+        {/* Brand Header */}
+        <div className={styles.brandHeader}>
+          <div className={styles.brandIconCircle}>🚚</div>
+          <h1 className={styles.brandTitle}>SilkRoute</h1>
+          <span className={styles.brandSubtitlePill}>Driver Portal v2.4</span>
+        </div>
+
+        {/* Login Form */}
+        <form className={styles.formGrid} onSubmit={handleSubmit(onSubmit)}>
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>📱 Phone Number</label>
+            <input
+              className={styles.fieldInput}
+              type="tel"
+              placeholder="Enter registered phone number"
+              {...register('phone', { required: true })}
+            />
+          </div>
+
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>🔒 Password</label>
+            <input
+              className={styles.fieldInput}
+              type="password"
+              placeholder="Enter account password"
+              {...register('password', { required: true })}
+            />
+          </div>
+
+          {error && <p className="form-error">{error}</p>}
+
+          <button type="submit" className={styles.submitBtn} disabled={loading}>
+            {loading ? 'Signing in…' : '🚚 Sign In to Driver Account'}
           </button>
         </form>
+
         <p className={styles.authSwitch}>
-          New driver? <Link to="/register">Create account</Link>
+          New driver?{' '}
+          <Link to="/register" className={styles.authLink}>
+            Create an account
+          </Link>
         </p>
+
+        <div className={styles.hintBox}>
+          💡 Assigned trip vehicles and expense balances will automatically load upon sign-in.
+        </div>
       </div>
     </div>
   );
