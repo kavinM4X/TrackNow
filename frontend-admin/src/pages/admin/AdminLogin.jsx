@@ -37,10 +37,10 @@ export default function AdminLogin({ onLogin }) {
     } catch (err) {
       if (err.code === 'ERR_NETWORK' || !err.response) {
         setError(
-          'Cannot reach API server. Start backend (npm start) or set VITE_API_URL in frontend-admin/.env to your Render URL.'
+          'Cannot reach API server. Start backend (npm start) or verify VITE_API_URL in frontend-admin/.env.'
         );
       } else {
-        setError(err.response?.data?.message || err.response?.data?.error || 'Invalid credentials');
+        setError(err.response?.data?.message || err.response?.data?.error || 'Invalid admin credentials');
       }
     } finally {
       setLoading(false);
@@ -49,24 +49,48 @@ export default function AdminLogin({ onLogin }) {
 
   return (
     <div className={styles.page}>
-      <BrandLogo className={styles.brandMark} />
       <div className={styles.inner}>
-        <h1>Admin Portal</h1>
-        <p className={styles.sub}>TrackNow Administration</p>
+        {/* Brand Header */}
+        <div className={styles.brandHeader}>
+          <div className={styles.logoBox}>
+            <BrandLogo className={styles.logoImage} />
+          </div>
+          <h1 className={styles.title}>TrackNow Admin</h1>
+          <span className={styles.badgePill}>👑 Administration Console</span>
+        </div>
+
+        {/* Login Form */}
         <form className={styles.card} onSubmit={handleSubmit(onSubmit)}>
-          <label className="field-label">Phone</label>
-          <input className="field-input" type="tel" {...register('phone', { required: true })} />
-          <label className="field-label">Password</label>
-          <input
-            className="field-input"
-            type="password"
-            {...register('password', { required: true, minLength: 6 })}
-          />
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>📱 Phone Number</label>
+            <input
+              className={styles.fieldInput}
+              type="tel"
+              placeholder="Enter admin phone number"
+              {...register('phone', { required: true })}
+            />
+          </div>
+
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>🔒 Password</label>
+            <input
+              className={styles.fieldInput}
+              type="password"
+              placeholder="Enter password"
+              {...register('password', { required: true, minLength: 6 })}
+            />
+          </div>
+
           {error && <p className="form-error">{error}</p>}
-          <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? 'Logging in…' : 'Admin Login'}
+
+          <button type="submit" className={styles.submitBtn} disabled={loading}>
+            {loading ? 'Logging in…' : '🚀 Sign In to Admin Console'}
           </button>
         </form>
+
+        <div className={styles.securityNote}>
+          <span>🔒</span> Secured end-to-end admin session with encrypted JWT authentication
+        </div>
       </div>
     </div>
   );
