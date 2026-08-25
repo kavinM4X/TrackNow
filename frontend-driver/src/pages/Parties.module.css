@@ -1,0 +1,257 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: var(--max-width, 480px);
+  margin: 0 auto;
+  animation: pageFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Party Batch Selection Card */
+.partyBatchCard {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.partyBatchCard:hover {
+  border-color: var(--amber, #7b3f00);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(123, 63, 0, 0.08);
+}
+
+.batchHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.batchDatePill {
+  font-size: 13px;
+  font-weight: 800;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.batchCityBadge {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--amber, #7b3f00);
+  background: var(--amber-light, #fff5ec);
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid #f97316;
+}
+
+.batchFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.userCountText {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+}
+
+/* Status Badges */
+.badgeSubmitted {
+  background: var(--green-light, #e8f4ed);
+  color: var(--green, #2e7d52);
+  border: 1px solid var(--green-border, #bde0cc);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.badgePending {
+  background: #fef3c7;
+  color: #d97706;
+  border: 1px solid #fde68a;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* Portal Calculation Card */
+.calcCard {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.calcTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.calcRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 13px;
+  color: #475569;
+}
+
+.miniInput {
+  width: 100px;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: right;
+  outline: none;
+  background: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.miniInput:focus {
+  border-color: var(--amber, #7b3f00);
+  box-shadow: 0 0 0 3px rgba(123, 63, 0, 0.12);
+}
+
+.effectiveBox {
+  background: var(--amber-light, #fff5ec);
+  border: 1px solid #f97316;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.effectiveVal {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--amber, #7b3f00);
+}
+
+/* Farmer User Item */
+.farmerItemCard {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.farmerItemCard:hover {
+  border-color: var(--amber, #7b3f00);
+  transform: translateY(-1px);
+}
+
+.farmerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatarRing {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--blue-light, #e3eef9);
+  color: var(--blue, #1e4d7b);
+  border: 1px solid #bfdbfe;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  background: var(--amber, #7b3f00);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(123, 63, 0, 0.2);
+}
+
+.submitBtn:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+}
+
+.submitBtn:disabled {
+  background: #cbd5e1;
+  color: #64748b;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* Mobile Responsiveness Improvements (< 480px) */
+@media (max-width: 480px) {
+  .calcRow {
+    flex-direction: row;
+    align-items: center;
+    font-size: 12px;
+  }
+
+  .miniInput {
+    width: 84px;
+    font-size: 13px;
+    padding: 6px 8px;
+  }
+
+  .effectiveVal {
+    font-size: 17px;
+  }
+}

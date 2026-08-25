@@ -1,17 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import DriverShell from '../components/layout/DriverShell';
 import api from '../api/client';
-import { formatINR, formatDateDayMonth } from '../utils/format';
-import styles from './DriverEntry.module.css';
-
-function initials(name) {
-  return (name || '?')
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-}
+import { formatINR, formatDateDayMonth, initials } from '../utils/format';
+import styles from './Parties.module.css';
 
 export default function PartyBatchPortal() {
   const { batchId } = useParams();
@@ -64,7 +56,7 @@ export default function PartyBatchPortal() {
       await saveSettings();
       const res = await api.post(`/driver/party-batches/${batchId}/submit`);
       setBatch(res.data);
-      alert('Saved! Entries sent for admin approval.');
+      alert('✓ Saved! All entries submitted to admin.');
       navigate('/parties');
     } catch (err) {
       alert(err.response?.data?.error || 'Submit failed');
@@ -75,20 +67,19 @@ export default function PartyBatchPortal() {
 
   if (error && !batch) {
     return (
-      <div className={styles.wrap}>
-        <div className={styles.expired}>
-          <h2>{error}</h2>
-          <Link to="/parties">← Back to parties</Link>
-        </div>
-      </div>
+      <DriverShell title="Party Batch" backPath="/parties">
+        <p className="form-error">{error}</p>
+      </DriverShell>
     );
   }
 
   if (!batch) {
     return (
-      <div className={styles.wrap}>
-        <div className={styles.expired}>Loading…</div>
-      </div>
+      <DriverShell title="Party Batch" backPath="/parties">
+        <div className="app-loading">
+          <div className="spinner" />
+        </div>
+      </DriverShell>
     );
   }
 
@@ -96,113 +87,131 @@ export default function PartyBatchPortal() {
   const allDone = batch.entries?.every((e) => e.completed);
 
   return (
-    <div className={styles.wrap}>
-      <div className={styles.header}>
-        <div className={styles.headerTop}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <Link to="/parties" className={styles.backLink}>
-              ←
-            </Link>
-            <h1 style={{ margin: 0, fontSize: 18 }}>Driver Entry</h1>
+    <DriverShell title={batch.city ? `${batch.city} Batch` : 'Party Batch'} backPath="/parties">
+      <div className={styles.container}>
+        {/* Header Hero Card */}
+        <div className={styles.calcCard} style={{ background: 'linear-gradient(135deg, #7b3f00 0%, #4a2600 100%)', color: '#ffffff' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 16, fontWeight: 800 }}>📍 {batch.city || 'Market Center'}</span>
+            <span style={{ fontSize: 12, opacity: 0.85 }}>
+              🗓️ {batch.assignedDate ? formatDateDayMonth(batch.assignedDate) : '—'}
+            </span>
           </div>
-          <span style={{ fontSize: 12, opacity: 0.9 }}>
-            {batch.assignedDate ? formatDateDayMonth(batch.assignedDate) : '—'}
-          </span>
-        </div>
-      </div>
 
-      <div className={styles.body}>
-        <div className={styles.ownerCard}>
-          <div>
-            <div style={{ fontSize: 11, color: '#888' }}>Market</div>
-            <strong>{batch.city || '—'}</strong>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 11, color: '#888' }}>Total rental</div>
-            <strong style={{ fontSize: 18, color: '#8b6914' }}>{formatINR(batch.rentalAmount)}</strong>
-            <div style={{ fontSize: 10, color: '#888', marginTop: 2 }}>Set by admin on assign</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4 }}>
+            <div>
+              <span style={{ fontSize: 11, opacity: 0.8, textTransform: 'uppercase' }}>Total Vehicle Rental</span>
+              <div style={{ fontSize: 26, fontWeight: 800, color: '#f8fafc', lineHeight: 1, marginTop: 2 }}>
+                {formatINR(batch.rentalAmount)}
+              </div>
+            </div>
+            <span style={{ fontSize: 11, opacity: 0.75 }}>Set by Admin</span>
           </div>
         </div>
 
         {locked ? (
-          <div className={styles.expired}>
-            <h2>Submitted</h2>
-            <p>Entry was saved. This batch can no longer be edited.</p>
+          <div className={styles.calcCard} style={{ textAlign: 'center' }}>
+            <h3 style={{ color: 'var(--green, #2e7d52)', margin: '0 0 4px' }}>✓ Batch Submitted</h3>
+            <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>
+              This batch has been submitted to admin and can no longer be edited.
+            </p>
           </div>
         ) : (
           <>
+            {/* Rate Calculation Card */}
             <div className={styles.calcCard}>
-              <div style={{ fontWeight: 600, marginBottom: 8 }}>Rental rate calculation</div>
+              <h3 className={styles.calcTitle}>
+                <span>🧮</span> Rental Rate Calculation
+              </h3>
+
               <div className={styles.calcRow}>
-                <span>{formatINR(batch.rentalAmount)} ÷ Total silk</span>
+                <span>Total Harvest Weight</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <input
                     type="number"
                     min="0"
                     step="0.1"
+                    className={styles.miniInput}
                     value={totalSilkKg}
                     onChange={(e) => setTotalSilkKg(e.target.value)}
+                    placeholder="0.0"
                   />
-                  <span>kg</span>
+                  <strong>kg</strong>
                 </div>
               </div>
+
               <div className={styles.calcRow}>
-                <span>Base rate</span>
-                <strong>{Number(totalSilkKg) > 0 ? `${formatINR(baseRate)}/kg` : '—'}</strong>
+                <span>Base Rate ({formatINR(batch.rentalAmount)} ÷ {totalSilkKg || '0'} kg)</span>
+                <strong style={{ color: '#1e293b' }}>
+                  {Number(totalSilkKg) > 0 ? `${formatINR(baseRate)}/kg` : '—'}
+                </strong>
               </div>
+
               <div className={styles.calcRow}>
-                <span>Manual extra</span>
+                <span>Manual Extra Rate</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <span>+</span>
                   <input
                     type="number"
                     step="0.01"
+                    className={styles.miniInput}
                     value={manualExtra}
                     onChange={(e) => setManualExtra(e.target.value)}
+                    placeholder="0.00"
                   />
                 </div>
               </div>
-              <div className={styles.effective}>
-                <span>Effective rate</span>
-                <span>{formatINR(effective)}/kg</span>
+
+              <div className={styles.effectiveBox}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#7b3f00' }}>Effective Rate Per Kg</span>
+                <span className={styles.effectiveVal}>{formatINR(effective)} / kg</span>
               </div>
             </div>
 
-            <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 8 }}>Users — tap to enter</p>
-            {batch.entries?.map((e) => (
-              <button
-                key={String(e.partyId)}
-                type="button"
-                className={styles.userCard}
-                onClick={async () => {
-                  try {
-                    await saveSettings();
-                    navigate(`/parties/${batchId}/user/${e.partyId}`);
-                  } catch (err) {
-                    alert(err.response?.data?.error || 'Failed to save settings');
-                  }
-                }}
-              >
-                <div className={styles.userLeft}>
-                  <div className={styles.avatar}>{initials(e.partyName)}</div>
-                  <div>
-                    <div style={{ fontWeight: 600 }}>{e.partyName}</div>
-                    <div style={{ fontSize: 12, color: '#888' }}>
-                      {e.goodSilkKg || 0} kg
-                      {e.rentalAmount != null || e.lotAmount
-                        ? ` · Rental total value −${formatINR((e.rentalTotalAmount ?? (Number(e.rentalAmount) || 0) + (Number(e.lotAmount) || 0)))}`
-                        : ''}
+            {/* Farmer User List */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>👥 Farmers ({batch.entries?.length || 0})</span>
+                <span style={{ fontSize: 11, color: '#64748b', fontWeight: 500 }}>Tap to enter harvest</span>
+              </div>
+
+              {batch.entries?.map((e) => (
+                <button
+                  key={String(e.partyId)}
+                  type="button"
+                  className={styles.farmerItemCard}
+                  onClick={async () => {
+                    try {
+                      await saveSettings();
+                      navigate(`/parties/${batchId}/user/${e.partyId}`);
+                    } catch (err) {
+                      alert(err.response?.data?.error || 'Failed to save settings');
+                    }
+                  }}
+                >
+                  <div className={styles.farmerLeft}>
+                    <div className={styles.avatarRing}>{initials(e.partyName)}</div>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#1e293b' }}>
+                        {e.partyName}
+                      </div>
+                      <div style={{ fontSize: 12, color: '#64748b' }}>
+                        🌾 {e.goodSilkKg || 0} kg Good Silk
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span className={e.completed ? styles.tagDone : styles.tagPending}>
-                    {e.completed ? 'Done' : 'Pending'}
-                  </span>
-                  <span>›</span>
-                </div>
-              </button>
-            ))}
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {e.completed ? (
+                      <span className={styles.badgeSubmitted}>✓ Done</span>
+                    ) : (
+                      <span className={styles.badgePending}>⏳ Pending</span>
+                    )}
+                    <span style={{ fontSize: 18, color: '#94a3b8' }}>›</span>
+                  </div>
+                </button>
+              ))}
+            </div>
 
             <button
               type="button"
@@ -210,11 +219,11 @@ export default function PartyBatchPortal() {
               disabled={saving || !allDone || !totalSilkKg}
               onClick={onSubmitAll}
             >
-              {saving ? 'Saving…' : 'Save All & Submit to Admin'}
+              {saving ? 'Submitting Batch…' : '💾 Submit All Entries to Admin'}
             </button>
           </>
         )}
       </div>
-    </div>
+    </DriverShell>
   );
 }

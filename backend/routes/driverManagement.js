@@ -1082,12 +1082,12 @@ driverRouter.get('/history', protect, driverOnly, async (req, res) => {
         const totals = await getVehicleTotals(v._id);
         const expenseCount = await DriverExpense.countDocuments({ vehicleId: v._id });
         const firstAdvance = await DriverAdvance.findOne({ vehicleId: v._id }).sort({ date: 1, createdAt: 1 });
-        const obj = v.toObject();
+        const obj = typeof v.toObject === 'function' ? v.toObject() : v;
         return {
           ...obj,
           ...totals,
           expenseCount,
-          tripDate: firstAdvance?.date || obj.createdAt?.toISOString?.()?.split('T')[0] || null
+          tripDate: firstAdvance?.date || (obj.createdAt ? new Date(obj.createdAt).toISOString().split('T')[0] : null)
         };
       })
     );

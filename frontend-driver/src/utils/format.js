@@ -20,3 +20,12 @@ export function formatDateDayMonth(dateStr) {
   const d = new Date(dateStr + (dateStr.length === 10 ? 'T12:00:00' : ''));
   return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 }
+
+export function initials(name) {
+  return (name || '?')
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+}

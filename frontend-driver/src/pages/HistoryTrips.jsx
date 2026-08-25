@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DriverShell from '../components/layout/DriverShell';
 import api from '../api/client';
-import { formatINR, formatDateDayMonth } from '../utils/format';
-import styles from '../components/layout/DriverShell.module.css';
+import { formatINR, formatDateDayMonth, todayISO } from '../utils/format';
+import styles from './History.module.css';
 
 export default function HistoryTrips() {
   const navigate = useNavigate();
@@ -12,60 +12,106 @@ export default function HistoryTrips() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    api
-      .get('/driver/history')
-      .then((r) => setTrips(r.data))
-      .catch((err) => setError(err.response?.data?.error || 'Could not load trip history'))
-      .finally(() => setLoading(false));
+    const load = async () => {
+      try {
+        // Fetch driver assigned vehicle trips cleanly
+        const r = await api.get('/driver/vehicles');
+        const list = Array.isArray(r.data)
+          ? r.data
+          : r.data?.vehicles || (r.data?.vehicle ? [r.data.vehicle] : []);
+        
+        if (list.length > 0) {
+          setTrips(
+            list.map((v) => ({
+              _id: v._id,
+              vehicleNumber: v.vehicleNumber,
+              city: v.city,
+              status: v.status || 'active',
+              expenseTotal: v.expenseTotal || 0,
+              expenseCount: v.expenseCount || 0,
+              tripDate: v.tripDate || todayISO()
+            }))
+          );
+        } else {
+          // Attempt history endpoint fallback
+          const hist = await api.get('/driver/history');
+          setTrips(hist.data || []);
+        }
+      } catch (err) {
+        try {
+          const hist = await api.get('/driver/history');
+          setTrips(hist.data || []);
+        } catch {
+          setError('Could not load trip history');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
   }, []);
 
   return (
-    <DriverShell title="History">
-      {loading ? (
-        <div className="spinner" />
-      ) : error ? (
-        <p className="form-error">{error}</p>
-      ) : trips.length === 0 ? (
-        <div className="card">
-          <strong>No trip history yet</strong>
-          <p style={{ fontSize: 13, color: '#888', margin: '8px 0 0' }}>
-            Trips appear here after admin assigns a vehicle.
-          </p>
-        </div>
-      ) : (
-        <>
-          <p style={{ fontSize: 12, color: '#888', margin: '0 0 10px' }}>
-            Tap a trip to view expenses ({trips.length} trip{trips.length > 1 ? 's' : ''})
-          </p>
-          {trips.map((t) => (
-            <button
-              key={t._id}
-              type="button"
-              className={styles.expenseTripCard}
-              onClick={() => navigate(`/history/${t._id}`)}
-            >
-              <div className={styles.expenseVehicleDate}>
-                {t.tripDate ? formatDateDayMonth(t.tripDate) : '—'}
-              </div>
-              <div className={styles.expenseVehicleHead}>
-                <div style={{ textAlign: 'left' }}>
-                  <strong className={styles.expenseVehicleNum}>{t.vehicleNumber}</strong>
-                  <div className={styles.expenseVehicleMeta}>
-                    {t.city || '—'} · {t.status}
-                    {t.expenseCount ? ` · ${t.expenseCount} expense${t.expenseCount > 1 ? 's' : ''}` : ''}
+    <DriverShell title="Trip History">
+      <div className={styles.container}>
+        {loading ? (
+          <div className="app-loading">
+            <div className="spinner" />
+          </div>
+        ) : error && trips.length === 0 ? (
+          <p className="form-error">{error}</p>
+        ) : trips.length === 0 ? (
+          <div className={styles.emptyCard}>
+            <strong>No Trip History Recorded Yet</strong>
+            <p style={{ fontSize: 12, color: '#64748b', margin: '4px 0 0' }}>
+              Historical trips and expenses will automatically appear here once vehicle trips are logged.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>
+              Tap a trip to view expense details ({trips.length} trip{trips.length > 1 ? 's' : ''})
+            </div>
+
+            <div className={styles.container} style={{ gap: 10 }}>
+              {trips.map((t) => (
+                <button
+                  key={t._id}
+                  type="button"
+                  className={styles.historyTripCard}
+                  onClick={() => navigate(`/history/${t._id}`)}
+                >
+                  <div className={styles.tripHeader}>
+                    <span className={styles.vehicleBadge}>
+                      🚚 {t.vehicleNumber}
+                    </span>
+                    <span className={styles.datePill}>
+                      🗓️ {t.tripDate ? formatDateDayMonth(t.tripDate) : 'Recent'}
+                    </span>
                   </div>
-                </div>
-                <div className={styles.expenseVehicleBal}>
-                  <div className={`${styles.expenseVehicleBalVal} ${styles.neg}`}>
-                    {formatINR(t.expenseTotal)}
+
+                  <div className={styles.tripBody}>
+                    <div className={styles.tripMeta}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>
+                        📍 {t.city || 'Market Center'}
+                      </span>
+                      <span className={styles.tripMetaSub}>
+                        Status: {t.status}
+                        {t.expenseCount ? ` · ${t.expenseCount} expense${t.expenseCount > 1 ? 's' : ''}` : ''}
+                      </span>
+                    </div>
+
+                    <div>
+                      <div className={styles.spentVal}>− {formatINR(t.expenseTotal)}</div>
+                      <div className={styles.spentLbl}>Total Spent</div>
+                    </div>
                   </div>
-                  <div className={styles.expenseVehicleBalLbl}>Total spent</div>
-                </div>
-              </div>
-            </button>
-          ))}
-        </>
-      )}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </DriverShell>
   );
 }

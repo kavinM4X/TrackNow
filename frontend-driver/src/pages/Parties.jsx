@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import DriverShell from '../components/layout/DriverShell';
 import api from '../api/client';
 import { formatDateDayMonth } from '../utils/format';
-import styles from '../components/layout/DriverShell.module.css';
+import styles from './Parties.module.css';
 
 export default function Parties() {
   const navigate = useNavigate();
@@ -16,55 +16,77 @@ export default function Parties() {
       .get('/driver/party-batches')
       .then((res) => setBatches(res.data))
       .catch((err) => {
-        setError(err.response?.data?.error || 'Could not load parties');
+        setError(err.response?.data?.error || 'Could not load party assignments');
       })
       .finally(() => setLoading(false));
   }, []);
 
   return (
-    <DriverShell title="Parties">
-      {loading ? (
-        <div className="spinner" />
-      ) : error ? (
-        <p className="form-error">{error}</p>
-      ) : batches.length === 0 ? (
-        <p style={{ fontSize: 13, color: '#888' }}>No party batches assigned yet. Ask admin to add parties.</p>
-      ) : (
-        <div className={styles.partyBatchList}>
-          {batches.map((batch) => {
-            const pendingTotal = (batch.entries || []).filter((e) => !e.completed).length;
-            const isSubmitted = batch.status === 'submitted';
-            const userCount = batch.userCount || batch.entries?.length || 0;
+    <DriverShell title="Party Batches">
+      <div className={styles.container}>
+        {loading ? (
+          <div className="app-loading">
+            <div className="spinner" />
+          </div>
+        ) : error ? (
+          <p className="form-error">{error}</p>
+        ) : batches.length === 0 ? (
+          <div className={styles.calcCard} style={{ textAlign: 'center' }}>
+            <strong style={{ color: '#1e293b' }}>No Party Batches Assigned</strong>
+            <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 0' }}>
+              Ask your logistics admin to assign party batch entries under Admin → Party Entry.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>
+              Select a party batch to record cocoon entries ({batches.length} assigned)
+            </div>
 
-            return (
-              <button
-                key={batch._id}
-                type="button"
-                className={styles.partyBatchCard}
-                onClick={() => navigate(`/parties/${batch._id}`)}
-              >
-                <span className={styles.partyBatchDate}>
-                  {batch.assignedDate ? formatDateDayMonth(batch.assignedDate) : 'No date'}
-                </span>
-                <span className={styles.partyBatchMeta}>
-                  {batch.city ? `${batch.city} · ` : ''}
-                  {userCount} user{userCount !== 1 ? 's' : ''}
-                </span>
-                <div className={styles.partyBatchFooter}>
-                  {isSubmitted ? (
-                    <span className="badge badge-green">Submitted</span>
-                  ) : pendingTotal > 0 ? (
-                    <span className="badge badge-pending">{pendingTotal} pending</span>
-                  ) : (
-                    <span className="badge badge-green">Ready</span>
-                  )}
-                  <span className={styles.partyBatchChevron}>›</span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
+            <div className={styles.container} style={{ gap: 10 }}>
+              {batches.map((batch) => {
+                const pendingTotal = (batch.entries || []).filter((e) => !e.completed).length;
+                const isSubmitted = batch.status === 'submitted';
+                const userCount = batch.userCount || batch.entries?.length || 0;
+
+                return (
+                  <button
+                    key={batch._id}
+                    type="button"
+                    className={styles.partyBatchCard}
+                    onClick={() => navigate(`/parties/${batch._id}`)}
+                  >
+                    <div className={styles.batchHeader}>
+                      <span className={styles.batchDatePill}>
+                        🗓️ {batch.assignedDate ? formatDateDayMonth(batch.assignedDate) : 'No date'}
+                      </span>
+                      {batch.city && (
+                        <span className={styles.batchCityBadge}>
+                          📍 {batch.city}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className={styles.batchFooter}>
+                      <span className={styles.userCountText}>
+                        📦 {userCount} Farmer{userCount !== 1 ? 's' : ''} Assigned
+                      </span>
+
+                      {isSubmitted ? (
+                        <span className={styles.badgeSubmitted}>✓ Submitted</span>
+                      ) : pendingTotal > 0 ? (
+                        <span className={styles.badgePending}>⏳ {pendingTotal} Pending</span>
+                      ) : (
+                        <span className={styles.badgeSubmitted}>✓ Ready</span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
     </DriverShell>
   );
 }

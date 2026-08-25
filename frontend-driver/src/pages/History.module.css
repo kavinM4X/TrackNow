@@ -1,0 +1,215 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: var(--max-width, 480px);
+  margin: 0 auto;
+  animation: pageFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* History Trip Card */
+.historyTripCard {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.historyTripCard:hover {
+  border-color: var(--amber, #7b3f00);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(123, 63, 0, 0.08);
+}
+
+.tripHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vehicleBadge {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.datePill {
+  font-size: 11px;
+  font-weight: 700;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.tripBody {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.tripMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tripMetaSub {
+  font-size: 12px;
+  color: var(--text-muted, #64748b);
+}
+
+.spentVal {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--danger, #a93226);
+  line-height: 1;
+}
+
+.spentLbl {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+  text-transform: uppercase;
+  text-align: right;
+  margin-top: 2px;
+}
+
+/* History Detail Hero Card */
+.detailHeroCard {
+  background: linear-gradient(135deg, #7b3f00 0%, #4a2600 100%);
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 8px 20px -4px rgba(123, 63, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.heroRowGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 10px;
+  text-align: center;
+}
+
+.heroBox {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.heroBoxLbl {
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.8;
+  text-transform: uppercase;
+}
+
+.heroBoxVal {
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+/* Expense Log Feed */
+.expenseList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.expenseCard {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.expenseLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.catIconBox {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--amber-light, #fff5ec);
+  color: var(--amber, #7b3f00);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.expenseMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.catTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+  text-transform: capitalize;
+}
+
+.expenseSub {
+  font-size: 11px;
+  color: var(--text-muted, #64748b);
+}
+
+.expenseVal {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--danger, #a93226);
+}
+
+.emptyCard {
+  background: #ffffff;
+  border: 1px dashed var(--card-border, #e0e0dc);
+  border-radius: 12px;
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--text-muted, #64748b);
+  font-size: 13px;
+}

@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import DriverShell from '../components/layout/DriverShell';
 import api from '../api/client';
 import { formatINR } from '../utils/format';
 import { calcSilkPreview, lotFieldsFromEntry } from '../utils/silkCalc';
-import styles from './DriverEntry.module.css';
+import styles from './Parties.module.css';
 
 export default function PartyBatchUser() {
   const { batchId, partyId } = useParams();
@@ -179,299 +180,228 @@ export default function PartyBatchUser() {
 
   if (!batch || !entry) {
     return (
-      <div className={styles.wrap}>
-        <div className={styles.expired}>Loading…</div>
-      </div>
+      <DriverShell title="Farmer Entry" backPath={`/parties/${batchId}`}>
+        <div className="app-loading">
+          <div className="spinner" />
+        </div>
+      </DriverShell>
     );
   }
 
   return (
-    <div className={styles.wrap}>
-      <div className={styles.header}>
-        <div className={styles.headerTop}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <Link to={`/parties/${batchId}`} className={styles.backLink}>
-              ←
-            </Link>
-            <h1 style={{ margin: 0, fontSize: 18 }}>{entry.partyName}</h1>
+    <DriverShell title={entry.partyName} backPath={`/parties/${batchId}`}>
+      <div className={styles.container}>
+        {/* Farmer Header Hero */}
+        <div className={styles.calcCard} style={{ background: 'linear-gradient(135deg, #7b3f00 0%, #4a2600 100%)', color: '#ffffff' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 18, fontWeight: 800 }}>👤 {entry.partyName}</span>
+            <span style={{ fontSize: 12, opacity: 0.9, background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: 4 }}>
+              🌾 {totals.good.totalKg} kg
+            </span>
           </div>
-          <span
-            style={{
-              background: 'rgba(255,255,255,.2)',
-              padding: '2px 8px',
-              borderRadius: 4,
-              fontSize: 12
-            }}
-          >
-            {totals.good.totalKg} kg
-          </span>
         </div>
-      </div>
 
-      <div className={styles.body}>
-        <div className={styles.detailLayout}>
-          <div className="card" style={{ padding: 12 }}>
-            <p style={{ fontWeight: 600, marginBottom: 10 }}>Enter silk details</p>
+        {/* Inputs & Auto Calculation Grid */}
+        <div className={styles.calcCard}>
+          <h3 className={styles.cardTitle} style={{ fontSize: 15, fontWeight: 700, margin: 0, color: '#1e293b' }}>
+            📦 Harvest Cocoon Inputs
+          </h3>
 
-            <div className={styles.silkBlock}>
-              <div className={styles.sectionHeader}>
-                <div className={`${styles.silkLabel} ${styles.silkGood}`}>Good silk (kg)</div>
-                <button
-                  type="button"
-                  className={styles.addRowBtn}
-                  onClick={() => addEntry('goodSilk')}
-                >
-                  + Add
-                </button>
-              </div>
-              {form.goodSilk.map((row, index) => (
-                <div key={index} className={styles.entryRow}>
-                  <input
-                    className={`${styles.silkInput} ${styles.silkInputGood}`}
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    disabled={locked}
-                    value={row.kg}
-                    onChange={(e) => setEntry('goodSilk', index, 'kg', e.target.value)}
-                  />
-                  <div className={styles.rateBlock}>
-                    <div className={`${styles.silkLabel} ${styles.silkGood}`}>Rate (₹/kg)</div>
-                    <div className={styles.rowWithRemove}>
-                      <input
-                        className={`${styles.silkInput} ${styles.silkInputGood}`}
-                        type="number"
-                        min="0"
-                        disabled={locked}
-                        value={row.rate}
-                        onChange={(e) => setEntry('goodSilk', index, 'rate', e.target.value)}
-                      />
-                      {form.goodSilk.length > 1 && (
-                        <button
-                          type="button"
-                          className={styles.removeRowBtn}
-                          onClick={() => removeEntry('goodSilk', index)}
-                          aria-label="Remove good silk row"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
+          {/* Good Silk Input */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--green, #2e7d52)' }}>🌾 Good Silk (kg)</span>
+              <button
+                type="button"
+                style={{ background: 'var(--green-light)', color: 'var(--green)', border: '1px solid var(--green-border)', borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+                onClick={() => addEntry('goodSilk')}
+              >
+                + Add Row
+              </button>
             </div>
-
-            <div className={styles.silkBlock}>
-              <div className={styles.sectionHeader}>
-                <div className={`${styles.silkLabel} ${styles.silkWaste}`}>Waste (kg)</div>
-                <button
-                  type="button"
-                  className={styles.addRowBtn}
-                  onClick={() => addEntry('waste')}
-                >
-                  + Add
-                </button>
-              </div>
-              {form.waste.map((row, index) => (
-                <div key={index} className={styles.entryRow}>
-                  <input
-                    className={styles.silkInput}
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    disabled={locked}
-                    value={row.kg}
-                    onChange={(e) => setEntry('waste', index, 'kg', e.target.value)}
-                  />
-                  <div className={styles.rateBlock}>
-                    <div className={`${styles.silkLabel} ${styles.silkWaste}`}>Rate (₹/kg)</div>
-                    <div className={styles.rowWithRemove}>
-                      <input
-                        className={styles.silkInput}
-                        type="number"
-                        min="0"
-                        disabled={locked}
-                        value={row.rate}
-                        onChange={(e) => setEntry('waste', index, 'rate', e.target.value)}
-                      />
-                      {form.waste.length > 1 && (
-                        <button
-                          type="button"
-                          className={styles.removeRowBtn}
-                          onClick={() => removeEntry('waste', index)}
-                          aria-label="Remove waste row"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className={styles.silkBlock}>
-              <div className={styles.sectionHeader}>
-                <div className={`${styles.silkLabel} ${styles.silkDoubles}`}>Doubles (kg)</div>
-                <button
-                  type="button"
-                  className={styles.addRowBtn}
-                  onClick={() => addEntry('doubles')}
-                >
-                  + Add
-                </button>
-              </div>
-              {form.doubles.map((row, index) => (
-                <div key={index} className={styles.entryRow}>
-                  <input
-                    className={styles.silkInput}
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    disabled={locked}
-                    value={row.kg}
-                    onChange={(e) => setEntry('doubles', index, 'kg', e.target.value)}
-                  />
-                  <div className={styles.rateBlock}>
-                    <div className={`${styles.silkLabel} ${styles.silkDoubles}`}>Rate (₹/kg)</div>
-                    <div className={styles.rowWithRemove}>
-                      <input
-                        className={styles.silkInput}
-                        type="number"
-                        min="0"
-                        disabled={locked}
-                        value={row.rate}
-                        onChange={(e) => setEntry('doubles', index, 'rate', e.target.value)}
-                      />
-                      {form.doubles.length > 1 && (
-                        <button
-                          type="button"
-                          className={styles.removeRowBtn}
-                          onClick={() => removeEntry('doubles', index)}
-                          aria-label="Remove doubles row"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className={styles.silkBlock}>
-              <div className={`${styles.silkLabel} ${styles.silkLot}`}>Lot</div>
-              <div className={styles.silkGrid}>
+            {form.goodSilk.map((row, idx) => (
+              <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                 <input
-                  className={styles.silkInput}
                   type="number"
-                  min="0"
                   step="0.1"
+                  className={styles.miniInput}
+                  style={{ width: '100%', textAlign: 'left' }}
+                  placeholder="Kg"
                   disabled={locked}
-                  value={form.lotQty}
-                  onChange={(e) => set('lotQty', e.target.value)}
+                  value={row.kg}
+                  onChange={(e) => setEntry('goodSilk', idx, 'kg', e.target.value)}
                 />
-                <div>
-                  <div className={`${styles.silkLabel} ${styles.silkLot}`}>Price (₹)</div>
-                  <input
-                    className={styles.silkInput}
-                    type="number"
-                    min="0"
-                    disabled={locked}
-                    value={form.lotPrice}
-                    onChange={(e) => set('lotPrice', e.target.value)}
-                  />
-                </div>
+                <input
+                  type="number"
+                  className={styles.miniInput}
+                  style={{ width: '100%', textAlign: 'left' }}
+                  placeholder="Rate ₹/kg"
+                  disabled={locked}
+                  value={row.rate}
+                  onChange={(e) => setEntry('goodSilk', idx, 'rate', e.target.value)}
+                />
               </div>
-            </div>
+            ))}
           </div>
 
-          <div className={styles.calcPanel}>
-            <p style={{ fontWeight: 600, marginBottom: 8 }}>Auto calculation</p>
-            <div className={styles.calcSection}>
-              <div className={styles.calcSectionHeader}>Good</div>
-              {rowDetails.good.map((row, index) => (
-                <div key={index} className={styles.calcLine}>
-                  <span>
-                    {row.kg} × {formatINR(row.rate)}
-                  </span>
-                  <span className={styles.pos}>+{formatINR(row.amount)}</span>
-                </div>
-              ))}
-              <div className={styles.calcTotalLine}>
-                <span>Total</span>
-                <span>{formatINR(preview.goodAmt)}</span>
-              </div>
+          {/* Waste Input */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 6 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#d97706' }}>🍂 Waste Silk (kg)</span>
+              <button
+                type="button"
+                style={{ background: '#fef3c7', color: '#d97706', border: '1px solid #fde68a', borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+                onClick={() => addEntry('waste')}
+              >
+                + Add Row
+              </button>
             </div>
+            {form.waste.map((row, idx) => (
+              <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <input
+                  type="number"
+                  step="0.1"
+                  className={styles.miniInput}
+                  style={{ width: '100%', textAlign: 'left' }}
+                  placeholder="Kg"
+                  disabled={locked}
+                  value={row.kg}
+                  onChange={(e) => setEntry('waste', idx, 'kg', e.target.value)}
+                />
+                <input
+                  type="number"
+                  className={styles.miniInput}
+                  style={{ width: '100%', textAlign: 'left' }}
+                  placeholder="Rate ₹/kg"
+                  disabled={locked}
+                  value={row.rate}
+                  onChange={(e) => setEntry('waste', idx, 'rate', e.target.value)}
+                />
+              </div>
+            ))}
+          </div>
 
-            <div className={styles.calcSection}>
-              <div className={styles.calcSectionHeader}>Waste</div>
-              {rowDetails.waste.map((row, index) => (
-                <div key={index} className={styles.calcLine}>
-                  <span>
-                    {row.kg} × {formatINR(row.rate)}
-                  </span>
-                  <span className={styles.neg}>−{formatINR(row.amount)}</span>
-                </div>
-              ))}
-              <div className={styles.calcTotalLine}>
-                <span>Total</span>
-                <span>{formatINR(preview.wasteAmt)}</span>
-              </div>
+          {/* Doubles Input */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 6 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#a0522d' }}>🌰 Doubles (kg)</span>
+              <button
+                type="button"
+                style={{ background: '#f5ede8', color: '#a0522d', border: '1px solid #e2d2c9', borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+                onClick={() => addEntry('doubles')}
+              >
+                + Add Row
+              </button>
             </div>
+            {form.doubles.map((row, idx) => (
+              <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <input
+                  type="number"
+                  step="0.1"
+                  className={styles.miniInput}
+                  style={{ width: '100%', textAlign: 'left' }}
+                  placeholder="Kg"
+                  disabled={locked}
+                  value={row.kg}
+                  onChange={(e) => setEntry('doubles', idx, 'kg', e.target.value)}
+                />
+                <input
+                  type="number"
+                  className={styles.miniInput}
+                  style={{ width: '100%', textAlign: 'left' }}
+                  placeholder="Rate ₹/kg"
+                  disabled={locked}
+                  value={row.rate}
+                  onChange={(e) => setEntry('doubles', idx, 'rate', e.target.value)}
+                />
+              </div>
+            ))}
+          </div>
 
-            <div className={styles.calcSection}>
-              <div className={styles.calcSectionHeader}>Doubles</div>
-              {rowDetails.doubles.map((row, index) => (
-                <div key={index} className={styles.calcLine}>
-                  <span>
-                    {row.kg} × {formatINR(row.rate)}
-                  </span>
-                  <span className={styles.neg}>−{formatINR(row.amount)}</span>
-                </div>
-              ))}
-              <div className={styles.calcTotalLine}>
-                <span>Total</span>
-                <span>{formatINR(preview.doublesAmt)}</span>
-              </div>
+          {/* Lot Input */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 6 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#7c3aed' }}>📦 Lot Deduction</span>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <input
+                type="number"
+                step="0.1"
+                className={styles.miniInput}
+                style={{ width: '100%', textAlign: 'left' }}
+                placeholder="Lot Qty"
+                disabled={locked}
+                value={form.lotQty}
+                onChange={(e) => set('lotQty', e.target.value)}
+              />
+              <input
+                type="number"
+                className={styles.miniInput}
+                style={{ width: '100%', textAlign: 'left' }}
+                placeholder="Price ₹"
+                disabled={locked}
+                value={form.lotPrice}
+                onChange={(e) => set('lotPrice', e.target.value)}
+              />
             </div>
-            <div className={styles.netBox}>
-              <span>Total value</span>
-              <span>{formatINR(preview.netSilk)}</span>
+          </div>
+        </div>
+
+        {/* Live Calculation Preview Card */}
+        <div className={styles.calcCard} style={{ background: '#f8fafc' }}>
+          <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#1e293b' }}>🧮 Live Calculation Summary</h4>
+
+          <div className={styles.calcRow}>
+            <span>Good Silk Value</span>
+            <strong style={{ color: 'var(--green, #2e7d52)' }}>+{formatINR(preview.goodAmt)}</strong>
+          </div>
+
+          <div className={styles.calcRow}>
+            <span>Waste Silk Value</span>
+            <strong style={{ color: '#d97706' }}>−{formatINR(preview.wasteAmt)}</strong>
+          </div>
+
+          <div className={styles.calcRow}>
+            <span>Doubles Value</span>
+            <strong style={{ color: '#a0522d' }}>−{formatINR(preview.doublesAmt)}</strong>
+          </div>
+
+          <div className={styles.effectiveBox} style={{ background: '#ffffff', borderColor: '#cbd5e1' }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>Net Total Harvest Value</span>
+            <span className={styles.effectiveVal} style={{ color: 'var(--green, #2e7d52)' }}>
+              {formatINR(preview.netSilk)}
+            </span>
+          </div>
+
+          {rate > 0 && (
+            <div className={styles.calcRow} style={{ marginTop: 4 }}>
+              <span>Rental Deduction ({totals.good.totalKg} kg × {formatINR(rate)})</span>
+              <strong style={{ color: '#dc2626' }}>−{formatINR(preview.rental)}</strong>
             </div>
-            <div className={styles.finalBox}>
-              <p style={{ fontWeight: 600, margin: '0 0 8px' }}>Rental total value</p>
-              {rate > 0 && (
-                <div className={styles.calcLine}>
-                  <span>
-                    Rental: {totals.good.totalKg} kg × {formatINR(rate)}
-                  </span>
-                  <span className={styles.neg}>−{formatINR(preview.rental)}</span>
-                </div>
-              )}
-              {(Number(form.lotQty) > 0 || Number(form.lotPrice) > 0) && (
-                <div className={styles.calcLine}>
-                  <span>
-                    Lot: {Number(form.lotQty) || 0} × {formatINR(Number(form.lotPrice) || 0)}
-                  </span>
-                  <span className={styles.neg}>−{formatINR(preview.lotAmt)}</span>
-                </div>
-              )}
-              <div className={styles.rentalTotalRow}>
-                <span>Rental total value</span>
-                <span style={{ fontSize: 18 }}>−{formatINR(preview.rentalTotal)}</span>
-              </div>
+          )}
+
+          {(Number(form.lotQty) > 0 || Number(form.lotPrice) > 0) && (
+            <div className={styles.calcRow}>
+              <span>Lot Deduction ({form.lotQty || 0} × {formatINR(form.lotPrice || 0)})</span>
+              <strong style={{ color: '#dc2626' }}>−{formatINR(preview.lotAmt)}</strong>
             </div>
+          )}
+
+          <div className={styles.effectiveBox}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#7b3f00' }}>Farmer Rental Total Payout</span>
+            <span className={styles.effectiveVal}>−{formatINR(preview.rentalTotal)}</span>
           </div>
         </div>
 
         {!locked && (
-          <button type="button" className={styles.submitBtn} disabled={saving} onClick={onSave}>
-            {saving ? 'Saving…' : `Save ${entry.partyName}`}
+          <button
+            type="button"
+            className={styles.submitBtn}
+            disabled={saving}
+            onClick={onSave}
+          >
+            {saving ? 'Saving Entry…' : `💾 Save ${entry.partyName} Entry`}
           </button>
         )}
       </div>
-    </div>
+    </DriverShell>
   );
 }
