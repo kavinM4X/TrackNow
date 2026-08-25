@@ -264,7 +264,6 @@
   background: #0f2b48;
 }
 
-/* Mobile Responsiveness (< 640px) */
 @media (max-width: 640px) {
   .dateCard {
     flex-direction: column;

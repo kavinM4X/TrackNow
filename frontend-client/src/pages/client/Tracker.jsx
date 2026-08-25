@@ -3,9 +3,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { CircleMarker, MapContainer, Popup, TileLayer } from 'react-leaflet';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/common/Badge';
-import Spinner from '../../components/common/Spinner';
 import api, { deduplicatedGet } from '../../api/client';
-import truckIcon from '../../assets/app-icon.svg';
 import styles from './Tracker.module.css';
 import 'leaflet/dist/leaflet.css';
 
@@ -86,7 +84,7 @@ export default function Tracker() {
           <div className={`${styles.skeleton} ${styles.skeletonMap}`} />
         ) : !enabled ? (
           <div className={styles.disabledCard}>
-            <img src={truckIcon} alt="Truck" className={styles.truckIcon} aria-hidden />
+            <div style={{ fontSize: 48, marginBottom: 8 }}>🚚</div>
             <h3 className={styles.disabledTitle}>Tracking Standby Mode</h3>
             <p className={styles.disabledSub}>
               Live GPS tracking will automatically activate during your scheduled harvest booking pickup window once your driver is dispatched.

@@ -1,25 +1,19 @@
 {
-  "name": "TrackNow",
+  "name": "TrackNow Farmer Portal",
   "short_name": "TrackNow",
   "description": "Sericulture batch and booking management for farmers",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#f5f5f5",
-  "theme_color": "#1E5E38",
+  "background_color": "#ffffff",
+  "theme_color": "#2e7d52",
   "icons": [
     {
-      "src": "/favicon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
+      "src": "/app-icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
       "purpose": "any"
-    },
-    {
-      "src": "/favicon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
     }
   ]
 }
