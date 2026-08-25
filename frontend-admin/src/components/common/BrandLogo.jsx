@@ -1,46 +1,52 @@
 import styles from './BrandLogo.module.css';
 
-export default function BrandLogo({ className = '', size = 48 }) {
+export default function BrandLogo({ className = '', size = 56 }) {
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 100 100"
+      viewBox="0 0 128 128"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={`${styles.logo} ${className}`.trim()}
       aria-label="TrackNow Admin Logo"
     >
       <defs>
-        <linearGradient id="brandShieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#1e4d7b" />
-          <stop offset="100%" stopColor="#0f172a" />
+        <linearGradient id="shieldNavyComp" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#0a192f" />
+          <stop offset="100%" stopColor="#040d1a" />
         </linearGradient>
-        <linearGradient id="brandGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#fbbf24" />
-          <stop offset="100%" stopColor="#d97706" />
+        <linearGradient id="crownGoldComp" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#ffb703" />
+          <stop offset="100%" stopColor="#f59e0b" />
         </linearGradient>
       </defs>
 
-      {/* Outer Shield Emblem */}
+      {/* Pure White Card with Soft Corner Radius */}
+      <rect width="128" height="128" rx="32" fill="#ffffff" />
+
+      {/* Thick Electric Cyan Shield Frame */}
       <path
-        d="M50 8 L85 24 V50 C85 70 70 86 50 94 C30 86 15 70 15 50 V24 L50 8 Z"
-        fill="url(#brandShieldGrad)"
-        stroke="#38bdf8"
-        strokeWidth="3"
+        d="M64 22 L98 37 V64 C98 84 80 98 64 106 C48 98 30 84 30 64 V37 L64 22 Z"
+        fill="url(#shieldNavyComp)"
+        stroke="#00bfff"
+        strokeWidth="7"
+        strokeLinejoin="round"
       />
 
-      {/* Inner Crown & Logistics Symbol */}
+      {/* Golden Crown Emblem */}
       <path
-        d="M32 40 L41 54 L50 38 L59 54 L68 40 L65 64 H35 L32 40 Z"
-        fill="url(#brandGoldGrad)"
+        d="M46 51 L54 63 L64 47 L74 63 L82 51 L79 73 H49 L46 51 Z"
+        fill="url(#crownGoldComp)"
       />
-      <circle cx="32" cy="36" r="3" fill="#fbbf24" />
-      <circle cx="50" cy="34" r="3.5" fill="#fbbf24" />
-      <circle cx="68" cy="36" r="3" fill="#fbbf24" />
 
-      {/* Base Accent Line */}
-      <rect x="33" y="68" width="34" height="4" rx="2" fill="#38bdf8" />
+      {/* 3 Crown Jewels */}
+      <circle cx="46" cy="45" r="4" fill="#ffb703" />
+      <circle cx="64" cy="41" r="4.5" fill="#ffb703" />
+      <circle cx="82" cy="45" r="4" fill="#ffb703" />
+
+      {/* Cyan Accent Bar */}
+      <rect x="47" y="77" width="34" height="6" rx="3" fill="#00bfff" />
     </svg>
   );
 }
