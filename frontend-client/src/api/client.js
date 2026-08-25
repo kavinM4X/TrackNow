@@ -119,16 +119,14 @@ export function clearSession() {
   localStorage.removeItem(LEGACY_USER_KEY);
 }
 
-export async function logClick(action, page) {
+export function logClick(action, page) {
   if (import.meta.env.VITE_DISABLE_CLICK_LOGS === 'true') return;
   const key = `tracknow_log_${page}`;
-  try {
-    if (sessionStorage.getItem(key)) return;
-    sessionStorage.setItem(key, '1');
-    await api.post('/logs', { action, type: 'click', page });
-  } catch {
+  if (sessionStorage.getItem(key)) return;
+  sessionStorage.setItem(key, '1');
+  api.post('/logs', { action, type: 'click', page }).catch(() => {
     sessionStorage.removeItem(key);
-  }
+  });
 }
 
 export default api;

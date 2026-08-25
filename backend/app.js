@@ -12,11 +12,17 @@ const corsOrigins = (process.env.CORS_ORIGIN || '')
   .split(',')
   .map((o) => o.trim())
   .filter(Boolean);
-app.use(cors(corsOrigins.length ? { origin: corsOrigins } : {}));
+app.use(
+  cors({
+    ...(corsOrigins.length ? { origin: corsOrigins } : {}),
+    maxAge: 86400 // Cache CORS OPTIONS preflight for 24 hours (eliminates 100% preflight delays)
+  })
+);
 app.use(express.json());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
 app.use((req, res, next) => {
+  res.setHeader('Keep-Alive', 'timeout=60, max=1000');
   const start = process.hrtime.bigint();
   res.on('finish', () => {
     const end = process.hrtime.bigint();
