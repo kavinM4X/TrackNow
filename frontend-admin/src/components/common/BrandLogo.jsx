@@ -1,12 +1,46 @@
-import iconUrl from '../../assets/app-icon.svg';
 import styles from './BrandLogo.module.css';
 
-export default function BrandLogo({ className = '' }) {
+export default function BrandLogo({ className = '', size = 48 }) {
   return (
-    <img
-      src={iconUrl}
-      alt="TrackNow"
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 100 100"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
       className={`${styles.logo} ${className}`.trim()}
-    />
+      aria-label="TrackNow Admin Logo"
+    >
+      <defs>
+        <linearGradient id="brandShieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#1e4d7b" />
+          <stop offset="100%" stopColor="#0f172a" />
+        </linearGradient>
+        <linearGradient id="brandGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#fbbf24" />
+          <stop offset="100%" stopColor="#d97706" />
+        </linearGradient>
+      </defs>
+
+      {/* Outer Shield Emblem */}
+      <path
+        d="M50 8 L85 24 V50 C85 70 70 86 50 94 C30 86 15 70 15 50 V24 L50 8 Z"
+        fill="url(#brandShieldGrad)"
+        stroke="#38bdf8"
+        strokeWidth="3"
+      />
+
+      {/* Inner Crown & Logistics Symbol */}
+      <path
+        d="M32 40 L41 54 L50 38 L59 54 L68 40 L65 64 H35 L32 40 Z"
+        fill="url(#brandGoldGrad)"
+      />
+      <circle cx="32" cy="36" r="3" fill="#fbbf24" />
+      <circle cx="50" cy="34" r="3.5" fill="#fbbf24" />
+      <circle cx="68" cy="36" r="3" fill="#fbbf24" />
+
+      {/* Base Accent Line */}
+      <rect x="33" y="68" width="34" height="4" rx="2" fill="#38bdf8" />
+    </svg>
   );
 }

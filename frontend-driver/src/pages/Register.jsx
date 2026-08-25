@@ -51,9 +51,28 @@ export default function Register({ onLogin }) {
   return (
     <div className={styles.authPage}>
       <div className={styles.authCard}>
-        {/* Brand Header */}
+        {/* Brand Header with Exact Vector Icon */}
         <div className={styles.brandHeader}>
-          <div className={styles.brandIconCircle}>🚚</div>
+          <svg
+            width="64"
+            height="64"
+            viewBox="0 0 128 128"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ borderRadius: 20, boxShadow: '0 8px 20px rgba(91, 43, 0, 0.3)', marginBottom: 4 }}
+          >
+            <rect width="128" height="128" rx="38" fill="#5b2b00" />
+            <path d="M52 44 H82 C88 44 92 48 92 54 V72 C92 78 88 82 82 82 H52 V44 Z" fill="#e89613" />
+            <path d="M38 52 C38 48 42 44 46 44 H52 V82 H38 C34 82 34 76 34 72 V62 Z" fill="#ffffff" />
+            <rect x="41" y="49" width="10" height="10" rx="2" fill="#0f172a" />
+            <circle cx="47" cy="82" r="12" fill="#ffffff" />
+            <circle cx="47" cy="82" r="9.5" fill="#0f172a" />
+            <circle cx="47" cy="82" r="4" fill="#fbbf24" />
+            <circle cx="79" cy="82" r="12" fill="#ffffff" />
+            <circle cx="79" cy="82" r="9.5" fill="#0f172a" />
+            <circle cx="79" cy="82" r="4" fill="#fbbf24" />
+          </svg>
+
           <h1 className={styles.brandTitle}>SilkRoute</h1>
           <span className={styles.brandSubtitlePill}>Create Driver Account</span>
         </div>

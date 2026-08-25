@@ -53,7 +53,7 @@ export default function AdminLogin({ onLogin }) {
         {/* Brand Header */}
         <div className={styles.brandHeader}>
           <div className={styles.logoBox}>
-            <BrandLogo className={styles.logoImage} />
+            <BrandLogo size={56} />
           </div>
           <h1 className={styles.title}>TrackNow Admin</h1>
           <span className={styles.badgePill}>👑 Administration Console</span>

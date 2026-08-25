@@ -1,17 +1,17 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  max-width: 720px;
+  gap: 16px;
+  max-width: 900px;
   margin: 0 auto;
-  padding-bottom: 32px;
-  animation: pageFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  padding-bottom: 90px;
+  animation: pageFadeIn 0.3s ease-out;
 }
 
 @keyframes pageFadeIn {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -19,91 +19,80 @@
   }
 }
 
-/* Header Card & Date Selector */
 .dateCard {
   background: #ffffff;
   border: 1px solid var(--card-border, #e0e0dc);
   border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  padding: 16px 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .dateHead {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .dateTitle {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: #1e293b;
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .dateInputWrap {
   display: flex;
-  gap: 8px;
   align-items: center;
-  width: 100%;
+  gap: 10px;
 }
 
 .dateInput {
-  flex: 1;
-  padding: 12px 14px;
+  padding: 10px 14px;
   border: 1px solid #cbd5e1;
   border-radius: 10px;
-  background: #f8fafc;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: #0f172a;
   outline: none;
-  transition: all 0.2s ease;
+  background: #ffffff;
 }
 
 .dateInput:focus {
-  border-color: var(--green, #2e7d52);
-  background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(46, 125, 82, 0.12);
+  border-color: #1e4d7b;
 }
 
 .todayQuickBtn {
-  padding: 10px 16px;
-  border: 1px solid var(--green-border, #bde0cc);
-  border-radius: 10px;
-  background: var(--green-light, #e8f4ed);
-  color: var(--green, #2e7d52);
+  background: #e3eef9;
+  color: #1e4d7b;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 8px 14px;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  white-space: nowrap;
   transition: all 0.2s ease;
 }
 
 .todayQuickBtn:hover {
-  background: var(--green, #2e7d52);
+  background: #1e4d7b;
   color: #ffffff;
 }
 
-/* Live Analytics Quick Bar */
 .calcSummaryBar {
-  background: #1e293b;
+  background: linear-gradient(135deg, #1e4d7b 0%, #0f2b48 100%);
   color: #ffffff;
-  border-radius: 14px;
-  padding: 14px 18px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.15);
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  box-shadow: 0 4px 14px rgba(30, 77, 123, 0.2);
 }
 
 .calcItem {
@@ -115,24 +104,22 @@
 .calcLbl {
   font-size: 11px;
   font-weight: 600;
-  color: #94a3b8;
+  opacity: 0.8;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .calcVal {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 800;
-  color: #38bdf8;
+  color: #f8fafc;
 }
 
 .calcValGreen {
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 800;
-  color: #4ade80;
+  color: #34d399;
 }
 
-/* Market Location Form Cards */
 .marketFormSection {
   display: flex;
   flex-direction: column;
@@ -143,16 +130,11 @@
   background: #ffffff;
   border: 1px solid var(--card-border, #e0e0dc);
   border-radius: 16px;
-  padding: 18px 20px;
+  padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
   display: flex;
   flex-direction: column;
   gap: 14px;
-  transition: border-color 0.2s ease;
-}
-
-.marketCard:focus-within {
-  border-color: var(--green-border, #bde0cc);
 }
 
 .marketHeader {
@@ -166,15 +148,14 @@
 .marketTitleGroup {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .marketBadge {
   font-size: 11px;
   font-weight: 800;
-  color: var(--green, #2e7d52);
-  background: var(--green-light, #e8f4ed);
-  border: 1px solid var(--green-border, #bde0cc);
+  background: #1e4d7b;
+  color: #ffffff;
   padding: 3px 10px;
   border-radius: 20px;
 }
@@ -182,7 +163,7 @@
 .marketName {
   font-size: 16px;
   font-weight: 700;
-  color: #1e293b;
+  color: #0f172a;
   margin: 0;
 }
 
@@ -213,112 +194,94 @@
 .currencyPrefix {
   position: absolute;
   left: 12px;
-  font-size: 14px;
   font-weight: 700;
-  color: var(--text-muted, #64748b);
-  pointer-events: none;
+  color: #64748b;
+  font-size: 14px;
 }
 
 .rateInput {
   width: 100%;
-  padding: 11px 12px 11px 28px;
+  padding: 10px 12px 10px 28px;
   border: 1px solid #cbd5e1;
   border-radius: 10px;
-  background: #f8fafc;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   color: #0f172a;
   outline: none;
-  transition: all 0.2s ease;
+  background: #ffffff;
 }
 
 .rateInput:focus {
-  border-color: var(--green, #2e7d52);
-  background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(46, 125, 82, 0.12);
+  border-color: #1e4d7b;
+  box-shadow: 0 0 0 3px rgba(30, 77, 123, 0.12);
 }
 
 .saveActionBar {
-  position: sticky;
-  bottom: 16px;
-  z-index: 100;
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--card-border, #e0e0dc);
-  border-radius: 14px;
-  padding: 12px 16px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  bottom: 60px;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid #e2e8f0;
+  padding: 12px 20px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   gap: 12px;
+  z-index: 90;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.cancelBtn {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .saveBtn {
-  flex: 1;
-  padding: 14px;
+  background: #1e4d7b;
+  color: #ffffff;
   border: none;
   border-radius: 10px;
-  background: var(--green, #2e7d52);
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: 700;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 800;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 14px rgba(46, 125, 82, 0.25);
+  box-shadow: 0 4px 12px rgba(30, 77, 123, 0.25);
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 6px;
 }
 
 .saveBtn:hover {
-  opacity: 0.95;
-  transform: translateY(-1px);
+  background: #0f2b48;
 }
 
-.cancelBtn {
-  padding: 14px 20px;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  background: #ffffff;
-  color: #475569;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cancelBtn:hover {
-  background: #f1f5f9;
-}
-
-/* Mobile Responsiveness (< 600px) */
-@media (max-width: 600px) {
-  .container {
-    gap: 14px;
-    padding-bottom: 20px;
-  }
-
-  .ratesGrid {
-    grid-template-columns: 1fr;
+/* Mobile Responsiveness (< 640px) */
+@media (max-width: 640px) {
+  .dateCard {
+    flex-direction: column;
+    align-items: flex-start;
     gap: 10px;
   }
 
   .calcSummaryBar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 12px 14px;
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
 
-  .calcSummaryBar {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+  .ratesGrid {
+    grid-template-columns: 1fr;
   }
 
   .saveActionBar {
-    bottom: 8px;
-    padding: 10px 12px;
+    bottom: 56px;
   }
 }
