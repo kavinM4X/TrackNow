@@ -1,0 +1,219 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: var(--max-width, 520px);
+  margin: 0 auto;
+  padding-bottom: 24px;
+  animation: pageFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Skeleton Loading Shimmer */
+.skeleton {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 12px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeletonRow {
+  height: 72px;
+  width: 100%;
+  border-radius: 14px;
+}
+
+.skeletonSummary {
+  height: 56px;
+  width: 100%;
+  border-radius: 14px;
+}
+
+/* Header Banner */
+.heroBanner {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.heroTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.heroSub {
+  font-size: 13px;
+  color: var(--text-muted, #64748b);
+  margin: 0;
+}
+
+/* Lifetime Total Summary Card */
+.summaryCard {
+  background: var(--green-light, #e8f4ed);
+  border: 1px solid var(--green-border, #bde0cc);
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(46, 125, 82, 0.06);
+}
+
+.summaryLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--green, #2e7d52);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.summaryVal {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--green, #2e7d52);
+}
+
+/* Search Bar */
+.searchBox {
+  position: relative;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 12px 14px 12px 40px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 14px;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.searchInput:focus {
+  border-color: var(--green, #2e7d52);
+  box-shadow: 0 0 0 3px rgba(46, 125, 82, 0.12);
+}
+
+.searchIcon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: #94a3b8;
+}
+
+.searchMetaText {
+  font-size: 12px;
+  color: var(--text-muted, #64748b);
+  margin: 0;
+}
+
+/* Batch Feed */
+.batchFeed {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.batchCard {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.batchCard:hover {
+  border-color: var(--green-border, #bde0cc);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+.batchLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.batchDateTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.batchSubText {
+  font-size: 13px;
+  color: var(--text-muted, #64748b);
+}
+
+.batchAmountText {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--green, #2e7d52);
+  margin-top: 2px;
+}
+
+.batchTapCue {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.batchRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.emptyState {
+  background: #ffffff;
+  border: 1px dashed var(--card-border, #e0e0dc);
+  border-radius: 14px;
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--text-muted, #64748b);
+  font-size: 14px;
+  line-height: 1.5;
+}
