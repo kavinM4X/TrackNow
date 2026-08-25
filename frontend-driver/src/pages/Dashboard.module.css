@@ -1,20 +1,16 @@
-.rateCarousel {
-  margin-bottom: 12px;
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: var(--max-width, 480px);
+  margin: 0 auto;
+  animation: pageFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.rateCardSingle {
-  background: #fff;
-  border: 1px solid #e0e0dc;
-  border-radius: 8px;
-  padding: 14px 12px;
-  text-align: center;
-  animation: rateFadeIn 0.35s ease;
-}
-
-@keyframes rateFadeIn {
+@keyframes pageFadeIn {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -22,44 +18,323 @@
   }
 }
 
-.rateDots {
+/* Market Rate Hero Carousel */
+.rateCarouselCard {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rateHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rateTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rateLiveBadge {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.rateBody {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.rateLocName {
+  font-size: 16px;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.rateBigVal {
+  font-size: 26px;
+  font-weight: 800;
+  color: #10b981;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+.rateSubGrid {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #cbd5e1;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 8px;
+}
+
+.rateDotsRow {
   display: flex;
   justify-content: center;
   gap: 6px;
-  margin-top: 8px;
 }
 
 .rateDot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #ccc;
-  transition: background 0.2s ease;
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
 }
 
-.rateDotOn {
-  background: var(--green);
+.rateDotActive {
+  width: 18px;
+  border-radius: 10px;
+  background: #10b981;
 }
 
-.rateLoc {
-  font-size: 13px;
-  font-weight: 500;
-  color: #888;
-  display: block;
-  margin-bottom: 4px;
+/* Assigned Trip Hero Card */
+.tripHeroCard {
+  background: linear-gradient(135deg, #7b3f00 0%, #4a2600 100%);
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 8px 20px -4px rgba(123, 63, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.rateVal {
-  font-size: 28px;
+.tripHeroTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tripIdBadge {
+  font-size: 11px;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+}
+
+.vehicleNum {
+  font-size: 15px;
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+.balanceMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.balanceLbl {
+  font-size: 11px;
   font-weight: 600;
-  color: var(--green);
-  display: block;
-  line-height: 1.2;
+  opacity: 0.8;
+  text-transform: uppercase;
 }
 
-.rateUnit {
-  font-size: 12px;
-  color: #888;
-  display: block;
+.balanceVal {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+.heroActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
   margin-top: 4px;
+}
+
+.heroBtnPrimary {
+  background: #ffffff;
+  color: #7b3f00;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.heroBtnPrimary:hover {
+  transform: translateY(-1px);
+  background: #fdf5ec;
+}
+
+.heroBtnSecondary {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.heroBtnSecondary:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* 4-Stat Logistics Grid */
+.statGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.statCard {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 14px;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.statVal {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1;
+}
+
+.statValGreen {
+  color: var(--green, #2e7d52);
+}
+
+.statValDanger {
+  color: var(--danger, #a93226);
+}
+
+.statValAmber {
+  color: #d97706;
+}
+
+.statLbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+  margin-top: 2px;
+}
+
+/* Recent Activity Feed */
+.sectionHead {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 4px 0 -4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.expenseFeed {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.expenseCard {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.expenseLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.catIconBox {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--amber-light, #fff5ec);
+  color: var(--amber, #7b3f00);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.expenseMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.catTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+  text-transform: capitalize;
+}
+
+.expenseSub {
+  font-size: 11px;
+  color: var(--text-muted, #64748b);
+}
+
+.expenseVal {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--danger, #a93226);
+}
+
+.emptyCard {
+  background: #ffffff;
+  border: 1px dashed var(--card-border, #e0e0dc);
+  border-radius: 12px;
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--text-muted, #64748b);
+  font-size: 13px;
 }

@@ -1,40 +1,45 @@
 .shell {
-  max-width: var(--max-width);
+  max-width: var(--max-width, 480px);
   margin: 0 auto;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--page-bg);
+  background: var(--page-bg, #f7f7f5);
 }
 
 .header {
-  background: var(--amber);
-  color: #fff;
-  padding: 14px 16px;
+  background: linear-gradient(135deg, #7b3f00 0%, #4a2600 100%);
+  color: #ffffff;
+  padding: 16px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-shadow: 0 4px 12px rgba(123, 63, 0, 0.2);
 }
 
 .title {
   margin: 0;
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 800;
+  letter-spacing: -0.3px;
 }
 
 .back {
   background: none;
   border: none;
-  color: #fff;
-  font-size: 16px;
-  font-weight: 600;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
   padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .main {
   flex: 1;
-  padding: 12px 14px 80px;
+  padding: 14px 14px 84px;
   overflow-y: auto;
 }
 
@@ -44,13 +49,16 @@
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: var(--max-width);
-  background: #fff;
-  border-top: 1px solid #e5e5ea;
+  max-width: var(--max-width, 480px);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid #e0e0dc;
   display: flex;
   justify-content: space-around;
-  padding: 6px 0 10px;
+  padding: 8px 0 12px;
   z-index: 50;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05);
 }
 
 .bnavItem {
@@ -59,18 +67,21 @@
   align-items: center;
   gap: 2px;
   text-decoration: none;
-  color: #c0c0c0;
-  font-size: 9px;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 600;
   min-width: 0;
   flex: 1;
+  transition: all 0.2s ease;
 }
 
 .bnavItem.active {
-  color: var(--amber);
+  color: var(--amber, #7b3f00);
+  font-weight: 800;
 }
 
 .bnavIcon {
-  font-size: 17px;
+  font-size: 18px;
 }
 
 .historyTripTop {

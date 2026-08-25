@@ -10,6 +10,7 @@ import {
   MARKETS,
   shortUserId
 } from '../../utils/format';
+import styles from './AllBatchHistory.module.css';
 
 export default function AllBatchHistory() {
   const navigate = useNavigate();
@@ -49,158 +50,177 @@ export default function AllBatchHistory() {
   );
 
   const exportCsv = async () => {
-    const res = await api.get('/admin/batches/history', {
-      params: { ...filters, export: 'csv' },
-      responseType: 'blob'
-    });
-    const url = URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'all-batch-history.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const res = await api.get('/admin/batches/history', {
+        params: { ...filters, export: 'csv' },
+        responseType: 'blob'
+      });
+      const url = URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'all-batch-history.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('Export error:', e);
+    }
   };
 
   return (
     <AppShell title="All Batch History">
-      <div className="card" style={{ marginBottom: 8 }}>
-        <input
-          className="field-input"
-          placeholder="Search user, location, date..."
-          value={filters.search}
-          onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
-        />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-          <select
-            className="field-select"
-            value={filters.userId}
-            onChange={(e) => setFilters((f) => ({ ...f, userId: e.target.value }))}
-          >
-            <option value="">All Users</option>
-            {users.map((u) => (
-              <option key={u._id} value={u._id}>
-                {u.name} ({shortUserId(u._id)})
-              </option>
-            ))}
-          </select>
-          <select
-            className="field-select"
-            value={filters.location}
-            onChange={(e) => setFilters((f) => ({ ...f, location: e.target.value }))}
-          >
-            <option value="all">All Markets</option>
-            {MARKETS.map((m) => (
-              <option key={m.label} value={m.label}>
-                {m.label}
-              </option>
-            ))}
-          </select>
-          <input
-            type="date"
-            className="field-input"
-            value={filters.fromDate}
-            onChange={(e) => setFilters((f) => ({ ...f, fromDate: e.target.value }))}
-          />
-          <input
-            type="date"
-            className="field-input"
-            value={filters.toDate}
-            onChange={(e) => setFilters((f) => ({ ...f, toDate: e.target.value }))}
-          />
+      <div className={styles.container}>
+        {/* Header Bar */}
+        <div className={styles.headerBar}>
+          <div className={styles.headerTitleGroup}>
+            <h2>Silk Harvest Batch History</h2>
+            <p className={styles.headerSub}>View and filter historical cocoon records across all farmers</p>
+          </div>
+          <button type="button" className={styles.exportBtn} onClick={exportCsv}>
+            <span>📥</span> Export Excel
+          </button>
         </div>
-      </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
-        <div className="card" style={{ margin: 0, textAlign: 'center' }}>
-          <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--blue)' }}>{summary.totalBatches || 0}</div>
-          <div style={{ fontSize: 11, color: '#888' }}>Batches</div>
-        </div>
-        <div className="card" style={{ margin: 0, textAlign: 'center' }}>
-          <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--green)' }}>{Math.round(summary.totalGoodSilkKg || 0)}</div>
-          <div style={{ fontSize: 11, color: '#888' }}>Good Silk kg</div>
-        </div>
-        <div className="card" style={{ margin: 0, textAlign: 'center' }}>
-          <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--blue)' }}>{formatINR(summary.totalEstimatedValue || 0)}</div>
-          <div style={{ fontSize: 11, color: '#888' }}>Est. Value</div>
-        </div>
-      </div>
+        {/* Filter Card */}
+        <div className={styles.filterCard}>
+          <input
+            className={styles.searchInput}
+            placeholder="🔍 Search farmer, market, date..."
+            value={filters.search}
+            onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
+          />
+          <div className={styles.filterGrid}>
+            <select
+              className={styles.filterSelect}
+              value={filters.userId}
+              onChange={(e) => setFilters((f) => ({ ...f, userId: e.target.value }))}
+            >
+              <option value="">👤 All Farmers</option>
+              {users.map((u) => (
+                <option key={u._id} value={u._id}>
+                  {u.name} ({shortUserId(u._id)})
+                </option>
+              ))}
+            </select>
 
-      {loading ? (
-        <div className="spinner" />
-      ) : rows.length === 0 ? (
-        <p className="empty-text">No batch history for selected filters.</p>
-      ) : (
-        rows.map((r) => (
-          <div
-            key={r._id}
-            className="card"
-            style={{ cursor: 'pointer' }}
-            onClick={() => navigate(`/admin/batch-history/user/${r.userId}`)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && navigate(`/admin/batch-history/user/${r.userId}`)}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <select
+              className={styles.filterSelect}
+              value={filters.location}
+              onChange={(e) => setFilters((f) => ({ ...f, location: e.target.value }))}
+            >
+              <option value="all">📍 All Markets</option>
+              {MARKETS.map((m) => (
+                <option key={m.label} value={m.label}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+
+            <input
+              type="date"
+              className={styles.filterDate}
+              value={filters.fromDate}
+              onChange={(e) => setFilters((f) => ({ ...f, fromDate: e.target.value }))}
+            />
+
+            <input
+              type="date"
+              className={styles.filterDate}
+              value={filters.toDate}
+              onChange={(e) => setFilters((f) => ({ ...f, toDate: e.target.value }))}
+            />
+          </div>
+        </div>
+
+        {/* Summary Stats Grid */}
+        <div className={styles.summaryGrid}>
+          <div className={styles.summaryCard}>
+            <span className={`${styles.summaryVal} ${styles.summaryValBlue}`}>
+              {summary.totalBatches || 0}
+            </span>
+            <span className={styles.summaryLbl}>📦 Batches</span>
+          </div>
+
+          <div className={styles.summaryCard}>
+            <span className={`${styles.summaryVal} ${styles.summaryValGreen}`}>
+              {Math.round(summary.totalGoodSilkKg || 0)} <small style={{ fontSize: 10, fontWeight: 500 }}>kg</small>
+            </span>
+            <span className={styles.summaryLbl}>🌾 Good Silk</span>
+          </div>
+
+          <div className={styles.summaryCard}>
+            <span className={`${styles.summaryVal} ${styles.summaryValBlue}`}>
+              {formatINR(summary.totalEstimatedValue || 0)}
+            </span>
+            <span className={styles.summaryLbl}>💰 Est. Value</span>
+          </div>
+        </div>
+
+        {/* Batch Feed */}
+        {loading ? (
+          <div className="app-loading">
+            <div className="spinner" />
+          </div>
+        ) : rows.length === 0 ? (
+          <div className={styles.emptyState}>
+            No batch history entries found for the selected filters.
+          </div>
+        ) : (
+          <div className={styles.batchFeed}>
+            {rows.map((r) => (
               <div
-                style={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 10,
-                  fontWeight: 600,
-                  background: '#e3eef9',
-                  color: '#1e4d7b'
-                }}
+                key={r._id}
+                className={styles.batchCard}
+                role="button"
+                tabIndex={0}
+                onClick={() => navigate(`/admin/batch-history/user/${r.userId}`)}
+                onKeyDown={(e) => e.key === 'Enter' && navigate(`/admin/batch-history/user/${r.userId}`)}
               >
-                {initials(r.userName)}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600 }}>{r.userName}</div>
-                <div style={{ fontSize: 11, color: '#888' }}>
-                  {formatDateShort(r.date)} · {r.location}
+                <div className={styles.batchHeader}>
+                  <div className={styles.userInfoGroup}>
+                    <div className={styles.userAvatar}>
+                      {initials(r.userName)}
+                    </div>
+                    <div className={styles.userTextMeta}>
+                      <h4 className={styles.userName}>{r.userName}</h4>
+                      <span className={styles.batchSubMeta}>
+                        🗓️ {formatDateShort(r.date)} · 📍 {r.location}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="badge badge-green">Done</span>
+                </div>
+
+                <div className={styles.metricGrid}>
+                  <div className={styles.metricBox}>
+                    <span className={styles.metricLbl}>Good kg</span>
+                    <span className={styles.metricVal} style={{ color: 'var(--green, #2e7d52)' }}>
+                      {r.goodSilkKg}
+                    </span>
+                  </div>
+                  <div className={styles.metricBox}>
+                    <span className={styles.metricLbl}>Waste kg</span>
+                    <span className={styles.metricVal} style={{ color: '#d97706' }}>
+                      {r.wasteKg}
+                    </span>
+                  </div>
+                  <div className={styles.metricBox}>
+                    <span className={styles.metricLbl}>Doubles</span>
+                    <span className={styles.metricVal} style={{ color: '#a0522d' }}>
+                      {r.doublesKg}
+                    </span>
+                  </div>
+                  <div className={styles.metricBox}>
+                    <span className={styles.metricLbl}>Value</span>
+                    <span className={styles.metricVal} style={{ color: 'var(--blue, #1e4d7b)' }}>
+                      {formatINR(r.estimatedValue)}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <span className="badge badge-green">Done</span>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, fontSize: 12 }}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ color: '#2E7D52', fontWeight: 600 }}>{r.goodSilkKg}</div>
-                <div style={{ color: '#888', fontSize: 10 }}>Good kg</div>
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ color: '#F5A623', fontWeight: 600 }}>{r.wasteKg}</div>
-                <div style={{ color: '#888', fontSize: 10 }}>Waste kg</div>
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ color: '#A0522D', fontWeight: 600 }}>{r.doublesKg}</div>
-                <div style={{ color: '#888', fontSize: 10 }}>Doubles</div>
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ color: '#1E4D7B', fontWeight: 600 }}>{formatINR(r.estimatedValue)}</div>
-                <div style={{ color: '#888', fontSize: 10 }}>Value</div>
-              </div>
-            </div>
+            ))}
           </div>
-        ))
-      )}
-
-      {selectedUser && (
-        <button
-          type="button"
-          className="btn-outline"
-          style={{ width: '100%' }}
-          onClick={() => navigate(`/admin/batch-history/user/${selectedUser._id}`)}
-        >
-          View {selectedUser.name} History
-        </button>
-      )}
-      <button type="button" className="btn-primary" style={{ width: '100%' }} onClick={exportCsv}>
-        Export as Excel
-      </button>
+        )}
+      </div>
     </AppShell>
   );
 }
-

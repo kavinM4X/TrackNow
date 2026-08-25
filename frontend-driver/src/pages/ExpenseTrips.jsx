@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import DriverShell from '../components/layout/DriverShell';
 import api, { getStoredUser } from '../api/client';
 import { formatINR, todayISO, formatDateDayMonth } from '../utils/format';
-import styles from '../components/layout/DriverShell.module.css';
+import styles from './Expense.module.css';
 
 function pickVehicleList(...candidates) {
   let best = [];
@@ -34,7 +34,7 @@ export default function ExpenseTrips() {
         const r = await api.get('/driver/vehicles');
         results.push(r.data);
       } catch {
-        /* older backend may not have this route yet */
+        /* older backend fallback */
       }
       try {
         const r = await api.get('/driver/me');
@@ -57,54 +57,66 @@ export default function ExpenseTrips() {
   const todayLabel = formatDateDayMonth(todayISO());
 
   return (
-    <DriverShell title="Expense">
-      {loading ? (
-        <div className="spinner" />
-      ) : error && vehicles.length === 0 ? (
-        <p className="form-error">{error}</p>
-      ) : vehicles.length === 0 ? (
-        <div className="card">
-          <strong>No trips assigned</strong>
-          <p style={{ fontSize: 13, color: '#888', margin: '8px 0 0' }}>
-            Ask admin to assign a trip under <strong>Driver → Vehicles</strong> and select your name
-            ({driverName || 'your driver account'}) in the Driver Name dropdown.
-          </p>
-        </div>
-      ) : (
-        <>
-          <p style={{ fontSize: 12, color: '#888', margin: '0 0 10px' }}>
-            Select a trip to record expenses ({vehicles.length} trip{vehicles.length > 1 ? 's' : ''})
-          </p>
-          {vehicles.map((v) => {
-            const tripId = String(v._id).slice(-8).toUpperCase();
-            return (
-            <button
-              key={v._id}
-              type="button"
-              className={styles.expenseTripCard}
-              onClick={() => navigate(`/expense/${v._id}`)}
-            >
-              <div className={styles.expenseVehicleDate}>
-                Trip · {tripId} · {todayLabel}
-              </div>
-              <div className={styles.expenseVehicleHead}>
-                <div style={{ textAlign: 'left' }}>
-                  <strong className={styles.expenseVehicleNum}>{v.vehicleNumber}</strong>
-                  <div className={styles.expenseVehicleMeta}>
-                    {v.tripLeg === 'come' ? 'Come' : 'Go'} · Driver: {v.driverName || driverName} · {v.status}
-                    {v.city ? ` · ${v.city}` : ''}
+    <DriverShell title="Select Trip Expense">
+      <div className={styles.container}>
+        {loading ? (
+          <div className="app-loading">
+            <div className="spinner" />
+          </div>
+        ) : error && vehicles.length === 0 ? (
+          <p className="form-error">{error}</p>
+        ) : vehicles.length === 0 ? (
+          <div className={styles.stagedCard} style={{ background: '#ffffff', borderColor: '#e0e0dc' }}>
+            <h4 style={{ margin: 0, color: '#1e293b' }}>No Assigned Trip Available</h4>
+            <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 0' }}>
+              Ask your logistics admin to assign a vehicle trip under Driver → Vehicles for ({driverName || 'your driver account'}).
+            </p>
+          </div>
+        ) : (
+          <>
+            <div style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>
+              Select a trip to record vehicle expenses ({vehicles.length} assigned)
+            </div>
+
+            {vehicles.map((v) => {
+              const tripId = String(v._id).slice(-6).toUpperCase();
+              return (
+                <button
+                  key={v._id}
+                  type="button"
+                  className={styles.tripSelectCard}
+                  onClick={() => navigate(`/expense/${v._id}`)}
+                >
+                  <div className={styles.tripHeader}>
+                    <span className={styles.vehicleBadge}>
+                      🚚 {v.vehicleNumber}
+                    </span>
+                    <span className={styles.tripIdPill}>
+                      TRIP #{tripId}
+                    </span>
                   </div>
-                </div>
-                <div className={styles.expenseVehicleBal}>
-                  <div className={styles.expenseVehicleBalVal}>{formatINR(v.balance)}</div>
-                  <div className={styles.expenseVehicleBalLbl}>Available Cash</div>
-                </div>
-              </div>
-            </button>
-            );
-          })}
-        </>
-      )}
+
+                  <div className={styles.tripBody}>
+                    <div className={styles.tripMeta}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>
+                        🗓️ {todayLabel} · {v.tripLeg === 'come' ? 'Return Leg' : 'Outbound Leg'}
+                      </span>
+                      <span className={styles.tripMetaSub}>
+                        Driver: {v.driverName || driverName} {v.city ? `· ${v.city}` : ''}
+                      </span>
+                    </div>
+
+                    <div>
+                      <div className={styles.cashVal}>{formatINR(v.balance)}</div>
+                      <div className={styles.cashLbl}>Cash Balance</div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </>
+        )}
+      </div>
     </DriverShell>
   );
 }

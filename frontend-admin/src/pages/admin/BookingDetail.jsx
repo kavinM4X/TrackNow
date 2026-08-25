@@ -8,7 +8,7 @@ import {
   initials,
   shortUserId
 } from '../../utils/format';
-import styles from './Bookings.module.css';
+import styles from './BookingDetail.module.css';
 
 function statusBadgeClass(status) {
   if (status === 'pending') return styles.badgePending;
@@ -18,8 +18,9 @@ function statusBadgeClass(status) {
 }
 
 function statusLabel(status) {
-  if (status === 'completed') return 'Done';
-  if (status === 'confirmed') return 'Confirmed';
+  if (status === 'completed') return '✓ Done';
+  if (status === 'confirmed') return '● Confirmed';
+  if (status === 'pending') return '⏳ Pending';
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
@@ -55,6 +56,7 @@ export default function BookingDetail() {
 
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingId]);
 
   const resolveUserId = () => {
@@ -99,7 +101,7 @@ export default function BookingDetail() {
   };
 
   const patchStatus = async (status) => {
-    if (status === 'cancelled' && !window.confirm('Cancel this booking?')) return;
+    if (status === 'cancelled' && !window.confirm('Are you sure you want to cancel this pickup booking?')) return;
     setSaving(true);
     try {
       await api.post('/admin/bookings/update-status', {
@@ -116,6 +118,7 @@ export default function BookingDetail() {
   };
 
   const saveNote = async () => {
+    if (!booking) return;
     setSaving(true);
     try {
       await api.post('/admin/bookings/update-status', { bookingId, adminNote });
@@ -129,140 +132,186 @@ export default function BookingDetail() {
 
   if (loading || !booking) {
     return (
-      <AppShell title="Booking Detail" backPath="/admin/bookings" hideNav>
-        <div className="spinner" />
+      <AppShell title="Booking Specification" backPath="/admin/bookings">
+        <div className="app-loading">
+          <div className="spinner" />
+        </div>
       </AppShell>
     );
   }
 
   const locRates = marketRate
     ? [
-        ['CBE', marketRate.coimbatore],
-        ['MBL', marketRate.mamballi],
-        ['RNG', marketRate.ramnagar],
-        ['DHP', marketRate.dharmapuri]
+        ['Coimbatore', 'CBE', marketRate.coimbatore],
+        ['Mamballi', 'MBL', marketRate.mamballi],
+        ['Ramnagar', 'RNG', marketRate.ramnagar],
+        ['Dharmapuri', 'DHP', marketRate.dharmapuri]
       ]
     : [];
 
+  const uid = resolveUserId();
+
   return (
-    <AppShell
-      title="Booking Detail"
-      backPath="/admin/bookings"
-      hideNav
-      headerRight={
-        <span className={`${styles.badge} ${statusBadgeClass(booking.status)}`}>
-          {statusLabel(booking.status)}
-        </span>
-      }
-    >
-      <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: '50%',
-            background: 'var(--blue)',
-            color: '#fff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: 600
-          }}
-        >
-          {initials(user?.name || booking.userName)}
-        </div>
-        <div>
-          <strong>{user?.name || booking.userName}</strong>
-          <div style={{ fontSize: 12, color: '#888' }}>
-            {shortUserId(user?._id || booking.userId)} · {user?.phone || '—'}
+    <AppShell title="Booking Specification" backPath="/admin/bookings">
+      <div className={styles.container}>
+        {/* User Hero Card */}
+        <div className={styles.userHeroCard}>
+          <div className={styles.userLeft}>
+            <div className={styles.avatarRing}>
+              {initials(user?.name || booking.userName)}
+            </div>
+            <div className={styles.userMeta}>
+              <h2 className={styles.userName}>{user?.name || booking.userName}</h2>
+              <div className={styles.userSub}>
+                ID: <strong>{shortUserId(user?._id || booking.userId)}</strong>
+                {user?.phone && (
+                  <span>
+                    · 📞{' '}
+                    <a href={`tel:${user.phone}`} className={styles.phoneLink}>
+                      {user.phone}
+                    </a>
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.userRightGroup}>
+            <span className={`${styles.statusBadge} ${statusBadgeClass(booking.status)}`}>
+              {statusLabel(booking.status)}
+            </span>
+            {uid && (
+              <button
+                type="button"
+                className={styles.historyShortcutBtn}
+                onClick={() => navigate(`/admin/batch-history/user/${uid}`)}
+              >
+                <span>📜</span> History
+              </button>
+            )}
           </div>
         </div>
+
+        {/* Specifications Card */}
+        <div className={styles.detailsCard}>
+          <h3 className={styles.cardTitle}>
+            <span>📋</span> Pickup Order Specifications
+          </h3>
+
+          <div className={styles.detailRow}>
+            <span className={styles.detailLabel}>🔢 Booking Reference ID</span>
+            <span className={styles.detailValue} style={{ color: 'var(--blue, #1e4d7b)' }}>
+              {formatBookingId(booking._id)}
+            </span>
+          </div>
+
+          <div className={styles.detailRow}>
+            <span className={styles.detailLabel}>🗓️ Scheduled Date</span>
+            <span className={styles.detailValue}>
+              {formatDateShort(booking.date)}
+            </span>
+          </div>
+
+          <div className={styles.detailRow}>
+            <span className={styles.detailLabel}>📍 Market Location</span>
+            <span className={styles.detailValue} style={{ color: 'var(--green, #2e7d52)' }}>
+              {booking.location} Center
+            </span>
+          </div>
+
+          <div className={styles.detailRow}>
+            <span className={styles.detailLabel}>📦 Harvest Quantity</span>
+            <span className={styles.detailValue} style={{ fontSize: 16, color: 'var(--green, #2e7d52)' }}>
+              {booking.quantityKg} kg
+            </span>
+          </div>
+
+          <div className={styles.detailRow}>
+            <span className={styles.detailLabel}>📝 Farmer Notes</span>
+            <span className={styles.detailValue} style={{ fontWeight: 500, color: '#475569' }}>
+              {booking.notes ? `"${booking.notes}"` : '—'}
+            </span>
+          </div>
+        </div>
+
+        {/* Reference Market Rates Card */}
+        {marketRate && (
+          <div className={styles.marketRefCard}>
+            <h4 className={styles.marketRefTitle}>
+              📈 Market Rates Reference ({formatDateShort(booking.date)})
+            </h4>
+            <div className={styles.marketPillGrid}>
+              {locRates.map(([fullLoc, abbr, val]) => {
+                const isActive = booking.location === fullLoc;
+                return (
+                  <div
+                    key={abbr}
+                    className={`${styles.marketPill} ${isActive ? styles.marketPillActive : ''}`}
+                  >
+                    <span className={styles.marketAbbr}>{abbr}</span>
+                    <span
+                      className={`${styles.marketRateVal} ${
+                        isActive ? styles.marketRateValActive : ''
+                      }`}
+                    >
+                      ₹{val ?? '—'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Admin Note Section */}
+        <div className={styles.noteGroup}>
+          <label className={styles.noteLabel}>📝 Admin Processing Notes (Internal)</label>
+          <textarea
+            className={styles.noteTextarea}
+            rows={3}
+            placeholder="Add administrative or logistics instructions for this pickup..."
+            value={adminNote}
+            onChange={(e) => setAdminNote(e.target.value)}
+            onBlur={saveNote}
+          />
+        </div>
+
+        {/* Status Actions */}
+        {booking.status !== 'completed' && booking.status !== 'cancelled' && (
+          <div className={styles.actionsGroup}>
+            {booking.status === 'pending' && (
+              <button
+                type="button"
+                className={styles.primaryActionBtn}
+                disabled={saving}
+                onClick={() => patchStatus('confirmed')}
+              >
+                {saving ? 'Updating…' : '✓ Confirm Booking Order'}
+              </button>
+            )}
+
+            <div className={styles.actionRow}>
+              <button
+                type="button"
+                className={styles.doneActionBtn}
+                disabled={saving}
+                onClick={markAsDone}
+              >
+                {saving ? 'Saving…' : '📦 Mark Complete & Save Batch'}
+              </button>
+
+              <button
+                type="button"
+                className={styles.cancelActionBtn}
+                disabled={saving}
+                onClick={() => patchStatus('cancelled')}
+              >
+                ✕ Cancel Pickup
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-
-      <div className="card">
-        <p className="section-title">Booking Info</p>
-        {[
-          ['Booking ID', formatBookingId(booking._id)],
-          ['Date', formatDateShort(booking.date)],
-          ['Location', booking.location],
-          ['Quantity', `${booking.quantityKg} kg`],
-          ['Client notes', booking.notes || '—']
-        ].map(([label, value]) => (
-          <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
-            <span style={{ color: '#888' }}>{label}</span>
-            <span style={{ textAlign: 'right', maxWidth: '60%' }}>{value}</span>
-          </div>
-        ))}
-      </div>
-
-      {marketRate && (
-        <div className="card" style={{ background: '#f8f8f6' }}>
-          <p style={{ fontSize: 12, color: '#888', margin: '0 0 8px' }}>
-            Market Rate on {formatDateShort(booking.date)} (reference)
-          </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, fontSize: 12 }}>
-            {locRates.map(([abbr, val]) => (
-              <span key={abbr}>
-                {abbr}: <strong>₹{val}</strong>
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <label className="field-label">Admin Note (optional)</label>
-      <textarea
-        className="field-textarea"
-        rows={3}
-        placeholder="Add a note for this booking..."
-        value={adminNote}
-        onChange={(e) => setAdminNote(e.target.value)}
-        onBlur={saveNote}
-      />
-
-      {booking.status !== 'completed' && booking.status !== 'cancelled' && (
-        <>
-          {booking.status === 'pending' && (
-            <button
-              type="button"
-              className="btn-primary"
-              style={{ marginBottom: 8 }}
-              disabled={saving}
-              onClick={() => patchStatus('confirmed')}
-            >
-              Confirm Booking
-            </button>
-          )}
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              type="button"
-              className="btn-outline"
-              style={{ borderColor: 'var(--green)', color: 'var(--green)' }}
-              disabled={saving}
-              onClick={markAsDone}
-            >
-              {saving ? 'Saving…' : 'Mark as Done'}
-            </button>
-            <button
-              type="button"
-              style={{
-                flex: 1,
-                padding: 10,
-                border: '1px solid #f0c0c0',
-                borderRadius: 8,
-                background: '#f5e8e8',
-                color: 'var(--danger)',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-              disabled={saving}
-              onClick={() => patchStatus('cancelled')}
-            >
-              Cancel
-            </button>
-          </div>
-        </>
-      )}
     </AppShell>
   );
 }

@@ -1,0 +1,385 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: var(--max-width, 480px);
+  margin: 0 auto;
+  animation: pageFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Trip Selection List Card */
+.tripSelectCard {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.tripSelectCard:hover {
+  border-color: var(--amber, #7b3f00);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(123, 63, 0, 0.08);
+}
+
+.tripHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vehicleBadge {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tripIdPill {
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--amber-light, #fff5ec);
+  color: var(--amber, #7b3f00);
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid #f97316;
+}
+
+.tripBody {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.tripMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tripMetaSub {
+  font-size: 12px;
+  color: var(--text-muted, #64748b);
+}
+
+.cashVal {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--green, #2e7d52);
+  line-height: 1;
+}
+
+.cashLbl {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+  text-transform: uppercase;
+  text-align: right;
+  margin-top: 2px;
+}
+
+/* Vehicle Balance Header Card inside ExpenseEntry */
+.balanceHeroCard {
+  background: linear-gradient(135deg, #7b3f00 0%, #4a2600 100%);
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 8px 20px -4px rgba(123, 63, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.balanceRowGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.balanceBox {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.balanceBoxLbl {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.8;
+  text-transform: uppercase;
+}
+
+.balanceBoxVal {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* Category Grid */
+.catGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.catBtn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 12px 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+  text-transform: capitalize;
+}
+
+.catBtnActive {
+  background: var(--amber-light, #fff5ec);
+  border-color: var(--amber, #7b3f00);
+  color: var(--amber, #7b3f00);
+  box-shadow: 0 0 0 2px rgba(123, 63, 0, 0.12);
+}
+
+/* Input Fields */
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fieldLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.fieldInput {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 14px;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.fieldInput:focus {
+  border-color: var(--amber, #7b3f00);
+  box-shadow: 0 0 0 3px rgba(123, 63, 0, 0.12);
+}
+
+.prefixInputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.currencyPrefix {
+  position: absolute;
+  left: 14px;
+  font-weight: 700;
+  color: #64748b;
+  font-size: 15px;
+}
+
+.prefixInput {
+  padding-left: 32px;
+}
+
+.addBtn {
+  width: 100%;
+  padding: 12px;
+  border: 1px dashed var(--amber, #7b3f00);
+  border-radius: 10px;
+  background: var(--amber-light, #fff5ec);
+  color: var(--amber, #7b3f00);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addBtn:hover {
+  background: var(--amber, #7b3f00);
+  color: #ffffff;
+}
+
+/* Staged Expenses Summary Card */
+.stagedCard {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stagedTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: #92400e;
+  margin: 0;
+}
+
+.stagedLine {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #fef3c7;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.stagedCat {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+  text-transform: capitalize;
+}
+
+.stagedSub {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.stagedAmt {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--danger, #a93226);
+}
+
+.removeBtn {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.stagedCalculations {
+  border-top: 1px dashed #fcd34d;
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.calcRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #78350f;
+}
+
+.balanceAfterRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #fcd34d;
+  padding-top: 8px;
+  margin-top: 4px;
+}
+
+.balanceAfterLbl {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--amber, #7b3f00);
+}
+
+.balanceAfterVal {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--amber, #7b3f00);
+  line-height: 1;
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  background: var(--amber, #7b3f00);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(123, 63, 0, 0.2);
+}
+
+.submitBtn:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+}
+
+/* Saved Expense Lines */
+.savedList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.savedCard {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.editBtn {
+  background: var(--amber-light, #fff5ec);
+  color: var(--amber, #7b3f00);
+  border: 1px solid #f97316;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}

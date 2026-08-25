@@ -1,0 +1,337 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: var(--max-width, 760px);
+  margin: 0 auto;
+  padding-bottom: 28px;
+  animation: pageFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* User Profile Header Hero */
+.userHeroCard {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.userProfileLeft {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.avatarRing {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--blue, #1e4d7b);
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(30, 77, 123, 0.2);
+}
+
+.userMetaHead {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.userNameTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.userIdChip {
+  font-size: 12px;
+  color: var(--text-muted, #64748b);
+}
+
+.exportBtn {
+  background: var(--green-light, #e8f4ed);
+  color: var(--green, #2e7d52);
+  border: 1px solid var(--green-border, #bde0cc);
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.exportBtn:hover {
+  background: var(--green, #2e7d52);
+  color: #ffffff;
+}
+
+/* Analytics Stats Grid */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.statCard {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 14px;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.statLbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.statVal {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1.1;
+}
+
+.statValGreen {
+  color: var(--green, #2e7d52);
+}
+
+.statValBlue {
+  color: var(--blue, #1e4d7b);
+}
+
+.statValAmber {
+  color: #d97706;
+}
+
+/* Filter Toolbar */
+.filterCard {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 14px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1.5fr;
+  gap: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.filterInput,
+.filterSelect {
+  width: 100%;
+  padding: 10px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  font-size: 13px;
+  color: #0f172a;
+  outline: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.searchInput {
+  grid-column: span 1;
+}
+
+.filterInput:focus,
+.filterSelect:focus {
+  border-color: var(--blue, #1e4d7b);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(30, 77, 123, 0.12);
+}
+
+/* Batch Feed Cards */
+.batchFeed {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.batchCard {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.batchCard:hover {
+  border-color: var(--green-border, #bde0cc);
+  transform: translateY(-1px);
+}
+
+.batchHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.batchTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dateBadge {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e293b;
+  background: #f1f5f9;
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+
+.locPill {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--green, #2e7d52);
+  background: var(--green-light, #e8f4ed);
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+/* 4-Metric Grid inside Batch Card */
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.metricBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.metricLbl {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+  text-transform: uppercase;
+}
+
+.metricVal {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.emptyState {
+  background: #ffffff;
+  border: 1px dashed var(--card-border, #e0e0dc);
+  border-radius: 14px;
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--text-muted, #64748b);
+  font-size: 14px;
+}
+
+.backBtn {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.backBtn:hover {
+  background: #f1f5f9;
+}
+
+/* Mobile View Responsiveness (< 640px) */
+@media (max-width: 640px) {
+  .userHeroCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .exportBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .filterCard {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .searchInput {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+
+  .filterInput,
+  .filterSelect {
+    padding: 8px 6px;
+    font-size: 12px;
+  }
+
+  .metricGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+}

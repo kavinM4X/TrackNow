@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import AppShell from '../../components/layout/AppShell';
 import api from '../../api/client';
 import { initials, shortUserId } from '../../utils/format';
+import styles from './EditUser.module.css';
 
 export default function EditUser() {
   const { userId } = useParams();
@@ -12,6 +13,7 @@ export default function EditUser() {
   const [showReset, setShowReset] = useState(false);
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
+  const [saving, setSaving] = useState(false);
   const form = useForm();
   const resetForm = useForm();
 
@@ -31,101 +33,202 @@ export default function EditUser() {
 
   const save = async (data) => {
     setErr('');
+    setMsg('');
+    setSaving(true);
     try {
       const res = await api.put(`/admin/users/${userId}`, data);
       setUser(res.data);
-      setMsg('✓ Changes saved');
+      setMsg('✓ Account changes saved successfully');
     } catch (e) {
       setErr(e.response?.data?.error || 'Save failed');
+    } finally {
+      setSaving(false);
     }
   };
 
   const resetPass = async (data) => {
-    if (data.newPassword !== data.confirmPassword) return;
-    await api.post(`/admin/users/${userId}/reset-password`, {
-      newPassword: data.newPassword
-    });
-    setMsg('✓ Password reset');
-    setShowReset(false);
-    resetForm.reset();
+    setErr('');
+    setMsg('');
+    if (data.newPassword !== data.confirmPassword) {
+      setErr('New password and confirmation do not match.');
+      return;
+    }
+    try {
+      await api.post(`/admin/users/${userId}/reset-password`, {
+        newPassword: data.newPassword
+      });
+      setMsg('✓ Password reset successfully');
+      setShowReset(false);
+      resetForm.reset();
+    } catch (e) {
+      setErr(e.response?.data?.error || 'Password reset failed');
+    }
   };
 
   if (!user) {
     return (
-      <AppShell title="Edit User" backPath="/admin/users">
-        <div className="spinner" />
+      <AppShell title="Edit Farmer User" backPath="/admin/users">
+        <div className="app-loading">
+          <div className="spinner" />
+        </div>
       </AppShell>
     );
   }
 
   return (
-    <AppShell title="Edit User" backPath="/admin/users">
-      <div className="card" style={{ textAlign: 'center' }}>
-        <div
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: '50%',
-            background: 'var(--blue)',
-            color: '#fff',
-            margin: '0 auto 8px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: 600
-          }}
-        >
-          {initials(user.name)}
-        </div>
-        <strong>{user.name}</strong>
-        <div style={{ fontSize: 12, color: '#888' }}>{shortUserId(user._id)}</div>
-      </div>
-
-      <form className="card" onSubmit={form.handleSubmit(save)}>
-        <label className="field-label">Name</label>
-        <input className="field-input" {...form.register('name')} />
-        <label className="field-label">Phone</label>
-        <input className="field-input" {...form.register('phone')} />
-        <label className="field-label">Email (read-only)</label>
-        <input className="field-input" value={user.email || ''} disabled style={{ background: '#ededeb' }} />
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <input type="checkbox" {...form.register('isActive')} />
-          Account active
-        </label>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <input type="checkbox" {...form.register('trackerEnabled')} />
-          Tracker enabled
-        </label>
-        {form.watch('trackerEnabled') && (
-          <>
-            <label className="field-label">Vehicle ID</label>
-            <input className="field-input" {...form.register('vehicleId')} />
-          </>
-        )}
-        {err && <p className="form-error">{err}</p>}
-        {msg && <p className="form-success">{msg}</p>}
-        <button
-          type="button"
-          className="btn-outline"
-          style={{ marginBottom: 8 }}
-          onClick={() => navigate(`/admin/batch-history/user/${userId}`)}
-        >
-          View Batch History
-        </button>
-        <button type="button" className="btn-outline" style={{ marginBottom: 8 }} onClick={() => setShowReset(!showReset)}>
-          Reset Password
-        </button>
-        {showReset && (
-          <div style={{ marginBottom: 12 }}>
-            <input type="password" className="field-input" placeholder="New password" {...resetForm.register('newPassword')} />
-            <input type="password" className="field-input" placeholder="Confirm" {...resetForm.register('confirmPassword')} />
-            <button type="button" className="btn-primary" onClick={resetForm.handleSubmit(resetPass)}>
-              Reset
-            </button>
+    <AppShell title={`Edit ${user.name}`} backPath="/admin/users">
+      <div className={styles.container}>
+        {/* User Hero Header */}
+        <div className={styles.profileHeroCard}>
+          <div className={styles.profileLeft}>
+            <div className={styles.avatarRing}>{initials(user.name)}</div>
+            <div className={styles.userMeta}>
+              <h2 className={styles.userName}>{user.name}</h2>
+              <div className={styles.userSub}>
+                ID: <strong>{shortUserId(user._id)}</strong>
+                {user.phone && <span> · 📞 {user.phone}</span>}
+              </div>
+            </div>
           </div>
-        )}
-        <button type="submit" className="btn-primary">Save Changes</button>
-      </form>
+
+          <button
+            type="button"
+            className={styles.historyShortcutBtn}
+            onClick={() => navigate(`/admin/batch-history/user/${userId}`)}
+          >
+            <span>📜</span> View Batch History
+          </button>
+        </div>
+
+        {/* Main Form */}
+        <form className={styles.formCard} onSubmit={form.handleSubmit(save)}>
+          <h3 className={styles.cardSectionTitle}>👤 Personal Profile Details</h3>
+
+          {/* Full Name */}
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>Full Name</label>
+            <input
+              className={styles.fieldInput}
+              placeholder="Enter farmer full name"
+              {...form.register('name', { required: 'Name is required' })}
+            />
+          </div>
+
+          {/* Phone Number */}
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>Phone Number</label>
+            <input
+              className={styles.fieldInput}
+              placeholder="Enter phone number"
+              {...form.register('phone', { required: 'Phone is required' })}
+            />
+          </div>
+
+          {/* Email Address (Read Only) */}
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>Email Address (Read-only)</label>
+            <input
+              className={`${styles.fieldInput} ${styles.fieldInputDisabled}`}
+              value={user.email || 'No email registered'}
+              disabled
+            />
+          </div>
+
+          <h3 className={styles.cardSectionTitle}>⚙️ Account Status & Feature Access</h3>
+
+          {/* Account Active Toggle Box */}
+          <label className={styles.toggleBox}>
+            <div className={styles.toggleMeta}>
+              <span className={styles.toggleTitle}>Account Status (Active)</span>
+              <span className={styles.toggleSub}>
+                Allow this farmer to log in and create harvest pickup bookings
+              </span>
+            </div>
+            <input
+              type="checkbox"
+              className={styles.checkboxInput}
+              {...form.register('isActive')}
+            />
+          </label>
+
+          {/* Tracker Enabled Toggle Box */}
+          <label className={styles.toggleBox}>
+            <div className={styles.toggleMeta}>
+              <span className={styles.toggleTitle}>Live GPS Tracker Enabled</span>
+              <span className={styles.toggleSub}>
+                Enable real-time vehicle logistics tracking for this user
+              </span>
+            </div>
+            <input
+              type="checkbox"
+              className={styles.checkboxInput}
+              {...form.register('trackerEnabled')}
+            />
+          </label>
+
+          {/* Vehicle ID Assignment */}
+          {form.watch('trackerEnabled') && (
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel}>Assigned Logistics Vehicle ID</label>
+              <input
+                className={styles.fieldInput}
+                placeholder="Enter assigned vehicle license or ID (e.g. TN-37-AB-1234)"
+                {...form.register('vehicleId')}
+              />
+            </div>
+          )}
+
+          {err && <p className="form-error">{err}</p>}
+          {msg && <p className="form-success">{msg}</p>}
+
+          <button type="submit" className={styles.saveBtn} disabled={saving}>
+            <span>💾</span> {saving ? 'Saving Changes…' : 'Save Changes'}
+          </button>
+        </form>
+
+        {/* Security / Reset Password Card */}
+        <div className={styles.formCard}>
+          <h3 className={styles.cardSectionTitle}>🔒 Account Security</h3>
+
+          <button
+            type="button"
+            className={styles.resetBtnToggle}
+            onClick={() => setShowReset(!showReset)}
+          >
+            {showReset ? '▲ Hide Password Reset' : '🔑 Reset Farmer Password'}
+          </button>
+
+          {showReset && (
+            <form
+              className={styles.resetCard}
+              onSubmit={resetForm.handleSubmit(resetPass)}
+            >
+              <h4 className={styles.resetTitle}>Reset Password for {user.name}</h4>
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>New Password</label>
+                <input
+                  type="password"
+                  className={styles.fieldInput}
+                  placeholder="Enter new password (min 6 chars)"
+                  {...resetForm.register('newPassword', { required: true, minLength: 6 })}
+                />
+              </div>
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>Confirm New Password</label>
+                <input
+                  type="password"
+                  className={styles.fieldInput}
+                  placeholder="Confirm new password"
+                  {...resetForm.register('confirmPassword', { required: true })}
+                />
+              </div>
+              <button type="submit" className={styles.saveBtn}>
+                Confirm Password Reset
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
     </AppShell>
   );
 }

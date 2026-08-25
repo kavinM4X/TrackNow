@@ -3,9 +3,16 @@ import { useNavigate, useParams } from 'react-router-dom';
 import DriverShell from '../components/layout/DriverShell';
 import api from '../api/client';
 import { formatINR, todayISO, formatDateDayMonth } from '../utils/format';
-import styles from '../components/layout/DriverShell.module.css';
+import styles from './Expense.module.css';
 
-const CATEGORIES = ['diesel', 'food', 'loading', 'toll', 'repair', 'other'];
+const CATEGORIES = [
+  { key: 'diesel', label: 'Diesel', icon: '⛽' },
+  { key: 'food', label: 'Food & Tea', icon: '🍲' },
+  { key: 'loading', label: 'Loading', icon: '📦' },
+  { key: 'toll', label: 'Toll Gate', icon: '🛣️' },
+  { key: 'repair', label: 'Repair', icon: '🔧' },
+  { key: 'other', label: 'Other', icon: '📌' }
+];
 
 export default function ExpenseEntry() {
   const { vehicleId } = useParams();
@@ -55,7 +62,7 @@ export default function ExpenseEntry() {
   const handleAdd = () => {
     const amt = Number(amount);
     if (!amt || amt <= 0) {
-      setError('Enter a valid amount before adding');
+      setError('Please enter a valid expense amount in ₹');
       return;
     }
     setError('');
@@ -79,7 +86,7 @@ export default function ExpenseEntry() {
 
   const handleSaveNew = async () => {
     if (lines.length === 0) {
-      setError('Add at least one expense using the Add button');
+      setError('Add at least one expense entry before saving');
       return;
     }
     setError('');
@@ -96,7 +103,7 @@ export default function ExpenseEntry() {
         });
       }
       setLines([]);
-      setSuccess('Expenses saved');
+      setSuccess('✓ Expenses saved successfully');
       await loadData();
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to save expenses');
@@ -123,7 +130,7 @@ export default function ExpenseEntry() {
     try {
       await api.put(`/driver/expenses/${editingId}`, editForm);
       setEditingId(null);
-      setSuccess('Expense updated');
+      setSuccess('✓ Expense updated');
       await loadData();
     } catch (err) {
       setError(err.response?.data?.error || 'Update failed');
@@ -133,189 +140,201 @@ export default function ExpenseEntry() {
   };
 
   return (
-    <DriverShell title="Record Expense" backPath="/expense">
-      {loading ? (
-        <div className="spinner" />
-      ) : (
-        <>
-          <div className="card" style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 12, color: '#888' }}>Vehicle</div>
-            <strong>{vehicle?.vehicleNumber}</strong>
-            {vehicle?.city ? (
-              <div style={{ fontSize: 11, color: '#888', marginTop: 4 }}>{vehicle.city}</div>
-            ) : null}
-            <div className={styles.advanceRow}>
-              <span className={styles.advanceLbl}>Advance amount</span>
-              <span className={styles.advanceVal}>+{formatINR(vehicle?.advanceTotal)}</span>
-            </div>
-            <div className={styles.advanceRow} style={{ borderTop: 'none', marginTop: 6, paddingTop: 0 }}>
-              <span className={styles.advanceLbl}>Available Cash</span>
-              <span className={styles.pos} style={{ fontWeight: 600 }}>
-                {formatINR(vehicle?.balance)}
-              </span>
-            </div>
+    <DriverShell title="Record Vehicle Expense" backPath="/expense">
+      <div className={styles.container}>
+        {loading ? (
+          <div className="app-loading">
+            <div className="spinner" />
           </div>
+        ) : (
+          <>
+            {/* Vehicle & Balance Hero */}
+            <div className={styles.balanceHeroCard}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 16, fontWeight: 800 }}>🚚 {vehicle?.vehicleNumber}</span>
+                {vehicle?.city && <span style={{ fontSize: 12, opacity: 0.8 }}>📍 {vehicle.city}</span>}
+              </div>
 
-          <p className="section-title">Saved Expenses</p>
-          {savedExpenses.length === 0 ? (
-            <p style={{ fontSize: 12, color: '#888', marginBottom: 12 }}>No expenses yet.</p>
-          ) : (
-            savedExpenses.map((e) =>
-              editingId === e._id ? (
-                <div key={e._id} className="card" style={{ marginBottom: 8 }}>
-                  <select
-                    className="field-input"
-                    value={editForm.category}
-                    onChange={(ev) => setEditForm((f) => ({ ...f, category: ev.target.value }))}
-                  >
-                    {CATEGORIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    className="field-input"
-                    type="number"
-                    min="0"
-                    value={editForm.amount}
-                    onChange={(ev) => setEditForm((f) => ({ ...f, amount: ev.target.value }))}
-                  />
-                  <input
-                    className="field-input"
-                    type="date"
-                    value={editForm.date}
-                    onChange={(ev) => setEditForm((f) => ({ ...f, date: ev.target.value }))}
-                  />
-                  <input
-                    className="field-input"
-                    placeholder="Remarks"
-                    value={editForm.remarks}
-                    onChange={(ev) => setEditForm((f) => ({ ...f, remarks: ev.target.value }))}
-                  />
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button type="button" className="btn-amber" style={{ flex: 1 }} onClick={saveEdit} disabled={saving}>
-                      Save
-                    </button>
-                    <button type="button" className="btn-outline" style={{ flex: 1 }} onClick={() => setEditingId(null)}>
-                      Cancel
-                    </button>
-                  </div>
+              <div className={styles.balanceRowGrid}>
+                <div className={styles.balanceBox}>
+                  <span className={styles.balanceBoxLbl}>Total Advance</span>
+                  <span className={styles.balanceBoxVal}>+{formatINR(vehicle?.advanceTotal)}</span>
                 </div>
-              ) : (
-                <div key={e._id} className={styles.savedExpenseLine}>
-                  <div>
-                    <strong style={{ textTransform: 'capitalize' }}>{e.category}</strong>
-                    <div style={{ fontSize: 11, color: '#888' }}>
-                      {formatDateDayMonth(e.date)}
-                      {e.remarks ? ` · ${e.remarks}` : ''}
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span className={styles.neg}>-{formatINR(e.amount)}</span>
-                    <button type="button" className={styles.editExpBtn} onClick={() => startEdit(e)}>
-                      Edit
-                    </button>
-                  </div>
-                </div>
-              )
-            )
-          )}
 
-          <p className="section-title">Add New Expense</p>
-          <label className="field-label">Date</label>
-          <input
-            className="field-input"
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
-
-          <label className="field-label">Category</label>
-          <div className={styles.catGrid}>
-            {CATEGORIES.map((c) => (
-              <button
-                key={c}
-                type="button"
-                className={`${styles.catBtn} ${category === c ? styles.catBtnOn : ''}`}
-                onClick={() => setCategory(c)}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-
-          <label className="field-label">Amount (₹)</label>
-          <input
-            className="field-input"
-            type="number"
-            min="0"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="Enter amount for selected category"
-          />
-
-          <label className="field-label">Remarks (optional)</label>
-          <input
-            className="field-input"
-            value={remarks}
-            onChange={(e) => setRemarks(e.target.value)}
-            placeholder="e.g. Chennai toll"
-          />
-
-          <button type="button" className={styles.addLineBtn} onClick={handleAdd}>
-            + Add
-          </button>
-
-          {lines.length > 0 && (
-            <div className={styles.expenseSummaryCard}>
-              <p className={styles.expenseSummaryTitle}>Pending (not saved yet)</p>
-              {lines.map((line) => (
-                <div key={line.id} className={styles.expenseLine}>
-                  <div>
-                    <strong style={{ textTransform: 'capitalize' }}>{line.category}</strong>
-                    {line.remarks ? (
-                      <div style={{ fontSize: 11, color: '#888' }}>{line.remarks}</div>
-                    ) : null}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span className={styles.neg}>-{formatINR(line.amount)}</span>
-                    <button type="button" className={styles.removeLineBtn} onClick={() => removeLine(line.id)}>
-                      ✕
-                    </button>
-                  </div>
-                </div>
-              ))}
-
-              <div className={styles.expenseTotals}>
-                <div className={styles.previewRow}>
-                  <span>Current Balance</span>
-                  <span className={styles.previewSm}>{formatINR(vehicle?.balance)}</span>
-                </div>
-                <div className={styles.previewRow}>
-                  <span>Total Added ({lines.length})</span>
-                  <span className={`${styles.previewSm} ${styles.neg}`}>-{formatINR(totalPending)}</span>
-                </div>
-                <div className={styles.balanceAfterBlock}>
-                  <span className={styles.balanceAfterLabel}>Balance After</span>
-                  <span className={styles.balanceAfterVal}>{formatINR(balanceAfterPending)}</span>
+                <div className={styles.balanceBox}>
+                  <span className={styles.balanceBoxLbl}>Available Cash</span>
+                  <span className={styles.balanceBoxVal} style={{ color: '#10b981' }}>
+                    {formatINR(vehicle?.balance)}
+                  </span>
                 </div>
               </div>
             </div>
-          )}
 
-          {error && <p className={styles.err}>{error}</p>}
-          {success && <p className="form-success">{success}</p>}
-          <button
-            type="button"
-            className="btn-amber"
-            onClick={handleSaveNew}
-            disabled={saving || lines.length === 0}
-          >
-            {saving ? 'Saving…' : 'Save Expense'}
-          </button>
-        </>
-      )}
+            {/* Add New Expense Form */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <h3 style={{ fontSize: 15, fontWeight: 700, margin: '4px 0 0', color: '#1e293b' }}>
+                ➕ Add Expense Entry
+              </h3>
+
+              {/* Date */}
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>Expense Date</label>
+                <input
+                  className={styles.fieldInput}
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
+              </div>
+
+              {/* Category Selector */}
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>Select Category</label>
+                <div className={styles.catGrid}>
+                  {CATEGORIES.map((c) => (
+                    <button
+                      key={c.key}
+                      type="button"
+                      className={`${styles.catBtn} ${category === c.key ? styles.catBtnActive : ''}`}
+                      onClick={() => setCategory(c.key)}
+                    >
+                      <span style={{ fontSize: 16 }}>{c.icon}</span>
+                      <span>{c.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Amount */}
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>Amount (₹)</label>
+                <div className={styles.prefixInputWrap}>
+                  <span className={styles.currencyPrefix}>₹</span>
+                  <input
+                    className={`${styles.fieldInput} ${styles.prefixInput}`}
+                    type="number"
+                    min="1"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="Enter amount (e.g. 1500)"
+                  />
+                </div>
+              </div>
+
+              {/* Remarks */}
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>Remarks / Details (Optional)</label>
+                <input
+                  className={styles.fieldInput}
+                  value={remarks}
+                  onChange={(e) => setRemarks(e.target.value)}
+                  placeholder="e.g. Diesel at Salem BPK"
+                />
+              </div>
+
+              <button type="button" className={styles.addBtn} onClick={handleAdd}>
+                ➕ Add Entry to List
+              </button>
+            </div>
+
+            {/* Staged Items Card */}
+            {lines.length > 0 && (
+              <div className={styles.stagedCard}>
+                <h4 className={styles.stagedTitle}>
+                  📝 Pending Items ({lines.length})
+                </h4>
+
+                {lines.map((line) => (
+                  <div key={line.id} className={styles.stagedLine}>
+                    <div>
+                      <div className={styles.stagedCat}>{line.category}</div>
+                      {line.remarks ? <div className={styles.stagedSub}>{line.remarks}</div> : null}
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span className={styles.stagedAmt}>− {formatINR(line.amount)}</span>
+                      <button
+                        type="button"
+                        className={styles.removeBtn}
+                        onClick={() => removeLine(line.id)}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                <div className={styles.stagedCalculations}>
+                  <div className={styles.calcRow}>
+                    <span>Current Available Cash</span>
+                    <strong>{formatINR(vehicle?.balance)}</strong>
+                  </div>
+
+                  <div className={styles.calcRow}>
+                    <span>Total Added Items</span>
+                    <strong style={{ color: 'var(--danger, #a93226)' }}>− {formatINR(totalPending)}</strong>
+                  </div>
+
+                  <div className={styles.balanceAfterRow}>
+                    <span className={styles.balanceAfterLbl}>Cash Balance After</span>
+                    <span className={styles.balanceAfterVal}>{formatINR(balanceAfterPending)}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {error && <p className="form-error">{error}</p>}
+            {success && <p className="form-success">{success}</p>}
+
+            <button
+              type="button"
+              className={styles.submitBtn}
+              onClick={handleSaveNew}
+              disabled={saving || lines.length === 0}
+            >
+              {saving ? 'Saving Expense Entries…' : '💾 Save Expenses'}
+            </button>
+
+            {/* Saved Expenses History */}
+            {savedExpenses.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
+                <h3 style={{ fontSize: 14, fontWeight: 700, margin: 0, color: '#1e293b' }}>
+                  📜 Saved Expenses for this Trip ({savedExpenses.length})
+                </h3>
+
+                <div className={styles.savedList}>
+                  {savedExpenses.map((e) => (
+                    <div key={e._id} className={styles.savedCard}>
+                      <div>
+                        <span style={{ fontSize: 14, fontWeight: 700, textTransform: 'capitalize' }}>
+                          {e.category}
+                        </span>
+                        <div style={{ fontSize: 11, color: '#64748b' }}>
+                          🗓️ {formatDateDayMonth(e.date)}
+                          {e.remarks ? ` · ${e.remarks}` : ''}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--danger, #a93226)' }}>
+                          − {formatINR(e.amount)}
+                        </span>
+                        <button
+                          type="button"
+                          className={styles.editBtn}
+                          onClick={() => startEdit(e)}
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </DriverShell>
   );
 }
