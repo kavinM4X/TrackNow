@@ -4,27 +4,41 @@ import { useForm } from 'react-hook-form';
 import AppShell from '../../components/layout/AppShell';
 import api from '../../api/client';
 import { todayISO } from '../../utils/format';
+import styles from './UpdateMarketRate.module.css';
+
+const MARKET_LOCATIONS = [
+  { name: 'Coimbatore', key: 'coimbatore', abbr: 'CBE' },
+  { name: 'Mamballi', key: 'mamballi', abbr: 'MBL' },
+  { name: 'Ramnagar', key: 'ramnagar', abbr: 'RNG' },
+  { name: 'Dharmapuri', key: 'dharmapuri', abbr: 'DHP' }
+];
 
 export default function UpdateMarketRate() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const editId = params.get('id');
   const [error, setError] = useState('');
-  const { register, handleSubmit, watch, reset } = useForm();
+  const [saving, setSaving] = useState(false);
+
+  const { register, handleSubmit, watch, reset, setValue } = useForm();
 
   const c = Number(watch('coimbatore')) || 0;
   const m = Number(watch('mamballi')) || 0;
   const r = Number(watch('ramnagar')) || 0;
   const d = Number(watch('dharmapuri')) || 0;
+
   const cAvg = Number(watch('coimbatoreAvg')) || 0;
   const mAvg = Number(watch('mamballiAvg')) || 0;
   const rAvg = Number(watch('ramnagarAvg')) || 0;
   const dAvg = Number(watch('dharmapuriAvg')) || 0;
+
   const rates = [c, m, r, d];
   const avgRates = [cAvg, mAvg, rAvg, dAvg].filter((x) => x > 0);
   const topRate = Math.max(...rates);
-  const topMarket = ['Coimbatore', 'Mamballi', 'Ramnagar', 'Dharmapuri'][rates.indexOf(topRate)];
-  const minAvg = avgRates.length
+  const topIndex = rates.indexOf(topRate);
+  const topMarket = topRate > 0 ? MARKET_LOCATIONS[topIndex]?.name : '—';
+  
+  const calculatedAvg = avgRates.length
     ? Math.round(avgRates.reduce((a, b) => a + b, 0) / avgRates.length)
     : (rates.some((x) => x > 0) ? Math.round((c + m + r + d) / 4) : 0);
 
@@ -38,6 +52,7 @@ export default function UpdateMarketRate() {
 
   const onSubmit = async (data) => {
     setError('');
+    setSaving(true);
     const body = {
       date: data.date,
       coimbatore: Number(data.coimbatore),
@@ -53,6 +68,7 @@ export default function UpdateMarketRate() {
       dharmapuriAvg: Number(data.dharmapuriAvg) || null,
       dharmapuriMin: Number(data.dharmapuriMin) || null
     };
+
     try {
       if (editId) {
         await api.put(`/market-rates/${editId}`, body);
@@ -64,61 +80,146 @@ export default function UpdateMarketRate() {
             const existingId = err.response.data.id;
             if (window.confirm(`A rate for ${data.date} already exists. Update it?`)) {
               await api.put(`/market-rates/${existingId}`, body);
-            } else return;
+            } else {
+              setSaving(false);
+              return;
+            }
           } else throw err;
         }
       }
       navigate('/admin/market-rates');
     } catch (err) {
       setError(err.response?.data?.error || 'Save failed');
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
-    <AppShell title="Update Market Rate" backPath="/admin/market-rates">
-      <form className="card" onSubmit={handleSubmit(onSubmit)}>
-        <label className="field-label">Date</label>
-        <input
-          type="date"
-          className="field-input"
-          disabled={!!editId}
-          {...register('date', { required: true })}
-        />
-        <p className="section-title">Enter Rates (₹ per kg)</p>
-        {[
-          ['Coimbatore', 'coimbatore'],
-          ['Mamballi', 'mamballi'],
-          ['Ramnagar', 'ramnagar'],
-          ['Dharmapuri', 'dharmapuri']
-        ].map(([label, key]) => (
-          <div key={label}>
-            <label className="field-label">{label}</label>
-            <input
-              type="number"
-              min={1}
-              className="field-input"
-              placeholder="Rate - manual enter"
-              {...register(key, { required: true, min: 1 })}
-            />
-            <input
-              type="number"
-              min={1}
-              className="field-input"
-              placeholder="Avg - manual enter"
-              {...register(`${key}Avg`, { min: 1 })}
-            />
-            <input
-              type="number"
-              min={1}
-              className="field-input"
-              placeholder="Min - manual enter"
-              {...register(`${key}Min`, { min: 1 })}
-            />
+    <AppShell title={editId ? "Edit Market Rate" : "Update Market Rate"} backPath="/admin/market-rates">
+      <div className={styles.container}>
+        {/* Date Selector Card */}
+        <div className={styles.dateCard}>
+          <div className={styles.dateHead}>
+            <h3 className={styles.dateTitle}>
+              <span>🗓️</span> Select Market Date
+            </h3>
           </div>
-        ))}
-        {error && <p className="form-error">{error}</p>}
-        <button type="submit" className="btn-primary">Save Rate</button>
-      </form>
+
+          <div className={styles.dateInputWrap}>
+            <input
+              type="date"
+              className={styles.dateInput}
+              disabled={!!editId}
+              {...register('date', { required: true })}
+            />
+            {!editId && (
+              <button
+                type="button"
+                className={styles.todayQuickBtn}
+                onClick={() => setValue('date', todayISO())}
+              >
+                Today
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Live Calculation Bar */}
+        {(topRate > 0 || calculatedAvg > 0) && (
+          <div className={styles.calcSummaryBar}>
+            <div className={styles.calcItem}>
+              <span className={styles.calcLbl}>Top Market Rate</span>
+              <span className={styles.calcVal}>
+                {topMarket}: ₹{topRate > 0 ? topRate : '—'} / kg
+              </span>
+            </div>
+            <div className={styles.calcItem}>
+              <span className={styles.calcLbl}>Average Overall Rate</span>
+              <span className={styles.calcValGreen}>
+                ₹{calculatedAvg > 0 ? calculatedAvg : '—'} / kg
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Form Grid */}
+        <form onSubmit={handleSubmit(onSubmit)} className={styles.marketFormSection}>
+          {MARKET_LOCATIONS.map((loc) => (
+            <div key={loc.key} className={styles.marketCard}>
+              <div className={styles.marketHeader}>
+                <div className={styles.marketTitleGroup}>
+                  <span className={styles.marketBadge}>{loc.abbr}</span>
+                  <h4 className={styles.marketName}>{loc.name} Market</h4>
+                </div>
+              </div>
+
+              <div className={styles.ratesGrid}>
+                {/* Base Rate */}
+                <div className={styles.rateInputGroup}>
+                  <label className={styles.inputLabel}>Base Rate (₹/kg)</label>
+                  <div className={styles.inputPrefixWrap}>
+                    <span className={styles.currencyPrefix}>₹</span>
+                    <input
+                      type="number"
+                      min={1}
+                      className={styles.rateInput}
+                      placeholder="Rate"
+                      {...register(loc.key, { required: true, min: 1 })}
+                    />
+                  </div>
+                </div>
+
+                {/* Average Rate */}
+                <div className={styles.rateInputGroup}>
+                  <label className={styles.inputLabel}>Average Rate (₹/kg)</label>
+                  <div className={styles.inputPrefixWrap}>
+                    <span className={styles.currencyPrefix}>₹</span>
+                    <input
+                      type="number"
+                      min={1}
+                      className={styles.rateInput}
+                      placeholder="Avg Rate"
+                      {...register(`${loc.key}Avg`, { min: 1 })}
+                    />
+                  </div>
+                </div>
+
+                {/* Minimum Rate */}
+                <div className={styles.rateInputGroup}>
+                  <label className={styles.inputLabel}>Minimum Rate (₹/kg)</label>
+                  <div className={styles.inputPrefixWrap}>
+                    <span className={styles.currencyPrefix}>₹</span>
+                    <input
+                      type="number"
+                      min={1}
+                      className={styles.rateInput}
+                      placeholder="Min Rate"
+                      {...register(`${loc.key}Min`, { min: 1 })}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {error && <p className="form-error">{error}</p>}
+
+          {/* Sticky Bottom Action Bar */}
+          <div className={styles.saveActionBar}>
+            <button
+              type="button"
+              className={styles.cancelBtn}
+              onClick={() => navigate('/admin/market-rates')}
+            >
+              Cancel
+            </button>
+            <button type="submit" className={styles.saveBtn} disabled={saving}>
+              <span>💾</span> {saving ? 'Saving Market Rates…' : 'Save Market Rates'}
+            </button>
+          </div>
+        </form>
+      </div>
     </AppShell>
   );
 }
