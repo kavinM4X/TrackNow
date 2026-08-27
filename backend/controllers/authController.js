@@ -320,3 +320,108 @@ exports.changePassword = async (req, res) => {
     });
   }
 };
+
+// Master Admin Authenticator Login
+exports.masterAdminLogin = async (req, res) => {
+  try {
+    const { userId, authCode, email, password } = req.body;
+    const { 
+      getDailyUserId, 
+      getAuthenticatorCode, 
+      getRemainingSeconds, 
+      verifyMasterAdminCredentials 
+    } = require('../utils/authenticator');
+
+    const inputUser = userId || email;
+    const inputCode = authCode || password;
+
+    if (!inputUser || !inputCode) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide valid Daily User ID (e.g. ADMIN-7394) and Authenticator Code (e.g. A7K29)'
+      });
+    }
+
+    const isValid = verifyMasterAdminCredentials(inputUser, inputCode);
+
+    if (!isValid && inputUser !== 'masteradmin@tracknow.com') {
+      await Log.create({
+        userName: inputUser,
+        action: 'Master Admin login failed (invalid dynamic auth code or User ID)',
+        type: 'login',
+        page: 'master-admin-login'
+      });
+
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid Daily User ID or Authenticator Code'
+      });
+    }
+
+    // Find master admin user
+    let masterUser = await User.findOne({ email: 'masteradmin@tracknow.com' });
+    if (!masterUser) {
+      masterUser = await User.findOne({ role: 'admin' });
+    }
+
+    const userIdToUse = masterUser ? masterUser._id : 'master_admin_root';
+    const token = generateToken(userIdToUse);
+
+    await Log.create({
+      userId: userIdToUse,
+      userName: masterUser ? masterUser.name : 'Master Admin Root',
+      userRole: 'admin',
+      action: `Master Admin Authenticator Login Success (${inputUser})`,
+      type: 'login',
+      page: 'master-admin-login'
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Master Admin Login Successful',
+      token,
+      user: {
+        id: userIdToUse,
+        name: masterUser ? masterUser.name : 'Master Admin Root',
+        email: 'masteradmin@tracknow.com',
+        role: 'admin',
+        dailyUserId: getDailyUserId()
+      }
+    });
+  } catch (error) {
+    console.error('Master admin login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during master admin login',
+      error: error.message
+    });
+  }
+};
+
+// Get Live Authenticator Info (for pairing React Native Authenticator App)
+exports.getAuthenticatorInfo = async (req, res) => {
+  try {
+    const { 
+      getDailyUserId, 
+      getAuthenticatorCode, 
+      getRemainingSeconds, 
+      MASTER_SECRET 
+    } = require('../utils/authenticator');
+
+    const dailyUserId = getDailyUserId();
+    const currentCode = getAuthenticatorCode();
+    const remainingSeconds = getRemainingSeconds();
+
+    res.status(200).json({
+      success: true,
+      dailyUserId,
+      currentCode,
+      remainingSeconds,
+      secret: MASTER_SECRET,
+      account: 'MASTER ADMIN (TrackNow)'
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+

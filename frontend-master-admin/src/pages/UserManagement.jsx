@@ -30,7 +30,8 @@ import {
   DollarSign,
   Briefcase,
   History,
-  FileText
+  FileText,
+  Wrench
 } from 'lucide-react';
 
 const UserManagement = () => {
@@ -72,6 +73,7 @@ const UserManagement = () => {
   const [msg, setMsg] = useState({ type: '', text: '' });
 
   // User Activity Drawer / Modal state
+  const [selectedUser, setSelectedUser] = useState(null);
   const [repairingUser, setRepairingUser] = useState(false);
 
   const handleAutoRepairUser = async (userObj) => {
@@ -140,15 +142,15 @@ const UserManagement = () => {
 
       setUsers(loadedUsers);
 
-      // Seed initial passwords dictionary for all accounts
+      // Seed initial passwords dictionary matching exact database records
       const passMap = { ...userPasswords };
       loadedUsers.forEach((u) => {
         if (!passMap[u._id]) {
           if (u.email === 'masteradmin@tracknow.com' || u.phone === '7373144198') passMap[u._id] = 'Nottodaybro@1';
-          else if (u.phone === '9999999999') passMap[u._id] = 'admin123';
-          else if (u.role === 'driver') passMap[u._id] = 'driver123';
-          else if (u.role === 'admin') passMap[u._id] = 'admin123';
-          else passMap[u._id] = 'user123';
+          else if (u.phone === '9952600483' || u.phone === '9363737913') passMap[u._id] = '12345678';
+          else if (u.role === 'driver') passMap[u._id] = '12345678';
+          else if (u.role === 'admin') passMap[u._id] = 'Nottodaybro@1';
+          else passMap[u._id] = '12345678';
         }
       });
       setUserPasswords(passMap);
@@ -540,7 +542,7 @@ const UserManagement = () => {
                       <td>
                         <span className={`pill ${u.isActive !== false ? 'pill-green' : 'pill-rose'}`}>
                           {u.isActive !== false ? <CheckCircle size={12} /> : <XCircle size={12} />}
-                          <span>{u.isActive !== false ? 'Active' : 'Disabled'}</span>
+                          <span>{u.isActive !== false ? 'Active (No Issues)' : '⚠️ Issue Detected'}</span>
                         </span>
                       </td>
 

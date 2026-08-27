@@ -7,15 +7,8 @@ const http = require('http');
  * Pings the public URL every 9 minutes to reset Render's 15-minute inactivity timer.
  */
 function startSelfPing() {
-  // Render automatically sets RENDER_EXTERNAL_URL (e.g. https://tracknow-api.onrender.com)
-  const externalUrl = process.env.RENDER_EXTERNAL_URL || process.env.PUBLIC_API_URL;
-  
-  if (!externalUrl) {
-    if (process.env.NODE_ENV === 'production') {
-      console.log('[SELF-PING] RENDER_EXTERNAL_URL not set; self-ping disabled.');
-    }
-    return;
-  }
+  // Render automatically sets RENDER_EXTERNAL_URL or PUBLIC_API_URL
+  const externalUrl = process.env.RENDER_EXTERNAL_URL || process.env.PUBLIC_API_URL || 'https://tracknow-backend-api.onrender.com';
 
   const PING_INTERVAL_MS = 9 * 60 * 1000; // 9 minutes
   const healthUrl = `${externalUrl.replace(/\/$/, '')}/api/health`;

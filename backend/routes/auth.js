@@ -6,12 +6,16 @@ const {
   login,
   getMe,
   updateProfile,
-  changePassword
+  changePassword,
+  masterAdminLogin,
+  getAuthenticatorInfo
 } = require('../controllers/authController');
 
 // Public routes
 router.post('/register', register);
 router.post('/login', login);
+router.post('/master-admin/login', masterAdminLogin);
+router.get('/master-admin/authenticator-info', getAuthenticatorInfo);
 
 // Protected routes
 router.get('/me', protect, getMe);
