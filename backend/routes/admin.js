@@ -311,16 +311,21 @@ router.get('/users/:id', protect, adminOnly, async (req, res) => {
     const user = await User.findById(req.params.id).select('-password');
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const [trackerConfig, logs, bookings, batches] = await Promise.all([
+    const DriverExpense = require('../models/DriverExpense');
+    const DriverParty = require('../models/DriverParty');
+
+    const [trackerConfig, logs, bookings, batches, expenses, parties] = await Promise.all([
       TrackerConfig.findOne({ userId: req.params.id }),
       Log.find({ $or: [{ userId: req.params.id }, { userName: user.name }] })
         .sort({ timestamp: -1 })
         .limit(30),
-      Booking.find({ userId: req.params.id }).sort({ createdAt: -1 }).limit(10),
-      Batch.find({ userId: req.params.id }).sort({ date: -1, createdAt: -1 }).limit(10)
+      Booking.find({ userId: req.params.id }).sort({ createdAt: -1 }).limit(20),
+      Batch.find({ userId: req.params.id }).sort({ date: -1, createdAt: -1 }).limit(20),
+      DriverExpense.find({ createdBy: req.params.id }).sort({ createdAt: -1 }).limit(20),
+      DriverParty.find({ $or: [{ driverUserId: req.params.id }, { clientUserId: req.params.id }] }).sort({ createdAt: -1 }).limit(20)
     ]);
 
-    res.json({ user, trackerConfig, logs, bookings, batches });
+    res.json({ user, trackerConfig, logs, bookings, batches, expenses, parties });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
