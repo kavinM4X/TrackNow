@@ -230,8 +230,8 @@ router.use('/user-invite', userInviteAdmin);
 // GET /api/admin/users (admin only)
 router.get('/users', protect, adminOnly, async (req, res) => {
   try {
-    // Fetch both regular users and drivers
-    const users = await User.find({ role: { $in: ['user', 'driver', 'staff'] } })
+    // Fetch all user accounts including admins, drivers, clients, and staff
+    const users = await User.find({})
       .sort({ createdAt: -1 })
       .select('-password');
     res.json(users);
@@ -309,8 +309,18 @@ router.post('/users', protect, adminOnly, async (req, res) => {
 router.get('/users/:id', protect, adminOnly, async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-password');
-    const trackerConfig = await TrackerConfig.findOne({ userId: req.params.id });
-    res.json({ user, trackerConfig });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const [trackerConfig, logs, bookings, batches] = await Promise.all([
+      TrackerConfig.findOne({ userId: req.params.id }),
+      Log.find({ $or: [{ userId: req.params.id }, { userName: user.name }] })
+        .sort({ timestamp: -1 })
+        .limit(30),
+      Booking.find({ userId: req.params.id }).sort({ createdAt: -1 }).limit(10),
+      Batch.find({ userId: req.params.id }).sort({ date: -1, createdAt: -1 }).limit(10)
+    ]);
+
+    res.json({ user, trackerConfig, logs, bookings, batches });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -319,11 +329,19 @@ router.get('/users/:id', protect, adminOnly, async (req, res) => {
 // PUT /api/admin/users/:id (admin only)
 router.put('/users/:id', protect, adminOnly, async (req, res) => {
   try {
-    const { name, phone, isActive, trackerEnabled, vehicleId } = req.body;
+    const { name, phone, email, role, isActive, trackerEnabled, vehicleId } = req.body;
     
+    const updatePayload = {};
+    if (name) updatePayload.name = name.trim();
+    if (phone) updatePayload.phone = phone.trim();
+    if (email) updatePayload.email = email.trim();
+    if (role) updatePayload.role = role;
+    if (typeof isActive === 'boolean') updatePayload.isActive = isActive;
+    if (vehicleId !== undefined) updatePayload.vehicleId = vehicleId;
+
     const user = await User.findByIdAndUpdate(
       req.params.id,
-      { name, phone, isActive, trackerEnabled, vehicleId },
+      updatePayload,
       { new: true }
     ).select('-password');
     

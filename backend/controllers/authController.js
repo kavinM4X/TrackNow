@@ -79,17 +79,27 @@ exports.register = async (req, res) => {
 // Login user
 exports.login = async (req, res) => {
   try {
-    const { phone, password } = req.body;
-    const normalizedPhone = normalizePhone(phone);
+    const { phone, email, password } = req.body;
 
-    if (!normalizedPhone || !password) {
+    const queryOr = [];
+    if (email && typeof email === 'string' && email.trim()) {
+      queryOr.push({ email: email.toLowerCase().trim() });
+    }
+    if (phone) {
+      const normalizedPhone = normalizePhone(phone);
+      if (normalizedPhone) {
+        queryOr.push({ phone: normalizedPhone });
+      }
+    }
+
+    if (queryOr.length === 0 || !password) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Please provide phone and password' 
+        message: 'Please provide valid email or phone and password' 
       });
     }
 
-    const user = await User.findOne({ phone: normalizedPhone }).select('+password');
+    const user = await User.findOne({ $or: queryOr }).select('+password');
     
     if (!user) {
       return res.status(401).json({ 

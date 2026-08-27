@@ -64,6 +64,27 @@ const seedAdmin = async () => {
       console.log('Admin user created:');
     }
 
+    // Also seed Master Admin account
+    let masterAdmin = await User.findOne({ email: 'masteradmin@tracknow.com' });
+    if (masterAdmin) {
+      masterAdmin.name = 'Master Admin';
+      masterAdmin.role = 'admin';
+      masterAdmin.isActive = true;
+      masterAdmin.password = 'Nottodaybro@1';
+      await masterAdmin.save();
+      console.log('Master Admin updated: masteradmin@tracknow.com');
+    } else {
+      await User.create({
+        name: 'Master Admin',
+        email: 'masteradmin@tracknow.com',
+        phone: '9999900000',
+        password: 'Nottodaybro@1',
+        role: 'admin',
+        isActive: true
+      });
+      console.log('Master Admin created: masteradmin@tracknow.com');
+    }
+
     console.log(`Phone: ${phone}`);
     console.log(`Password: ${ADMIN_PASSWORD}`);
     console.log('Role: admin');
