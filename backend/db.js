@@ -15,8 +15,8 @@ async function connectDB() {
 
   connectPromise = mongoose
     .connect(mongoUri, {
-      maxPoolSize: 10,
-      minPoolSize: 2,
+      maxPoolSize: 50,
+      minPoolSize: 5,
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000
     })
