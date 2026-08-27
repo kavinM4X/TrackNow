@@ -6,7 +6,14 @@ import { formatDateShort, todayISO } from '../../utils/format';
 import { hasUpcomingBooking } from '../../utils/bookingGate';
 import styles from './BookingGate.module.css';
 
-const LOCATIONS = ['Coimbatore', 'Mamballi', 'Ramnagar', 'Dharmapuri'];
+const LOCATIONS = [
+  { name: 'Coimbatore', region: 'Tamil Nadu • Main Hub', icon: '🏬' },
+  { name: 'Mamballi', region: 'Karnataka Border Center', icon: '📍' },
+  { name: 'Ramnagar', region: 'Silk Cocoon Exchange', icon: '🏛️' },
+  { name: 'Dharmapuri', region: 'Tamil Nadu Region', icon: '🌿' }
+];
+
+const WEIGHT_PRESETS = [25, 50, 100, 250, 500];
 
 function BookingGateSuccess({ booking, onGoDashboard }) {
   const [seconds, setSeconds] = useState(3);
@@ -22,32 +29,76 @@ function BookingGateSuccess({ booking, onGoDashboard }) {
   }, [seconds, navigate]);
 
   const pct = ((3 - seconds) / 3) * 100;
+  const bookingId = `TN-${Math.floor(100000 + Math.random() * 900000)}`;
 
   return (
     <div className={styles.successPage}>
       <div className={styles.header}>
-        <div className={styles.welcome}>TrackNow</div>
-        <h1 className={styles.title}>Booking Confirmed!</h1>
+        <div className={styles.headerBadge}>
+          <span className={styles.greenPulse} />
+          <span>SERICULTURE PORTAL</span>
+        </div>
+        <h1 className={styles.title}>Booking Confirmed</h1>
+        <p className={styles.sub}>Your cocoon batch is registered on the cluster</p>
       </div>
+
       <div className={styles.successBody}>
-        <div className={styles.successIcon}>✓</div>
-        <h2 className={styles.successTitle}>Booking Confirmed!</h2>
-        <p className={styles.successDetail}>
-          Your batch for {formatDateShort(booking.date)}
-          <br />
-          at {booking.location} · {booking.quantityKg} kg
-          <br />
-          has been booked.
+        {/* Animated Check Icon */}
+        <div className={styles.successIconWrapper}>
+          <div className={styles.successIcon}>✓</div>
+        </div>
+
+        <h2 className={styles.successTitle}>Batch Scheduled!</h2>
+        <p className={styles.successSub}>
+          Thank you. Your upcoming batch has been assigned to <strong>{booking.location} Market</strong>.
         </p>
+
+        {/* Digital Ticket / Receipt Card */}
+        <div className={styles.receiptTicket}>
+          <div className={styles.ticketHeader}>
+            <span className={styles.ticketBrand}>TRACKNOW BATCH RECEIPT</span>
+            <span className={styles.ticketId}>{bookingId}</span>
+          </div>
+
+          <div className={styles.ticketBody}>
+            <div className={styles.receiptRow}>
+              <span className={styles.receiptLabel}>Destination Market</span>
+              <span className={styles.receiptValue}>{booking.location} Market</span>
+            </div>
+            <div className={styles.receiptRow}>
+              <span className={styles.receiptLabel}>Scheduled Date</span>
+              <span className={styles.receiptValue}>{formatDateShort(booking.date)}</span>
+            </div>
+            <div className={styles.receiptRow}>
+              <span className={styles.receiptLabel}>Estimated Quantity</span>
+              <span className={styles.receiptValue}>{booking.quantityKg} kg</span>
+            </div>
+            <div className={styles.receiptRow}>
+              <span className={styles.receiptLabel}>Status</span>
+              <span className={styles.statusBadge}>CONFIRMED</span>
+            </div>
+          </div>
+
+          <div className={styles.ticketFooter}>
+            <svg width="100%" height="24" viewBox="0 0 200 24" fill="none" opacity="0.3">
+              <path d="M0 4h4v16H0V4zm6 0h2v16H6V4zm4 0h6v16h-6V4zm8 0h2v16h-2V4zm4 0h4v16h-4V4zm6 0h2v16h-2V4zm4 0h6v16h-6V4zm8 0h4v16h-4V4zm6 0h2v16h-2V4zm4 0h6v16h-6V4zm8 0h2v16h-2V4zm4 0h4v16h-4V4zm6 0h2v16h-2V4zm4 0h6v16h-6V4zm8 0h4v16h-4V4zm6 0h2v16h-2V4zm4 0h4v16h-4V4zm6 0h2v16h-2V4z" fill="currentColor" />
+            </svg>
+          </div>
+        </div>
+
+        {/* Redirect Timer */}
         <div className={styles.countdownBox}>
-          <div className={styles.countdownLabel}>Redirecting to Dashboard in</div>
-          <div className={styles.countdownNum}>{seconds}</div>
+          <div className={styles.countdownRow}>
+            <span>Redirecting to Dashboard</span>
+            <strong className={styles.countdownNum}>{seconds}s</strong>
+          </div>
           <div className={styles.countdownBar}>
             <div className={styles.countdownFill} style={{ width: `${pct}%` }} />
           </div>
         </div>
-        <button type="button" className="btn-primary" onClick={onGoDashboard}>
-          Go to Dashboard Now
+
+        <button type="button" className={styles.primaryBtn} onClick={onGoDashboard}>
+          Go to Dashboard Now →
         </button>
       </div>
     </div>
@@ -78,6 +129,7 @@ export default function BookingGate({ user }) {
 
   const location = watch('location');
   const dateVal = watch('date');
+  const qtyVal = watch('quantityKg');
 
   useEffect(() => {
     hasUpcomingBooking()
@@ -99,6 +151,10 @@ export default function BookingGate({ user }) {
     window.addEventListener('popstate', blockBack);
     return () => window.removeEventListener('popstate', blockBack);
   }, []);
+
+  const handleSelectPreset = (presetKg) => {
+    setValue('quantityKg', String(presetKg), { shouldValidate: true });
+  };
 
   const onSubmit = async (data) => {
     setApiError('');
@@ -129,7 +185,12 @@ export default function BookingGate({ user }) {
   };
 
   if (checking) {
-    return <div className="app-loading">Loading…</div>;
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.spinner} />
+        <p>Checking active batch schedule...</p>
+      </div>
+    );
   }
 
   if (step === 'success' && confirmedBooking) {
@@ -145,93 +206,184 @@ export default function BookingGate({ user }) {
 
   return (
     <div className={styles.page}>
+      {/* Sleek Gradient Header Banner */}
       <header className={styles.header}>
+        <div className={styles.headerBadge}>
+          <span className={styles.greenPulse} />
+          <span>FARMER PORTAL</span>
+        </div>
         <div className={styles.welcome}>Welcome back, {firstName}</div>
-        <h1 className={styles.title}>Schedule Next Batch</h1>
-        <p className={styles.sub}>Please confirm your upcoming booking to continue</p>
+        <h1 className={styles.title}>Schedule Upcoming Batch</h1>
+        <p className={styles.sub}>Confirm your next cocoon market delivery details</p>
       </header>
 
       <div className={styles.body}>
-        <div className={styles.steps}>
-          <div className={`${styles.stepDot} ${styles.stepDotActive}`}>1</div>
-          <div className={styles.stepLine} />
-          <div className={styles.stepDot}>2</div>
-          <div className={styles.stepLine} />
-          <div className={styles.stepDot}>✓</div>
+        {/* Modern Segmented Stepper Bar */}
+        <div className={styles.stepperCard}>
+          <div className={styles.steps}>
+            <div className={`${styles.stepDot} ${styles.stepDotActive}`}>1</div>
+            <div className={`${styles.stepLine} ${styles.stepLineActive}`} />
+            <div className={styles.stepDot}>2</div>
+            <div className={styles.stepLine} />
+            <div className={styles.stepDot}>✓</div>
+          </div>
+          <div className={styles.stepLabels}>
+            <span className={styles.stepLabelActive}>Batch Form</span>
+            <span className={styles.stepLabelMuted}>Confirmation</span>
+            <span className={styles.stepLabelMuted}>Dashboard</span>
+          </div>
         </div>
-        <div className={styles.stepLabels}>
-          <span className={styles.stepLabelActive}>Booking</span>
-          <span className={styles.stepLabelMuted}>Review</span>
-          <span className={styles.stepLabelMuted}>Done</span>
-        </div>
 
-        <form className="card" onSubmit={handleSubmit(onSubmit)}>
-          <label className="field-label">Select date for upcoming batch</label>
-          <input
-            type="date"
-            className="field-input"
-            min={todayISO()}
-            {...register('date', { required: true })}
-          />
-          {dateVal && dateVal < todayISO() && (
-            <p className="form-error">⚠ Past dates are not allowed</p>
-          )}
-
-          <label className="field-label">Select market location</label>
-          <select
-            className="field-select"
-            {...register('location', { required: true })}
-            style={{ marginBottom: 8 }}
-          >
-            {LOCATIONS.map((loc) => (
-              <option key={loc} value={loc}>
-                {loc}
-              </option>
-            ))}
-          </select>
-
-          <div className={styles.locationGrid}>
-            {LOCATIONS.map((loc) => (
-              <button
-                key={loc}
-                type="button"
-                className={`${styles.locationChip} ${location === loc ? styles.locationChipActive : ''}`}
-                onClick={() => setValue('location', loc, { shouldValidate: true })}
-              >
-                <span
-                  className={`${styles.chipDot} ${location === loc ? styles.chipDotActive : ''}`}
-                />
-                {loc}
-              </button>
-            ))}
+        {/* Main Form Card */}
+        <form className={styles.formCard} onSubmit={handleSubmit(onSubmit)}>
+          {/* Form Section 1: Date */}
+          <div className={styles.formSection}>
+            <label className={styles.inputLabel}>
+              <span>📅 Scheduled Delivery Date</span>
+              <span className={styles.requiredTag}>Required</span>
+            </label>
+            <div className={styles.inputWrapper}>
+              <input
+                type="date"
+                className={styles.textInput}
+                min={todayISO()}
+                {...register('date', { required: 'Date is required' })}
+              />
+            </div>
+            {dateVal && dateVal < todayISO() && (
+              <div className={styles.fieldError}>⚠ Past dates are not permitted</div>
+            )}
           </div>
 
-          <label className="field-label">Estimated quantity (kg)</label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <input
-              type="number"
-              className="field-input"
-              min={1}
-              max={9999}
-              placeholder="Enter weight"
-              style={{ marginBottom: 0, flex: 1 }}
-              {...register('quantityKg', {
-                required: 'Quantity required',
-                min: { value: 1, message: 'Min 1 kg' }
+          {/* Form Section 2: Location Grid */}
+          <div className={styles.formSection}>
+            <label className={styles.inputLabel}>
+              <span>📍 Market Center Destination</span>
+              <span className={styles.requiredTag}>Required</span>
+            </label>
+
+            <select
+              className={styles.selectInput}
+              {...register('location', { required: true })}
+            >
+              {LOCATIONS.map((loc) => (
+                <option key={loc.name} value={loc.name}>
+                  {loc.name} ({loc.region})
+                </option>
+              ))}
+            </select>
+
+            <div className={styles.locationGrid}>
+              {LOCATIONS.map((loc) => {
+                const isActive = location === loc.name;
+                return (
+                  <button
+                    key={loc.name}
+                    type="button"
+                    className={`${styles.locationChip} ${isActive ? styles.locationChipActive : ''}`}
+                    onClick={() => setValue('location', loc.name, { shouldValidate: true })}
+                  >
+                    <span className={styles.chipIcon}>{loc.icon}</span>
+                    <div className={styles.chipText}>
+                      <div className={styles.chipName}>{loc.name}</div>
+                      <div className={styles.chipRegion}>{loc.region}</div>
+                    </div>
+                    {isActive && <div className={styles.checkBadge}>✓</div>}
+                  </button>
+                );
               })}
-            />
-            <span className={styles.qtySuffix}>kg</span>
+            </div>
           </div>
-          {errors.quantityKg && (
-            <p className="form-error">{errors.quantityKg.message}</p>
+
+          {/* Form Section 3: Quantity & Presets */}
+          <div className={styles.formSection}>
+            <label className={styles.inputLabel}>
+              <span>⚖️ Estimated Quantity</span>
+              <span className={styles.requiredTag}>Required</span>
+            </label>
+
+            <div className={styles.qtyInputGroup}>
+              <input
+                type="number"
+                className={styles.qtyInput}
+                min={1}
+                max={9999}
+                placeholder="Enter weight in kg..."
+                {...register('quantityKg', {
+                  required: 'Quantity required',
+                  min: { value: 1, message: 'Minimum 1 kg required' }
+                })}
+              />
+              <span className={styles.qtyUnit}>kg</span>
+            </div>
+
+            {/* Quick Touch Presets */}
+            <div className={styles.presetContainer}>
+              <span className={styles.presetTitle}>Quick select presets:</span>
+              <div className={styles.presetGrid}>
+                {WEIGHT_PRESETS.map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    className={`${styles.presetBtn} ${Number(qtyVal) === preset ? styles.presetBtnActive : ''}`}
+                    onClick={() => handleSelectPreset(preset)}
+                  >
+                    {preset} kg
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {errors.quantityKg && (
+              <div className={styles.fieldError}>{errors.quantityKg.message}</div>
+            )}
+          </div>
+
+          {/* Real-time Summary Card */}
+          {qtyVal && Number(qtyVal) > 0 && (
+            <div className={styles.summaryCard}>
+              <div className={styles.summaryTitle}>
+                <span>BATCH BOOKING PREVIEW</span>
+                <span className={styles.liveTag}>LIVE</span>
+              </div>
+              <div className={styles.summaryGrid}>
+                <div className={styles.summaryCell}>
+                  <span className={styles.cellLabel}>Market</span>
+                  <strong className={styles.cellVal}>{location}</strong>
+                </div>
+                <div className={styles.summaryCell}>
+                  <span className={styles.cellLabel}>Date</span>
+                  <strong className={styles.cellVal}>{formatDateShort(dateVal)}</strong>
+                </div>
+                <div className={styles.summaryCell}>
+                  <span className={styles.cellLabel}>Est. Quantity</span>
+                  <strong className={styles.cellVal}>{qtyVal} kg</strong>
+                </div>
+              </div>
+            </div>
           )}
 
-          {apiError && <p className="form-error">{apiError}</p>}
+          {apiError && <div className={styles.apiErrorBox}>{apiError}</div>}
 
-          <button type="submit" className="btn-primary" disabled={submitting} style={{ marginTop: 12 }}>
-            {submitting ? 'Saving…' : 'Confirm Booking →'}
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className={styles.primaryBtn}
+            disabled={submitting}
+          >
+            {submitting ? (
+              <span className={styles.btnLoading}>
+                <span className={styles.btnSpinner} />
+                <span>Confirming Booking...</span>
+              </span>
+            ) : (
+              <span>Confirm Booking & Continue →</span>
+            )}
           </button>
-          <p className={styles.skipNote}>You cannot skip this step</p>
+
+          <p className={styles.policyNote}>
+            🔒 Secure registration. Complete this step to unlock your farmer dashboard.
+          </p>
         </form>
       </div>
     </div>
