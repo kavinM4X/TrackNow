@@ -10,7 +10,7 @@ import {
   ActivityIndicator
 } from 'react-native';
 import Badge from '../components/common/Badge';
-import { deduplicatedGet } from '../api/client';
+import api, { deduplicatedGet } from '../api/client';
 import { displayTotalKg, formatDateDayMonth, formatINR } from '../utils/format';
 import { colors, radius, spacing } from '../styles/theme';
 
@@ -22,22 +22,24 @@ export default function BatchHistoryScreen({ onSelectBatch }) {
 
   const fetchBatches = useCallback(async () => {
     try {
-      const res = await deduplicatedGet('/batches/my', {}, 15000);
+      // Direct fresh API call to ensure latest MongoDB pricing
+      const res = await api.get('/batches/my');
       const raw = res.data;
       const list = Array.isArray(raw) ? raw : (raw?.batches || raw?.bookings || raw?.data || []);
       
       const dateMap = new Map();
       list.forEach((b) => {
         const d = b.date ? String(b.date).split('T')[0] : String(b._id);
-        const amount = Number(b.displayFinalAmount ?? b.estimatedValue ?? 0);
+        const amount = Number(b.displayFinalAmount ?? b.estimatedValue ?? b.goodSilkAmount ?? 0);
         const existing = dateMap.get(d);
-        if (!existing || amount > Number(existing.displayFinalAmount ?? existing.estimatedValue ?? 0)) {
+        if (!existing || amount > Number(existing.displayFinalAmount ?? existing.estimatedValue ?? existing.goodSilkAmount ?? 0)) {
           dateMap.set(d, b);
         }
       });
 
+      // Strictly only keep batches that have verified positive payout amount
       const cleanBatches = Array.from(dateMap.values()).filter((b) => {
-        const amount = Number(b.displayFinalAmount ?? b.estimatedValue ?? 0);
+        const amount = Number(b.displayFinalAmount ?? b.estimatedValue ?? b.goodSilkAmount ?? 0);
         return amount > 0;
       });
 
