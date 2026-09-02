@@ -63,11 +63,34 @@ export default function BatchDetailScreen({ batchId, onBack }) {
     );
   }
 
-  const finalPayout = batch.displayFinalAmount ?? batch.estimatedValue ?? 0;
-  const goodWeight = batch.goodSilkKg ?? batch.quantityKg ?? 0;
-  const goodRate = batch.goodSilkRate ?? batch.ratePerKg ?? 0;
-  const wasteWeight = batch.wasteKg ?? 0;
-  const wasteRate = batch.wasteRate ?? 0;
+  const vr = batch.vehicleRental;
+  const goodWeight = Number(batch.goodSilkKg ?? batch.quantityKg ?? 0);
+  const goodRate = Number(batch.goodSilkRatePerKg ?? batch.goodSilkRate ?? batch.ratePerKg ?? 0);
+  const goodSilkAmount = batch.goodSilkAmount != null ? Number(batch.goodSilkAmount) : Math.round(goodWeight * goodRate);
+
+  const wasteWeight = Number(batch.wasteKg ?? 0);
+  const wasteRate = Number(batch.wasteRatePerKg ?? batch.wasteRate ?? 0);
+  const wasteAmount = batch.wasteAmount != null ? Number(batch.wasteAmount) : Math.round(wasteWeight * wasteRate);
+
+  const doublesWeight = Number(batch.doubles ?? batch.doublesKg ?? 0);
+  const doublesRate = Number(batch.doublesRatePerKg ?? batch.doublesRate ?? 0);
+  const doublesAmount = batch.doublesAmount != null ? Number(batch.doublesAmount) : Math.round(doublesWeight * doublesRate);
+
+  const netSilkValue = batch.netSilkValue != null ? Number(batch.netSilkValue) : (goodSilkAmount + wasteAmount + doublesAmount);
+
+  // Lot deduction
+  const lotQty = Number(batch.lotQty) || 0;
+  const lotPrice = Number(batch.lotPrice) || 0;
+  const lotAmt = lotQty * lotPrice;
+
+  // Rental deduction
+  const rentalRate = vr?.ratePerKg != null ? Number(vr.ratePerKg) : null;
+  const rentalOnly = rentalRate ? Math.round(goodWeight * rentalRate) : (vr?.rentalTotal ? Math.max(0, vr.rentalTotal - lotAmt) : (netSilkValue > (batch.displayFinalAmount ?? batch.estimatedValue ?? netSilkValue) ? (netSilkValue - (batch.displayFinalAmount ?? batch.estimatedValue)) - lotAmt : 0));
+  const totalDeduction = (rentalOnly || 0) + (lotAmt || 0);
+
+  const finalPayout = vr?.finalAmount != null ? Number(vr.finalAmount) : Number(batch.displayFinalAmount ?? batch.estimatedValue ?? (netSilkValue - totalDeduction));
+
+  const driverName = vr?.ownerName || (batch.adminNote?.includes('Driver entry:') ? batch.adminNote.replace('Driver entry:', '').trim() : null);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -136,7 +159,7 @@ export default function BatchDetailScreen({ batchId, onBack }) {
             <Text style={[styles.td, { flex: 1, textAlign: 'center' }]}>{goodWeight} kg</Text>
             <Text style={[styles.td, { flex: 1, textAlign: 'right' }]}>{formatINR(goodRate)}</Text>
             <Text style={[styles.tdBold, { flex: 1.2, textAlign: 'right' }]}>
-              {formatINR(goodWeight * goodRate)}
+              {formatINR(goodSilkAmount)}
             </Text>
           </View>
 
@@ -150,19 +173,78 @@ export default function BatchDetailScreen({ batchId, onBack }) {
               <Text style={[styles.td, { flex: 1, textAlign: 'center' }]}>{wasteWeight} kg</Text>
               <Text style={[styles.td, { flex: 1, textAlign: 'right' }]}>{formatINR(wasteRate)}</Text>
               <Text style={[styles.tdBold, { flex: 1.2, textAlign: 'right' }]}>
-                {formatINR(wasteWeight * wasteRate)}
+                {formatINR(wasteAmount)}
+              </Text>
+            </View>
+          ) : null}
+
+          {/* Doubles if present */}
+          {doublesWeight > 0 ? (
+            <View style={styles.tableRow}>
+              <View style={{ flex: 2 }}>
+                <Text style={styles.gradeTitle}>Doubles</Text>
+                <Text style={styles.gradeSub}>Defective silk</Text>
+              </View>
+              <Text style={[styles.td, { flex: 1, textAlign: 'center' }]}>{doublesWeight} kg</Text>
+              <Text style={[styles.td, { flex: 1, textAlign: 'right' }]}>{formatINR(doublesRate)}</Text>
+              <Text style={[styles.tdBold, { flex: 1.2, textAlign: 'right' }]}>
+                {formatINR(doublesAmount)}
               </Text>
             </View>
           ) : null}
 
           {/* Total Net Row */}
           <View style={styles.tableTotalRow}>
-            <Text style={styles.totalLabel}>Calculated Net Value</Text>
-            <Text style={styles.totalAmount}>{formatINR(finalPayout)}</Text>
+            <Text style={styles.totalLabel}>Gross Silk Value</Text>
+            <Text style={styles.totalAmount}>{formatINR(netSilkValue)}</Text>
           </View>
         </View>
 
-        {/* Notes if present */}
+        {/* Driver Logistics & Rental Deductions */}
+        {(vr || totalDeduction > 0 || driverName) ? (
+          <View style={styles.logisticsCard}>
+            <Text style={styles.logisticsHeaderTitle}>🚛 Driver Logistics & Rental Deductions</Text>
+            
+            {driverName ? (
+              <View style={styles.logisticsRow}>
+                <Text style={styles.logisticsLabel}>Assigned Freight Driver</Text>
+                <Text style={styles.driverNamePill}>🚗 {driverName}</Text>
+              </View>
+            ) : null}
+
+            {rentalOnly > 0 ? (
+              <View style={styles.logisticsRow}>
+                <Text style={styles.logisticsLabel}>
+                  Freight Rental ({goodWeight} kg {rentalRate ? `× ${formatINR(rentalRate)}/kg` : ''})
+                </Text>
+                <Text style={styles.deductionNeg}>−{formatINR(rentalOnly)}</Text>
+              </View>
+            ) : null}
+
+            {lotAmt > 0 ? (
+              <View style={styles.logisticsRow}>
+                <Text style={styles.logisticsLabel}>
+                  Lot Charge ({lotQty} × {formatINR(lotPrice)})
+                </Text>
+                <Text style={styles.deductionNeg}>−{formatINR(lotAmt)}</Text>
+              </View>
+            ) : null}
+
+            {totalDeduction > 0 ? (
+              <View style={[styles.logisticsRow, styles.logisticsTotalRow]}>
+                <Text style={styles.logisticsTotalLabel}>Total Logistics Deduction</Text>
+                <Text style={styles.deductionTotalVal}>−{formatINR(totalDeduction)}</Text>
+              </View>
+            ) : null}
+
+            <View style={[styles.logisticsRow, styles.finalPayoutRow]}>
+              <Text style={styles.finalPayoutLabel}>Final Farmer Payout</Text>
+              <Text style={styles.finalPayoutVal}>{formatINR(finalPayout)}</Text>
+            </View>
+          </View>
+        ) : null}
+
+        {/* Logistics Remarks & Admin Notes */}
         {batch.notes || batch.adminNote ? (
           <View style={styles.notesBox}>
             <Text style={styles.notesTitle}>📝 Logistics & Quality Remarks</Text>
@@ -400,10 +482,85 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: colors.primaryDark
   },
-  notesBox: {
+  logisticsCard: {
     backgroundColor: '#fffbeb',
+    borderWidth: 1.5,
+    borderColor: '#fde68a',
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    marginBottom: spacing.md
+  },
+  logisticsHeaderTitle: {
+    fontSize: 12.5,
+    fontWeight: '900',
+    color: '#92400e',
+    marginBottom: 8
+  },
+  logisticsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 5
+  },
+  logisticsLabel: {
+    fontSize: 11,
+    color: '#78350f',
+    fontWeight: '600',
+    flex: 1
+  },
+  driverNamePill: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#92400e',
+    backgroundColor: 'rgba(217, 119, 6, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radius.full
+  },
+  deductionNeg: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#b91c1c'
+  },
+  logisticsTotalRow: {
+    borderTopWidth: 1,
+    borderTopColor: '#fde68a',
+    marginTop: 4,
+    paddingTop: 6
+  },
+  logisticsTotalLabel: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#92400e'
+  },
+  deductionTotalVal: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#b91c1c'
+  },
+  finalPayoutRow: {
+    borderTopWidth: 1.5,
+    borderTopColor: '#d97706',
+    marginTop: 6,
+    paddingTop: 8,
+    backgroundColor: '#fef3c7',
+    paddingHorizontal: 8,
+    borderRadius: radius.sm
+  },
+  finalPayoutLabel: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#78350f'
+  },
+  finalPayoutVal: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#15803d'
+  },
+  notesBox: {
+    backgroundColor: '#f8fafc',
     borderWidth: 1,
-    borderColor: '#fef3c7',
+    borderColor: '#e2e8f0',
     borderRadius: radius.md,
     padding: spacing.sm,
     marginBottom: spacing.md
@@ -411,12 +568,12 @@ const styles = StyleSheet.create({
   notesTitle: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#92400e',
+    color: colors.textMain,
     marginBottom: 2
   },
   notesText: {
     fontSize: 11,
-    color: '#78350f',
+    color: colors.textSecondary,
     lineHeight: 15
   },
   ticketFooter: {
