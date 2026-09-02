@@ -117,8 +117,8 @@ function validateAdminBatchRates(body) {
 /** Same rules for history list and batch detail — must stay in sync */
 function isBatchVisibleToClient(batch) {
   if (!batch) return false;
-  if (batch.visibleToClient === true) return true;
-  return Boolean(batch.updatedBy) && Number(batch.estimatedValue) > 0;
+  const val = Number(batch.displayFinalAmount ?? batch.estimatedValue ?? batch.vehicleRental?.finalAmount ?? batch.goodSilkAmount ?? 0);
+  return val > 0 || (Boolean(batch.updatedBy) && Number(batch.goodSilkRatePerKg || batch.ratePerKg) > 0);
 }
 
 /** Mongo filter: batches farmers may see in history, dashboard, detail */
@@ -128,11 +128,11 @@ function clientVisibleBatchQuery(userId) {
   return {
     userId: new mongoose.Types.ObjectId(String(uid)),
     $or: [
-      { visibleToClient: true },
-      {
-        updatedBy: { $exists: true, $ne: null },
-        estimatedValue: { $gt: 0 }
-      }
+      { estimatedValue: { $gt: 0 } },
+      { 'vehicleRental.finalAmount': { $gt: 0 } },
+      { goodSilkAmount: { $gt: 0 } },
+      { goodSilkRatePerKg: { $gt: 0 } },
+      { ratePerKg: { $gt: 0 } }
     ]
   };
 }

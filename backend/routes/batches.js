@@ -11,20 +11,27 @@ router.get('/my', protect, async (req, res) => {
   try {
     const visibleQuery = clientVisibleBatchQuery(req.user.id);
     const batches = await Batch.find(visibleQuery).sort({ date: -1 });
-    const agg = await Batch.aggregate([
-      { $match: { ...visibleQuery, userId: new mongoose.Types.ObjectId(req.user.id) } },
-      {
-        $group: {
-          _id: null,
-          totalKg: {
-            $sum: { $ifNull: ['$goodSilkKg', '$quantityKg'] }
-          }
-        }
+
+    const enriched = batches.map((b) => enrichBatch(b, null)).filter((b) => {
+      const amount = Number(b.displayFinalAmount ?? b.estimatedValue ?? 0);
+      return amount > 0;
+    });
+
+    // Deduplicate by date (pick the entry with the highest payout/finalized amount)
+    const dateMap = new Map();
+    enriched.forEach((b) => {
+      const d = b.date ? String(b.date).split('T')[0] : String(b._id);
+      const amount = Number(b.displayFinalAmount ?? b.estimatedValue ?? 0);
+      const existing = dateMap.get(d);
+      if (!existing || amount > Number(existing.displayFinalAmount ?? existing.estimatedValue ?? 0)) {
+        dateMap.set(d, b);
       }
-    ]);
-    const totalKg = Math.round((agg[0]?.totalKg || 0) * 10) / 10;
-    const enriched = batches.map((b) => enrichBatch(b, null));
-    res.json({ batches: enriched, totalKg });
+    });
+
+    const uniqueBatches = Array.from(dateMap.values());
+    const totalKg = Math.round(uniqueBatches.reduce((acc, b) => acc + (Number(b.goodSilkKg) || Number(b.quantityKg) || 0), 0) * 10) / 10;
+
+    res.json({ batches: uniqueBatches, totalKg });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -36,10 +43,24 @@ router.get('/recent', protect, async (req, res) => {
     if (req.user.role !== 'user') {
       return res.status(403).json({ error: 'User clients only' });
     }
-    const batches = await Batch.find(clientVisibleBatchQuery(req.user.id))
-      .sort({ date: -1 })
-      .limit(2);
-    res.json(batches.map((b) => enrichBatch(b, null)));
+    const batches = await Batch.find(clientVisibleBatchQuery(req.user.id)).sort({ date: -1 });
+    const enriched = batches.map((b) => enrichBatch(b, null)).filter((b) => {
+      const amount = Number(b.displayFinalAmount ?? b.estimatedValue ?? 0);
+      return amount > 0;
+    });
+
+    const dateMap = new Map();
+    enriched.forEach((b) => {
+      const d = b.date ? String(b.date).split('T')[0] : String(b._id);
+      const amount = Number(b.displayFinalAmount ?? b.estimatedValue ?? 0);
+      const existing = dateMap.get(d);
+      if (!existing || amount > Number(existing.displayFinalAmount ?? existing.estimatedValue ?? 0)) {
+        dateMap.set(d, b);
+      }
+    });
+
+    const uniqueBatches = Array.from(dateMap.values()).slice(0, 2);
+    res.json(uniqueBatches);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

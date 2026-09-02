@@ -25,7 +25,23 @@ export default function BatchHistoryScreen({ onSelectBatch }) {
       const res = await deduplicatedGet('/batches/my', {}, 15000);
       const raw = res.data;
       const list = Array.isArray(raw) ? raw : (raw?.batches || raw?.bookings || raw?.data || []);
-      setBatches(list);
+      
+      const dateMap = new Map();
+      list.forEach((b) => {
+        const d = b.date ? String(b.date).split('T')[0] : String(b._id);
+        const amount = Number(b.displayFinalAmount ?? b.estimatedValue ?? 0);
+        const existing = dateMap.get(d);
+        if (!existing || amount > Number(existing.displayFinalAmount ?? existing.estimatedValue ?? 0)) {
+          dateMap.set(d, b);
+        }
+      });
+
+      const cleanBatches = Array.from(dateMap.values()).filter((b) => {
+        const amount = Number(b.displayFinalAmount ?? b.estimatedValue ?? 0);
+        return amount > 0;
+      });
+
+      setBatches(cleanBatches);
     } catch (err) {
       console.error('Fetch batches error:', err);
     } finally {
@@ -45,6 +61,8 @@ export default function BatchHistoryScreen({ onSelectBatch }) {
 
   const safeBatches = Array.isArray(batches) ? batches : [];
   const filtered = safeBatches.filter((b) => {
+    const amount = Number(b.displayFinalAmount ?? b.estimatedValue ?? 0);
+    if (amount <= 0) return false;
     if (!search.trim()) return true;
     const term = search.toLowerCase();
     const loc = (b.location || '').toLowerCase();

@@ -17,17 +17,38 @@ export default function BatchHistory() {
   useEffect(() => {
     deduplicatedGet('/batches/my', {}, 15_000)
       .then((res) => {
-        setBatches(res.data.batches || []);
+        const rawBatches = res.data.batches || [];
+        const dateMap = new Map();
+
+        rawBatches.forEach((b) => {
+          const d = b.date ? String(b.date).split('T')[0] : String(b._id);
+          const amount = Number(b.displayFinalAmount ?? b.estimatedValue ?? 0);
+          const existing = dateMap.get(d);
+          if (!existing || amount > Number(existing.displayFinalAmount ?? existing.estimatedValue ?? 0)) {
+            dateMap.set(d, b);
+          }
+        });
+
+        const cleanBatches = Array.from(dateMap.values()).filter((b) => {
+          const amount = Number(b.displayFinalAmount ?? b.estimatedValue ?? 0);
+          return amount > 0;
+        });
+
+        setBatches(cleanBatches);
         setTotalKg(res.data.totalKg || 0);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = batches.filter((b) =>
-    formatDateDayMonth(b.date).toLowerCase().includes(search.toLowerCase()) ||
-    (b.location && b.location.toLowerCase().includes(search.toLowerCase()))
-  );
+  const filtered = batches.filter((b) => {
+    const amount = Number(b.displayFinalAmount ?? b.estimatedValue ?? 0);
+    if (amount <= 0) return false;
+    return (
+      formatDateDayMonth(b.date).toLowerCase().includes(search.toLowerCase()) ||
+      (b.location && b.location.toLowerCase().includes(search.toLowerCase()))
+    );
+  });
 
   return (
     <AppShell title="Batch History" subtitle="View silk cocoon harvest records & payout breakdowns">
