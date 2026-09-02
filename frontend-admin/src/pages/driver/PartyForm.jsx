@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
 import api from '../../api/client';
 import { formatINR, todayISO } from '../../utils/format';
@@ -308,12 +308,35 @@ function PartyEditForm({ id }) {
 
 function PartyAddForm() {
   const navigate = useNavigate();
+  const locationState = useLocation().state || {};
   const [users, setUsers] = useState([]);
   const [drivers, setDrivers] = useState([]);
-  const [date, setDate] = useState(todayISO());
-  const [location, setLocation] = useState('Coimbatore');
+  const [date, setDate] = useState(locationState.date || todayISO());
+  const [location, setLocation] = useState(locationState.location || 'Coimbatore');
   const [rentalAmount, setRentalAmount] = useState('');
   const [selectedDriverId, setSelectedDriverId] = useState('');
+  const targetBookedUsers = useMemo(() => {
+    const list = locationState.bookedUsers || [];
+    const ids = new Set();
+    const phones = new Set();
+    const names = new Set();
+
+    const rawIds = locationState.userIds 
+      ? locationState.userIds 
+      : (locationState.userId ? [locationState.userId] : []);
+    rawIds.forEach((x) => ids.add(String(x?._id || x)));
+
+    list.forEach((b) => {
+      const uId = b.userId?._id || b.userId;
+      if (uId) ids.add(String(uId));
+      if (b.phone && b.phone !== '—') phones.add(String(b.phone).trim());
+      if (b.userName && b.userName !== '—') names.add(String(b.userName).trim().toLowerCase());
+    });
+
+    const active = ids.size > 0 || phones.size > 0 || names.size > 0;
+    return { ids, phones, names, active };
+  }, [locationState.bookedUsers, locationState.userIds, locationState.userId]);
+
   const [selectedUserIds, setSelectedUserIds] = useState([]);
   const [userSearch, setUserSearch] = useState('');
   const [driverSearch, setDriverSearch] = useState('');
@@ -324,6 +347,26 @@ function PartyAddForm() {
     api.get('/admin/users').then((r) => setUsers(r.data.filter((u) => u.role === 'user')));
     api.get('/admin/driver/driver-users').then((r) => setDrivers(r.data));
   }, []);
+
+  useEffect(() => {
+    if (!targetBookedUsers.active || users.length === 0) return;
+    const matchedIds = users
+      .filter((u) => {
+        const uId = String(u._id);
+        const uPhone = String(u.phone || '').trim();
+        const uName = String(u.name || '').trim().toLowerCase();
+        return (
+          targetBookedUsers.ids.has(uId) ||
+          (uPhone && targetBookedUsers.phones.has(uPhone)) ||
+          (uName && targetBookedUsers.names.has(uName))
+        );
+      })
+      .map((u) => String(u._id));
+
+    if (matchedIds.length > 0) {
+      setSelectedUserIds(matchedIds);
+    }
+  }, [users, targetBookedUsers]);
 
   useEffect(() => {
     if (!selectedDriverId) {
@@ -344,10 +387,23 @@ function PartyAddForm() {
   }, [selectedDriverId]);
 
   const filteredUsers = useMemo(() => {
+    let list = users;
+    if (targetBookedUsers.active) {
+      list = list.filter((u) => {
+        const uId = String(u._id);
+        const uPhone = String(u.phone || '').trim();
+        const uName = String(u.name || '').trim().toLowerCase();
+        return (
+          targetBookedUsers.ids.has(uId) ||
+          (uPhone && targetBookedUsers.phones.has(uPhone)) ||
+          (uName && targetBookedUsers.names.has(uName))
+        );
+      });
+    }
     const q = userSearch.trim().toLowerCase();
-    if (!q) return users;
-    return users.filter((u) => u.name?.toLowerCase().includes(q) || u.phone?.includes(q));
-  }, [users, userSearch]);
+    if (!q) return list;
+    return list.filter((u) => u.name?.toLowerCase().includes(q) || u.phone?.includes(q));
+  }, [users, userSearch, targetBookedUsers]);
 
   const filteredDrivers = useMemo(() => {
     const q = driverSearch.trim().toLowerCase();
@@ -471,9 +527,9 @@ function PartyAddForm() {
       {selectedUserIds.length > 0 && (
         <div className={vr.chips}>
           {selectedUserIds.map((userId) => {
-            const u = users.find((x) => x._id === userId);
+            const u = users.find((x) => String(x._id) === String(userId));
             return (
-              <button key={userId} type="button" className={vr.chip} onClick={() => toggleUser(userId)}>
+              <button key={userId} type="button" className={vr.chip} onClick={() => toggleUser(String(userId))}>
                 {u?.name || userId} ×
               </button>
             );
@@ -485,8 +541,8 @@ function PartyAddForm() {
           <button
             key={u._id}
             type="button"
-            className={`${vr.userPick} ${selectedUserIds.includes(u._id) ? vr.userPickOn : ''}`}
-            onClick={() => toggleUser(u._id)}
+            className={`${vr.userPick} ${selectedUserIds.map(String).includes(String(u._id)) ? vr.userPickOn : ''}`}
+            onClick={() => toggleUser(String(u._id))}
           >
             {u.name}
           </button>

@@ -145,11 +145,12 @@ const UserManagement = () => {
       // Seed initial passwords dictionary matching exact database records
       const passMap = { ...userPasswords };
       loadedUsers.forEach((u) => {
-        if (!passMap[u._id]) {
-          if (u.email === 'masteradmin@tracknow.com' || u.phone === '7373144198') passMap[u._id] = 'Nottodaybro@1';
-          else if (u.phone === '9952600483' || u.phone === '9363737913') passMap[u._id] = '12345678';
-          else if (u.role === 'driver') passMap[u._id] = '12345678';
-          else if (u.role === 'admin') passMap[u._id] = 'Nottodaybro@1';
+        if (u.plainPassword) {
+          passMap[u._id] = u.plainPassword;
+        } else if (!passMap[u._id]) {
+          if (u.email === 'masteradmin@tracknow.com') passMap[u._id] = 'Nottodaybro@1';
+          else if (u.phone === '7373144198' || u.phone === '+917373144198') passMap[u._id] = 'Senthil@33';
+          else if (u.role === 'admin') passMap[u._id] = 'Senthil@33';
           else passMap[u._id] = '12345678';
         }
       });
@@ -479,14 +480,12 @@ const UserManagement = () => {
             <tbody>
               {filteredUsers.length > 0 ? (
                 filteredUsers.map((u) => {
-                  const passwordVal = userPasswords[u._id] || (u.email === 'masteradmin@tracknow.com' ? 'Nottodaybro@1' : u.phone === '7373144198' ? 'Senthil@33' : u.phone === '9999999999' ? 'admin123' : u.role === 'driver' ? 'driver123' : u.role === 'admin' ? 'admin123' : 'user123');
+                  const passwordVal = userPasswords[u._id] || u.plainPassword || (u.email === 'masteradmin@tracknow.com' ? 'Nottodaybro@1' : u.phone === '7373144198' ? 'Senthil@33' : u.role === 'admin' ? 'Senthil@33' : '12345678');
                   const isPassVisible = visiblePasswords[u._id];
 
                   return (
                     <tr 
                       key={u._id || u.phone}
-                      onClick={() => handleInspectUser(u)}
-                      style={{ cursor: 'pointer' }}
                       className="hover-row"
                     >
                       <td>
@@ -1160,7 +1159,7 @@ const UserManagement = () => {
                     <div>
                       <span style={{ color: 'var(--text-muted)' }}>Access Password: </span>
                       <strong style={{ fontFamily: 'monospace', color: 'var(--accent-emerald)', display: 'block', marginTop: '4px' }}>
-                        {userPasswords[selectedUser._id] || (selectedUser.email === 'masteradmin@tracknow.com' ? 'Nottodaybro@1' : selectedUser.phone === '7373144198' ? 'Senthil@33' : selectedUser.phone === '9999999999' ? 'admin123' : selectedUser.role === 'driver' ? 'driver123' : selectedUser.role === 'admin' ? 'admin123' : 'user123')}
+                        {userPasswords[selectedUser._id] || selectedUser.plainPassword || (selectedUser.email === 'masteradmin@tracknow.com' ? 'Nottodaybro@1' : selectedUser.phone === '7373144198' ? 'Senthil@33' : selectedUser.role === 'admin' ? 'Senthil@33' : '12345678')}
                       </strong>
                     </div>
                     <div>

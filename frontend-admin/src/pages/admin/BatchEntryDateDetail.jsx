@@ -51,6 +51,8 @@ export default function BatchEntryDateDetail() {
 
   const totalWeight = row?.totalWeightKg ?? 0;
   const userCount = row?.userCount ?? row?.users?.length ?? 0;
+  const getUid = (x) => String(x?.userId?._id || x?.userId || x?._id || '').trim();
+  const allUserIds = row?.users ? row.users.map(getUid).filter(Boolean) : [];
 
   return (
     <AppShell
@@ -103,9 +105,29 @@ export default function BatchEntryDateDetail() {
               <h3 className={styles.tableTitle}>
                 <span>👥</span> Farmers Booked ({userCount})
               </h3>
-              <span className={styles.tableMeta}>
-                📦 {totalWeight} kg Total
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span className={styles.tableMeta}>
+                  📦 {totalWeight} kg Total
+                </span>
+                {row.users.length > 0 && (
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    style={{ fontSize: 12, padding: '6px 12px' }}
+                    onClick={() => navigate('/admin/driver/parties/new', {
+                      state: { 
+                        bookedUsers: row.users,
+                        userIds: allUserIds, 
+                        allowedUserIds: allUserIds,
+                        date: decodedDate, 
+                        location: row.users[0]?.location
+                      }
+                    })}
+                  >
+                    Assign Driver (All)
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Desktop Table View */}
@@ -119,6 +141,7 @@ export default function BatchEntryDateDetail() {
                     <th>Weight (kg)</th>
                     <th>Market Location</th>
                     <th>Status</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -138,6 +161,24 @@ export default function BatchEntryDateDetail() {
                           {u.status || 'pending'}
                         </span>
                       </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="btn-outline"
+                          style={{ fontSize: 11, padding: '4px 8px' }}
+                          onClick={() => navigate('/admin/driver/parties/new', {
+                            state: { 
+                              bookedUsers: [u],
+                              userId: getUid(u), 
+                              allowedUserIds: allUserIds,
+                              date: decodedDate, 
+                              location: u.location 
+                            }
+                          })}
+                        >
+                          Assign Driver
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -146,7 +187,7 @@ export default function BatchEntryDateDetail() {
                     <td colSpan={3}>
                       <strong>Total Summary</strong>
                     </td>
-                    <td colSpan={3}>
+                    <td colSpan={4}>
                       <strong className={styles.weightVal}>📦 {totalWeight} kg Total</strong>
                       <span className={styles.footerUsers}> · {userCount} farmers booked</span>
                     </td>
@@ -182,6 +223,24 @@ export default function BatchEntryDateDetail() {
                       <span>📍 {u.location}</span>
                     </div>
                   )}
+                  <div style={{ marginTop: 8 }}>
+                    <button
+                      type="button"
+                      className="btn-outline"
+                      style={{ fontSize: 12, padding: '6px 12px', width: '100%' }}
+                      onClick={() => navigate('/admin/driver/parties/new', {
+                        state: { 
+                          bookedUsers: [u],
+                          userId: getUid(u), 
+                          allowedUserIds: allUserIds,
+                          date: decodedDate, 
+                          location: u.location 
+                        }
+                      })}
+                    >
+                      Assign Driver
+                    </button>
+                  </div>
                 </div>
               ))}
 
@@ -189,6 +248,26 @@ export default function BatchEntryDateDetail() {
                 <span>Total Batch Weight</span>
                 <strong className={styles.weightVal}>📦 {totalWeight} kg</strong>
               </div>
+              {row.users.length > 0 && (
+                <div style={{ padding: '0 12px 12px' }}>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    style={{ fontSize: 13, padding: '8px 12px', width: '100%' }}
+                    onClick={() => navigate('/admin/driver/parties/new', {
+                      state: { 
+                        bookedUsers: row.users,
+                        userIds: allUserIds, 
+                        allowedUserIds: allUserIds,
+                        date: decodedDate, 
+                        location: row.users[0]?.location
+                      }
+                    })}
+                  >
+                    Assign Driver (All {userCount} Farmers)
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className={styles.detailActions}>

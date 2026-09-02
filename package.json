@@ -11,6 +11,8 @@
     "dev:driver": "cd frontend-driver && npm run dev",
     "dev:master-admin": "cd frontend-master-admin && npm run dev",
     "dev:authenticator": "cd master-authenticator-app && npm run start",
+    "dev:client-mobile": "cd client-mobile-app && npm run web",
+    "start:client-mobile": "cd client-mobile-app && npm run start",
     "install:all": "npm install && cd backend && npm install && cd ../frontend-client && npm install && cd ../frontend-admin && npm install && cd ../frontend-driver && npm install && cd ../frontend-master-admin && npm install && cd ../master-authenticator-app && npm install",
     "build:client": "cd frontend-client && npm run build",
     "build:admin": "cd frontend-admin && npm run build",

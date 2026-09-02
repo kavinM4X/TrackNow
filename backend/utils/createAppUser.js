@@ -38,6 +38,7 @@ async function createAppUser({
     email: email?.trim() || undefined,
     role: safeRole,
     password,
+    plainPassword: String(password),
     isActive: true,
     trackerEnabled: Boolean(trackerEnabled),
     vehicleId: vehicleId || null

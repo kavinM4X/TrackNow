@@ -34,6 +34,7 @@ exports.register = async (req, res) => {
       name: String(name).trim(),
       email,
       password,
+      plainPassword: String(password),
       phone: normalizedPhone,
       address,
       farmDetails,
@@ -89,6 +90,13 @@ exports.login = async (req, res) => {
       const normalizedPhone = normalizePhone(phone);
       if (normalizedPhone) {
         queryOr.push({ phone: normalizedPhone });
+        const { phoneTail } = require('../utils/phone');
+        const tail = phoneTail(phone);
+        if (tail && tail.length >= 10) {
+          queryOr.push({ phone: tail });
+          queryOr.push({ phone: `+91${tail}` });
+          queryOr.push({ phone: `91${tail}` });
+        }
       }
     }
 
@@ -296,6 +304,7 @@ exports.changePassword = async (req, res) => {
 
     // Update password
     user.password = newPassword;
+    user.plainPassword = newPassword;
     user.updatedAt = Date.now();
     await user.save();
 
