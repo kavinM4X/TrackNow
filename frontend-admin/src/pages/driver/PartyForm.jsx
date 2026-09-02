@@ -7,6 +7,7 @@ import { calcSilkPreview, lotFieldsFromEntry } from '../../utils/silkCalc';
 import be from '../admin/BatchEntry.module.css';
 import vr from '../admin/VehicleRental.module.css';
 import pe from './PartyEntryEdit.module.css';
+import styles from './PartyForm.module.css';
 
 function PartyEditForm({ id }) {
   const navigate = useNavigate();
@@ -456,103 +457,252 @@ function PartyAddForm() {
   };
 
   return (
-    <div className="card">
-      <label className="field-label">Date</label>
-      <input type="date" className="field-input" value={date} onChange={(e) => setDate(e.target.value)} />
-
-      <label className="field-label">Market</label>
-      <select className="field-select" value={location} onChange={(e) => setLocation(e.target.value)}>
-        <option value="Coimbatore">Coimbatore</option>
-        <option value="Mamballi">Mamballi</option>
-        <option value="Ramnagar">Ramnagar</option>
-        <option value="Dharmapuri">Dharmapuri</option>
-      </select>
-
-      <p className={vr.sectionTitle}>
-        <span className={vr.sectionBar} />
-        Add driver
-      </p>
-      <input
-        className="field-input"
-        placeholder="Search driver to add…"
-        value={driverSearch}
-        onChange={(e) => setDriverSearch(e.target.value)}
-      />
-      {selectedDriver && (
-        <div className={vr.chips}>
-          <button type="button" className={vr.chip} onClick={() => setSelectedDriverId('')}>
-            {selectedDriver.name} ×
-          </button>
+    <div className={styles.formWrapper}>
+      {/* Header Banner */}
+      <div className={styles.headerCard}>
+        <div>
+          <h2 className={styles.headerTitle}>
+            <span>🚚</span> Driver Party Batch Allocation
+          </h2>
+          <p className={styles.headerSub}>
+            Allocate driver, vehicle rental rate, and assign farmer parties for transport.
+          </p>
         </div>
-      )}
-      <div className={vr.userPickList}>
-        {filteredDrivers.slice(0, 8).map((d) => (
-          <button
-            key={d._id}
-            type="button"
-            className={`${vr.userPick} ${selectedDriverId === d._id ? vr.userPickOn : ''}`}
-            onClick={() => pickDriver(d._id)}
-          >
-            {d.name}
-            <span style={{ fontSize: 11, color: '#888', display: 'block' }}>{d.phone}</span>
-          </button>
-        ))}
+        <div className={styles.contextBadge}>
+          <span>🗓️ {date}</span>
+          <span>·</span>
+          <span>📍 {location}</span>
+          {selectedUserIds.length > 0 && <span>· 👥 {selectedUserIds.length} Farmers</span>}
+        </div>
       </div>
-      <p className={be.hint}>{selectedDriverId ? '1 driver added for driver entry' : '0 driver(s) added for driver entry'}</p>
 
-      <p className={vr.sectionTitle}>
-        <span className={vr.sectionBar} />
-        Driver entry
-      </p>
-      <label className="field-label">Rental amount (₹)</label>
-      <input
-        type="number"
-        min="0"
-        className="field-input"
-        placeholder="e.g. 5000"
-        value={rentalAmount}
-        onChange={(e) => setRentalAmount(e.target.value)}
-      />
+      {/* Section 1: Trip & Market Settings */}
+      <div className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <h3 className={styles.sectionTitle}>
+            <span>📅</span> Trip & Destination Settings
+          </h3>
+        </div>
+        <div className={styles.twoColGrid}>
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>Scheduled Date</label>
+            <input
+              type="date"
+              className={styles.fieldInput}
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>Market Destination</label>
+            <select
+              className={styles.fieldSelect}
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+            >
+              <option value="Coimbatore">📍 Coimbatore</option>
+              <option value="Mamballi">📍 Mamballi</option>
+              <option value="Ramnagar">📍 Ramnagar</option>
+              <option value="Dharmapuri">📍 Dharmapuri</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
-      <p className={vr.sectionTitle}>
-        <span className={vr.sectionBar} />
-        Add users
-      </p>
-      <input
-        className="field-input"
-        placeholder="Search user to add…"
-        value={userSearch}
-        onChange={(e) => setUserSearch(e.target.value)}
-      />
-      {selectedUserIds.length > 0 && (
-        <div className={vr.chips}>
-          {selectedUserIds.map((userId) => {
-            const u = users.find((x) => String(x._id) === String(userId));
+      {/* Section 2: Driver Allocation */}
+      <div className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <h3 className={styles.sectionTitle}>
+            <span>🚗</span> Driver Allocation
+          </h3>
+          <span className={styles.sectionCountBadge}>
+            {selectedDriver ? `Selected: ${selectedDriver.name}` : 'No Driver Selected'}
+          </span>
+        </div>
+
+        <div className={styles.searchInputWrap}>
+          <span className={styles.searchIcon}>🔍</span>
+          <input
+            className={styles.searchInput}
+            placeholder="Search driver by name or mobile number…"
+            value={driverSearch}
+            onChange={(e) => setDriverSearch(e.target.value)}
+          />
+        </div>
+
+        {selectedDriver && (
+          <div className={styles.selectedChips}>
+            <button
+              type="button"
+              className={styles.chipItem}
+              onClick={() => setSelectedDriverId('')}
+              title="Click to remove driver"
+            >
+              <span>🚗 {selectedDriver.name} ({selectedDriver.phone})</span>
+              <span className={styles.chipRemoveIcon}>×</span>
+            </button>
+          </div>
+        )}
+
+        <div className={styles.pickGrid}>
+          {filteredDrivers.slice(0, 8).map((d) => {
+            const isSelected = selectedDriverId === d._id;
             return (
-              <button key={userId} type="button" className={vr.chip} onClick={() => toggleUser(String(userId))}>
-                {u?.name || userId} ×
+              <button
+                key={d._id}
+                type="button"
+                className={`${styles.pickCard} ${isSelected ? styles.pickCardActiveDriver : ''}`}
+                onClick={() => pickDriver(d._id)}
+              >
+                <div className={styles.pickCardInfo}>
+                  <div className={styles.avatarCircle}>
+                    {d.name ? d.name.charAt(0).toUpperCase() : 'D'}
+                  </div>
+                  <div className={styles.pickCardText}>
+                    <span className={styles.pickName}>{d.name}</span>
+                    <span className={styles.pickMeta}>📱 {d.phone || 'No phone'}</span>
+                  </div>
+                </div>
+                <div className={styles.checkIndicator}>
+                  {isSelected ? '✓' : ''}
+                </div>
               </button>
             );
           })}
         </div>
-      )}
-      <div className={vr.userPickList}>
-        {filteredUsers.slice(0, 8).map((u) => (
-          <button
-            key={u._id}
-            type="button"
-            className={`${vr.userPick} ${selectedUserIds.map(String).includes(String(u._id)) ? vr.userPickOn : ''}`}
-            onClick={() => toggleUser(String(u._id))}
-          >
-            {u.name}
-          </button>
-        ))}
       </div>
-      <p className={be.hint}>{selectedUserIds.length} user(s) added for driver entry</p>
-      {error && <p className="form-error">{error}</p>}
-      <button type="button" className="btn-primary" style={{ marginTop: 8 }} disabled={saving} onClick={onSave}>
-        {saving ? 'Saving…' : 'Save for driver entry'}
-      </button>
+
+      {/* Section 3: Driver Rental Amount */}
+      <div className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <h3 className={styles.sectionTitle}>
+            <span>💰</span> Vehicle Rental Rate
+          </h3>
+        </div>
+        <div className={styles.fieldGroup}>
+          <label className={styles.fieldLabel}>Rental Amount for Batch (₹)</label>
+          <div className={styles.currencyInputWrap}>
+            <span className={styles.currencyPrefix}>₹</span>
+            <input
+              type="number"
+              min="0"
+              className={styles.currencyInput}
+              placeholder="e.g. 5000"
+              value={rentalAmount}
+              onChange={(e) => setRentalAmount(e.target.value)}
+            />
+          </div>
+          {selectedDriver && Number(rentalAmount) > 0 && (
+            <span className={styles.hintPill}>
+              ✨ Vehicle advance rate applied for {selectedDriver.name}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Section 4: Assign Farmers / Parties */}
+      <div className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <h3 className={styles.sectionTitle}>
+            <span>👥</span> Assigned Farmers / Parties
+          </h3>
+          <span className={styles.sectionCountBadge}>
+            {selectedUserIds.length} farmer{selectedUserIds.length !== 1 ? 's' : ''} assigned
+          </span>
+        </div>
+
+        <div className={styles.searchInputWrap}>
+          <span className={styles.searchIcon}>🔍</span>
+          <input
+            className={styles.searchInput}
+            placeholder="Search farmer by name or mobile number…"
+            value={userSearch}
+            onChange={(e) => setUserSearch(e.target.value)}
+          />
+        </div>
+
+        {selectedUserIds.length > 0 && (
+          <div className={styles.selectedChips}>
+            {selectedUserIds.map((userId) => {
+              const u = users.find((x) => String(x._id) === String(userId));
+              return (
+                <button
+                  key={userId}
+                  type="button"
+                  className={styles.chipItem}
+                  onClick={() => toggleUser(String(userId))}
+                  title="Click to remove farmer"
+                >
+                  <span>🧑‍🌾 {u?.name || userId}</span>
+                  <span className={styles.chipRemoveIcon}>×</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        <div className={styles.pickGrid}>
+          {filteredUsers.slice(0, 12).map((u) => {
+            const isSelected = selectedUserIds.map(String).includes(String(u._id));
+            return (
+              <button
+                key={u._id}
+                type="button"
+                className={`${styles.pickCard} ${isSelected ? styles.pickCardActive : ''}`}
+                onClick={() => toggleUser(String(u._id))}
+              >
+                <div className={styles.pickCardInfo}>
+                  <div className={styles.avatarCircle}>
+                    {u.name ? u.name.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                  <div className={styles.pickCardText}>
+                    <span className={styles.pickName}>{u.name}</span>
+                    <span className={styles.pickMeta}>📱 {u.phone || 'No phone'}</span>
+                  </div>
+                </div>
+                <div className={styles.checkIndicator}>
+                  {isSelected ? '✓' : ''}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Section 5: Summary & Submit Action */}
+      <div className={styles.actionCard}>
+        <div className={styles.summaryRow}>
+          <span>Assigned Driver:</span>
+          <span className={styles.summaryVal}>{selectedDriver?.name || '⚠️ Please select a driver'}</span>
+        </div>
+        <div className={styles.summaryRow}>
+          <span>Assigned Farmers:</span>
+          <span className={styles.summaryVal}>
+            {selectedUserIds.length > 0 ? `${selectedUserIds.length} Farmers` : '⚠️ No farmers selected'}
+          </span>
+        </div>
+        <div className={styles.summaryRow}>
+          <span>Trip Destination:</span>
+          <span className={styles.summaryVal}>📍 {location} · {date}</span>
+        </div>
+        <div className={styles.summaryRow}>
+          <span>Total Rental:</span>
+          <span className={styles.summaryVal}>
+            {rentalAmount ? `₹${Number(rentalAmount).toLocaleString('en-IN')}` : '—'}
+          </span>
+        </div>
+
+        {error && <div className={styles.errorBanner}>⚠️ {error}</div>}
+
+        <button
+          type="button"
+          className={styles.submitBtn}
+          disabled={saving}
+          onClick={onSave}
+        >
+          {saving ? 'Creating Batch…' : 'Save & Create Driver Batch →'}
+        </button>
+      </div>
     </div>
   );
 }
