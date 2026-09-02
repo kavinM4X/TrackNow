@@ -7,10 +7,54 @@ import {
   ScrollView,
   ActivityIndicator
 } from 'react-native';
-import Badge from '../components/common/Badge';
 import api from '../api/client';
-import { displayTotalKg, formatDateShort, formatINR } from '../utils/format';
+import { displayTotalKg, formatDateDayMonth, formatINR } from '../utils/format';
 import { colors, radius, spacing, shadows } from '../styles/theme';
+
+function displayRatePerKg(rate) {
+  if (rate == null || rate === '' || Number.isNaN(Number(rate))) return '—';
+  return `${formatINR(Number(rate))}/kg`;
+}
+
+function WeightRow({ label, kg, total, dotColor, barFillColor, kgColor }) {
+  const pct = total > 0 ? Math.round((kg / total) * 100) : 0;
+  return (
+    <View style={styles.breakdownRow}>
+      <View style={styles.rowLabel}>
+        <View style={[styles.dot, { backgroundColor: dotColor }]} />
+        <Text style={styles.labelText}>{label}</Text>
+      </View>
+      <View style={styles.barTrack}>
+        <View
+          style={[
+            styles.barFill,
+            { backgroundColor: barFillColor, width: `${Math.min(100, pct)}%` }
+          ]}
+        />
+      </View>
+      <View style={styles.kgValueContainer}>
+        <Text style={[styles.kgValueText, { color: kgColor }]}>
+          {kg} kg <Text style={styles.pctBadge}>{pct}%</Text>
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+function LineCost({ label, kg, rate, amount }) {
+  const rateNum = rate == null || rate === '' ? null : Number(rate);
+  const amtNum = amount == null || amount === '' ? null : Number(amount);
+  return (
+    <View style={styles.valueRow}>
+      <Text style={styles.valueRowLabel}>
+        {label} ({kg} kg × {displayRatePerKg(rateNum)})
+      </Text>
+      <Text style={styles.itemAmt}>
+        {amtNum != null && !Number.isNaN(amtNum) ? formatINR(amtNum) : '—'}
+      </Text>
+    </View>
+  );
+}
 
 export default function BatchDetailScreen({ batchId, onBack }) {
   const [batch, setBatch] = useState(null);
@@ -19,8 +63,7 @@ export default function BatchDetailScreen({ batchId, onBack }) {
 
   useEffect(() => {
     if (!batchId) return;
-    
-    // If an object was passed directly
+
     if (typeof batchId === 'object' && batchId !== null) {
       const data = batchId.batch || batchId;
       setBatch(data);
@@ -36,7 +79,7 @@ export default function BatchDetailScreen({ batchId, onBack }) {
         setBatch(item);
       })
       .catch((err) => {
-        setError(err.response?.data?.error || 'Could not load batch receipt.');
+        setError(err.response?.data?.error || 'Could not load batch details');
       })
       .finally(() => setLoading(false));
   }, [batchId]);
@@ -45,7 +88,7 @@ export default function BatchDetailScreen({ batchId, onBack }) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator color={colors.primary} size="large" />
-        <Text style={styles.loadingText}>Loading harvest receipt…</Text>
+        <Text style={styles.loadingText}>Loading batch breakdown…</Text>
       </View>
     );
   }
@@ -54,7 +97,7 @@ export default function BatchDetailScreen({ batchId, onBack }) {
     return (
       <View style={styles.centerContainer}>
         <Text style={styles.errorIcon}>⚠</Text>
-        <Text style={styles.errorTitle}>Receipt Not Found</Text>
+        <Text style={styles.errorTitle}>Batch Details Not Found</Text>
         <Text style={styles.errorSub}>{error || 'The requested batch details could not be retrieved.'}</Text>
         <TouchableOpacity style={styles.backBtn} onPress={onBack}>
           <Text style={styles.backBtnText}>← Back to History</Text>
@@ -63,34 +106,41 @@ export default function BatchDetailScreen({ batchId, onBack }) {
     );
   }
 
+  const total = displayTotalKg(batch);
+  const good = Number(batch.goodSilkKg ?? batch.quantityKg ?? 0);
+  const waste = Number(batch.wasteKg || 0);
+  const doubles = Number(batch.doubles || 0);
+
+  const goodRate = batch.goodSilkRatePerKg ?? batch.ratePerKg;
+  const wasteRate = batch.wasteRatePerKg ?? 0;
+  const doublesRate = batch.doublesRatePerKg ?? 0;
+
+  const goodAmt = batch.goodSilkAmount != null ? Number(batch.goodSilkAmount) : (goodRate != null ? Math.round(good * Number(goodRate)) : null);
+  const wasteAmt = batch.wasteAmount != null ? Number(batch.wasteAmount) : (wasteRate != null ? Math.round(waste * Number(wasteRate)) : null);
+  const doublesAmt = batch.doublesAmount != null ? Number(batch.doublesAmount) : (doublesRate != null ? Math.round(doubles * Number(doublesRate)) : null);
+
+  const value = batch.estimatedValue;
   const vr = batch.vehicleRental;
-  const goodWeight = Number(batch.goodSilkKg ?? batch.quantityKg ?? 0);
-  const goodRate = Number(batch.goodSilkRatePerKg ?? batch.goodSilkRate ?? batch.ratePerKg ?? 0);
-  const goodSilkAmount = batch.goodSilkAmount != null ? Number(batch.goodSilkAmount) : Math.round(goodWeight * goodRate);
 
-  const wasteWeight = Number(batch.wasteKg ?? 0);
-  const wasteRate = Number(batch.wasteRatePerKg ?? batch.wasteRate ?? 0);
-  const wasteAmount = batch.wasteAmount != null ? Number(batch.wasteAmount) : Math.round(wasteWeight * wasteRate);
+  const netSilk =
+    vr?.netSilkValue ??
+    (goodAmt != null
+      ? Number(goodAmt) - Number(wasteAmt || 0) - Number(doublesAmt || 0)
+      : value);
 
-  const doublesWeight = Number(batch.doubles ?? batch.doublesKg ?? 0);
-  const doublesRate = Number(batch.doublesRatePerKg ?? batch.doublesRate ?? 0);
-  const doublesAmount = batch.doublesAmount != null ? Number(batch.doublesAmount) : Math.round(doublesWeight * doublesRate);
-
-  const netSilkValue = batch.netSilkValue != null ? Number(batch.netSilkValue) : (goodSilkAmount + wasteAmount + doublesAmount);
-
-  // Lot deduction
   const lotQty = Number(batch.lotQty) || 0;
   const lotPrice = Number(batch.lotPrice) || 0;
-  const lotAmt = lotQty * lotPrice;
+  const lotAmt = Number(batch.lotAmount) || (lotQty * lotPrice);
 
-  // Rental deduction
-  const rentalRate = vr?.ratePerKg != null ? Number(vr.ratePerKg) : null;
-  const rentalOnly = rentalRate ? Math.round(goodWeight * rentalRate) : (vr?.rentalTotal ? Math.max(0, vr.rentalTotal - lotAmt) : (netSilkValue > (batch.displayFinalAmount ?? batch.estimatedValue ?? netSilkValue) ? (netSilkValue - (batch.displayFinalAmount ?? batch.estimatedValue)) - lotAmt : 0));
-  const totalDeduction = (rentalOnly || 0) + (lotAmt || 0);
+  const rawRentalDeduction = vr?.rentalDeduction ?? vr?.rentalTotal ?? (netSilk != null && batch.displayFinalAmount != null ? Math.max(0, netSilk - Number(batch.displayFinalAmount)) : 0);
+  const rentalTotal = Number(rawRentalDeduction) || (vr?.rentalDeduction ?? 0);
+  const rentalOnly = Math.max(0, rentalTotal - lotAmt);
 
-  const finalPayout = vr?.finalAmount != null ? Number(vr.finalAmount) : Number(batch.displayFinalAmount ?? batch.estimatedValue ?? (netSilkValue - totalDeduction));
+  const finalAmount = vr?.finalAmount != null ? Number(vr.finalAmount) : Number(batch.displayFinalAmount ?? (netSilk != null ? netSilk - rentalTotal : value));
 
   const driverName = vr?.ownerName || (batch.adminNote?.includes('Driver entry:') ? batch.adminNote.replace('Driver entry:', '').trim() : null);
+
+  const hasDriverOrRental = Boolean(vr || driverName || rentalTotal > 0);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -99,163 +149,128 @@ export default function BatchDetailScreen({ batchId, onBack }) {
         <Text style={styles.navBackText}>← Back to Batch History</Text>
       </TouchableOpacity>
 
-      {/* Verified Receipt Header Card */}
-      <View style={styles.receiptCard}>
-        <View style={styles.receiptHeader}>
-          <View>
-            <View style={styles.sealRow}>
-              <View style={styles.greenSealDot} />
-              <Text style={styles.sealText}>DIGITAL HARVEST LEDGER</Text>
+      {/* 1. Header Summary Card */}
+      <View style={styles.headerCard}>
+        <View style={styles.topPillRow}>
+          <Text style={styles.headerDate}>🗓️ Delivery Date: {formatDateDayMonth(batch.date)}</Text>
+          <Text style={styles.headerLoc}>📍 {batch.location || 'Market'} Center</Text>
+        </View>
+
+        <Text style={styles.headerTotal}>
+          {total} <Text style={styles.headerTotalUnit}>kg</Text>
+        </Text>
+        <Text style={styles.headerSub}>
+          Verified Cocoon Weight {driverName ? `· Driver: ${driverName}` : ''}
+        </Text>
+      </View>
+
+      {/* 2. Weight Classification Breakdown */}
+      <View style={styles.cardBlock}>
+        <Text style={styles.breakdownTitle}>⚖️ Weight Classification</Text>
+        <WeightRow
+          label="Good Silk"
+          kg={good}
+          total={total}
+          dotColor="#2e7d52"
+          barFillColor="#2e7d52"
+          kgColor="#2e7d52"
+        />
+        <WeightRow
+          label="Waste Silk"
+          kg={waste}
+          total={total}
+          dotColor="#f5a623"
+          barFillColor="#f5a623"
+          kgColor="#d97706"
+        />
+        <WeightRow
+          label="Doubles"
+          kg={doubles}
+          total={total}
+          dotColor="#a0522d"
+          barFillColor="#a0522d"
+          kgColor="#a0522d"
+        />
+      </View>
+
+      {/* 3. Market Rates & Net Value */}
+      <View style={styles.cardBlock}>
+        <Text style={styles.breakdownTitle}>💰 Market Rates & Net Value</Text>
+
+        <View style={styles.financialList}>
+          <LineCost label="Good Silk" kg={good} rate={goodRate} amount={goodAmt} />
+          <LineCost label="Waste Silk" kg={waste} rate={wasteRate} amount={wasteAmt} />
+          <LineCost label="Doubles" kg={doubles} rate={doublesRate} amount={doublesAmt} />
+
+          {netSilk != null && (
+            <View style={styles.netSilkRow}>
+              <Text style={styles.netSilkLbl}>Net Silk Payout</Text>
+              <Text style={styles.netSilkVal}>{formatINR(netSilk)}</Text>
             </View>
-            <Text style={styles.receiptTitle}>Silk Cocoon Batch Receipt</Text>
-            <Text style={styles.receiptId}>Batch ID: #{batch._id?.slice(-8).toUpperCase() || 'TN-BATCH'}</Text>
-          </View>
-          <Badge status="completed" label="VERIFIED" />
-        </View>
+          )}
 
-        {/* Hero Payout Box */}
-        <View style={styles.payoutBox}>
-          <Text style={styles.payoutLabel}>Total Net Payout</Text>
-          <Text style={styles.payoutNumber}>{formatINR(finalPayout)}</Text>
-          <Text style={styles.payoutSub}>Credited to Farmer Account upon market clearance</Text>
-        </View>
-
-        {/* Primary Meta Grid */}
-        <View style={styles.metaGrid}>
-          <View style={styles.metaCell}>
-            <Text style={styles.metaLabel}>Delivery Market</Text>
-            <Text style={styles.metaVal}>📍 {batch.location || 'Center'}</Text>
-          </View>
-          <View style={styles.metaCell}>
-            <Text style={styles.metaLabel}>Harvest Date</Text>
-            <Text style={styles.metaVal}>🗓️ {formatDateShort(batch.date)}</Text>
-          </View>
-          <View style={styles.metaCell}>
-            <Text style={styles.metaLabel}>Gross Weight</Text>
-            <Text style={styles.metaVal}>⚖️ {displayTotalKg(batch)} kg</Text>
-          </View>
-          <View style={styles.metaCell}>
-            <Text style={styles.metaLabel}>Status</Text>
-            <Text style={styles.metaValGreen}>Cleared & Paid</Text>
-          </View>
-        </View>
-
-        {/* Quality & Breakdown Table */}
-        <Text style={styles.tableTitle}>Cocoon Quality Breakdown</Text>
-        <View style={styles.table}>
-          <View style={styles.tableHeaderRow}>
-            <Text style={[styles.th, { flex: 2 }]}>Grade / Category</Text>
-            <Text style={[styles.th, { flex: 1, textAlign: 'center' }]}>Weight</Text>
-            <Text style={[styles.th, { flex: 1, textAlign: 'right' }]}>Rate</Text>
-            <Text style={[styles.th, { flex: 1.2, textAlign: 'right' }]}>Subtotal</Text>
-          </View>
-
-          {/* Grade A / Good Silk */}
-          <View style={styles.tableRow}>
-            <View style={{ flex: 2 }}>
-              <Text style={styles.gradeTitle}>Good Cocoon (Grade A)</Text>
-              <Text style={styles.gradeSub}>Prime reelable silk</Text>
+          {!hasDriverOrRental && (
+            <View style={styles.estimated}>
+              <Text style={styles.estimatedLabel}>Total Amount</Text>
+              <Text style={styles.estimatedVal}>{value != null ? formatINR(value) : '—'}</Text>
             </View>
-            <Text style={[styles.td, { flex: 1, textAlign: 'center' }]}>{goodWeight} kg</Text>
-            <Text style={[styles.td, { flex: 1, textAlign: 'right' }]}>{formatINR(goodRate)}</Text>
-            <Text style={[styles.tdBold, { flex: 1.2, textAlign: 'right' }]}>
-              {formatINR(goodSilkAmount)}
-            </Text>
+          )}
+        </View>
+      </View>
+
+      {/* 4. Driver Logistics & Rental Deductions */}
+      {hasDriverOrRental && (
+        <View style={styles.rentalCard}>
+          <Text style={styles.rentalTitle}>🚛 Driver Logistics & Deductions</Text>
+
+          <View style={styles.valueRow}>
+            <Text style={styles.valueRowLabel}>Assigned Freight Driver</Text>
+            <Text style={styles.driverHighlight}>{driverName || 'kavin-driver'}</Text>
           </View>
 
-          {/* Waste / Defective */}
-          {wasteWeight > 0 ? (
-            <View style={styles.tableRow}>
-              <View style={{ flex: 2 }}>
-                <Text style={styles.gradeTitle}>Double / Waste</Text>
-                <Text style={styles.gradeSub}>Non-reelable silk</Text>
-              </View>
-              <Text style={[styles.td, { flex: 1, textAlign: 'center' }]}>{wasteWeight} kg</Text>
-              <Text style={[styles.td, { flex: 1, textAlign: 'right' }]}>{formatINR(wasteRate)}</Text>
-              <Text style={[styles.tdBold, { flex: 1.2, textAlign: 'right' }]}>
-                {formatINR(wasteAmount)}
+          {rentalOnly > 0 ? (
+            <View style={styles.valueRow}>
+              <Text style={styles.valueRowLabel}>
+                Freight Rental ({good} kg {vr?.ratePerKg != null ? `× ${formatINR(vr.ratePerKg)}` : ''})
               </Text>
+              <Text style={styles.deductionNegText}>−{formatINR(rentalOnly)}</Text>
             </View>
           ) : null}
 
-          {/* Doubles if present */}
-          {doublesWeight > 0 ? (
-            <View style={styles.tableRow}>
-              <View style={{ flex: 2 }}>
-                <Text style={styles.gradeTitle}>Doubles</Text>
-                <Text style={styles.gradeSub}>Defective silk</Text>
-              </View>
-              <Text style={[styles.td, { flex: 1, textAlign: 'center' }]}>{doublesWeight} kg</Text>
-              <Text style={[styles.td, { flex: 1, textAlign: 'right' }]}>{formatINR(doublesRate)}</Text>
-              <Text style={[styles.tdBold, { flex: 1.2, textAlign: 'right' }]}>
-                {formatINR(doublesAmount)}
+          {lotAmt > 0 ? (
+            <View style={styles.valueRow}>
+              <Text style={styles.valueRowLabel}>
+                Lot Charge ({lotQty || batch.lotQty || 0} × {formatINR(lotPrice || batch.lotPrice || 0)})
               </Text>
+              <Text style={styles.deductionNegText}>−{formatINR(lotAmt)}</Text>
             </View>
           ) : null}
 
-          {/* Total Net Row */}
-          <View style={styles.tableTotalRow}>
-            <Text style={styles.totalLabel}>Gross Silk Value</Text>
-            <Text style={styles.totalAmount}>{formatINR(netSilkValue)}</Text>
+          <View style={styles.rentalFinalRow}>
+            <Text style={styles.rentalFinalLabel}>Total Logistics Deduction</Text>
+            <Text style={styles.deductionTotalText}>−{formatINR(rentalTotal)}</Text>
+          </View>
+
+          <View style={[styles.rentalFinalRow, styles.payoutHighlightRow]}>
+            <Text style={styles.finalPayoutLabel}>Final Farmer Payout</Text>
+            <Text style={styles.finalPayoutNumber}>{formatINR(finalAmount)}</Text>
           </View>
         </View>
+      )}
 
-        {/* Driver Logistics & Rental Deductions */}
-        {(vr || totalDeduction > 0 || driverName) ? (
-          <View style={styles.logisticsCard}>
-            <Text style={styles.logisticsHeaderTitle}>🚛 Driver Logistics & Rental Deductions</Text>
-            
-            {driverName ? (
-              <View style={styles.logisticsRow}>
-                <Text style={styles.logisticsLabel}>Assigned Freight Driver</Text>
-                <Text style={styles.driverNamePill}>🚗 {driverName}</Text>
-              </View>
-            ) : null}
-
-            {rentalOnly > 0 ? (
-              <View style={styles.logisticsRow}>
-                <Text style={styles.logisticsLabel}>
-                  Freight Rental ({goodWeight} kg {rentalRate ? `× ${formatINR(rentalRate)}/kg` : ''})
-                </Text>
-                <Text style={styles.deductionNeg}>−{formatINR(rentalOnly)}</Text>
-              </View>
-            ) : null}
-
-            {lotAmt > 0 ? (
-              <View style={styles.logisticsRow}>
-                <Text style={styles.logisticsLabel}>
-                  Lot Charge ({lotQty} × {formatINR(lotPrice)})
-                </Text>
-                <Text style={styles.deductionNeg}>−{formatINR(lotAmt)}</Text>
-              </View>
-            ) : null}
-
-            {totalDeduction > 0 ? (
-              <View style={[styles.logisticsRow, styles.logisticsTotalRow]}>
-                <Text style={styles.logisticsTotalLabel}>Total Logistics Deduction</Text>
-                <Text style={styles.deductionTotalVal}>−{formatINR(totalDeduction)}</Text>
-              </View>
-            ) : null}
-
-            <View style={[styles.logisticsRow, styles.finalPayoutRow]}>
-              <Text style={styles.finalPayoutLabel}>Final Farmer Payout</Text>
-              <Text style={styles.finalPayoutVal}>{formatINR(finalPayout)}</Text>
-            </View>
-          </View>
-        ) : null}
-
-        {/* Logistics Remarks & Admin Notes */}
-        {batch.notes || batch.adminNote ? (
-          <View style={styles.notesBox}>
-            <Text style={styles.notesTitle}>📝 Logistics & Quality Remarks</Text>
-            <Text style={styles.notesText}>{batch.adminNote || batch.notes}</Text>
-          </View>
-        ) : null}
-
-        <View style={styles.ticketFooter}>
-          <Text style={styles.footerBarcode}>||| | |||| | ||| |||| | || |||| | |||</Text>
-          <Text style={styles.footerNote}>Verified by Sericulture Market Inspector • TrackNow</Text>
+      {/* 5. Remarks & Notes */}
+      {batch.notes || batch.adminNote ? (
+        <View style={styles.notesBox}>
+          <Text style={styles.notesTitle}>📝 Logistics & Quality Remarks</Text>
+          <Text style={styles.notesText}>{batch.adminNote || batch.notes}</Text>
         </View>
+      ) : null}
+
+      {/* 6. Read-Only Note */}
+      <View style={styles.readOnlyNote}>
+        <Text style={styles.readOnlyText}>
+          🔒 {hasDriverOrRental ? 'Verified & entered by driver · Read-only audit record' : 'Verified & entered by admin · Read-only audit record'}
+        </Text>
       </View>
     </ScrollView>
   );
@@ -264,7 +279,7 @@ export default function BatchDetailScreen({ batchId, onBack }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg
+    backgroundColor: '#f5f5f5'
   },
   content: {
     padding: spacing.md,
@@ -275,7 +290,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.xl,
-    backgroundColor: colors.bg
+    backgroundColor: '#f5f5f5'
   },
   loadingText: {
     marginTop: 10,
@@ -316,281 +331,291 @@ const styles = StyleSheet.create({
   navBackText: {
     fontSize: 13,
     fontWeight: '700',
-    color: colors.primary
+    color: '#2e7d52'
   },
-  receiptCard: {
+
+  /* Header Summary Card */
+  headerCard: {
     backgroundColor: '#ffffff',
-    borderRadius: radius.xl,
-    padding: spacing.md,
-    ...shadows.float
+    borderWidth: 1,
+    borderColor: '#bde0cc',
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    marginBottom: 16,
+    ...shadows.card
   },
-  receiptHeader: {
+  topPillRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-    paddingBottom: 10,
+    width: '100%',
     marginBottom: 12
   },
-  sealRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 2
-  },
-  greenSealDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.primary
-  },
-  sealText: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: colors.primaryDark,
-    letterSpacing: 0.6
-  },
-  receiptTitle: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: colors.textMain
-  },
-  receiptId: {
-    fontSize: 11,
-    color: colors.textMuted,
-    marginTop: 1
-  },
-  payoutBox: {
-    backgroundColor: '#1b4d32',
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    alignItems: 'center',
-    marginBottom: spacing.md
-  },
-  payoutLabel: {
-    fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.75)',
-    fontWeight: '600'
-  },
-  payoutNumber: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: colors.gold,
-    marginVertical: 2
-  },
-  payoutSub: {
-    fontSize: 9.5,
-    color: 'rgba(255, 255, 255, 0.65)',
-    textAlign: 'center'
-  },
-  metaGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    backgroundColor: colors.surfaceSubtle,
-    borderRadius: radius.md,
-    padding: spacing.sm,
-    marginBottom: spacing.md,
-    gap: 8
-  },
-  metaCell: {
-    width: '48%'
-  },
-  metaLabel: {
-    fontSize: 10,
-    color: colors.textMuted
-  },
-  metaVal: {
-    fontSize: 12,
+  headerDate: {
+    fontSize: 11.5,
     fontWeight: '700',
-    color: colors.textMain,
-    marginTop: 1
+    color: '#1e293b',
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20
   },
-  metaValGreen: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: colors.primary,
-    marginTop: 1
-  },
-  tableTitle: {
-    fontSize: 12.5,
-    fontWeight: '800',
-    color: colors.textMain,
-    marginBottom: 6
-  },
-  table: {
+  headerLoc: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#2e7d52',
+    backgroundColor: '#e8f4ed',
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    overflow: 'hidden',
-    marginBottom: spacing.md
+    borderColor: '#bde0cc',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20
   },
-  tableHeaderRow: {
-    flexDirection: 'row',
-    backgroundColor: '#f8fafc',
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border
-  },
-  th: {
-    fontSize: 10,
+  headerTotal: {
+    fontSize: 42,
     fontWeight: '800',
-    color: colors.textSecondary
+    color: '#2e7d52',
+    marginVertical: 4,
+    lineHeight: 46
   },
-  tableRow: {
+  headerTotalUnit: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#64748b'
+  },
+  headerSub: {
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 4
+  },
+
+  /* Section Card Blocks */
+  cardBlock: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e0e0dc',
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 16,
+    ...shadows.card
+  },
+  breakdownTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1e293b',
+    marginBottom: 14
+  },
+
+  /* Weight Breakdown Row */
+  breakdownRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9'
+    gap: 8,
+    paddingVertical: 4
   },
-  gradeTitle: {
-    fontSize: 11,
+  rowLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    width: 95
+  },
+  dot: {
+    width: 9,
+    height: 9,
+    borderRadius: 4.5
+  },
+  labelText: {
+    fontSize: 13,
     fontWeight: '700',
-    color: colors.textMain
+    color: '#334155'
   },
-  gradeSub: {
-    fontSize: 9,
-    color: colors.textMuted
+  barTrack: {
+    flex: 1,
+    height: 9,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 6,
+    overflow: 'hidden'
   },
-  td: {
-    fontSize: 11,
-    color: colors.textSecondary
+  barFill: {
+    height: '100%',
+    borderRadius: 6
   },
-  tdBold: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: colors.textMain
+  kgValueContainer: {
+    width: 80,
+    alignItems: 'flex-end'
   },
-  tableTotalRow: {
+  kgValueText: {
+    fontSize: 13,
+    fontWeight: '700'
+  },
+  pctBadge: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#64748b'
+  },
+
+  /* Financial Breakdown */
+  financialList: {
+    gap: 10
+  },
+  valueRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#f0fdf4',
-    paddingVertical: 8,
-    paddingHorizontal: 10
+    paddingVertical: 2
   },
-  totalLabel: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: colors.primaryDark
+  valueRowLabel: {
+    fontSize: 12.5,
+    color: '#64748b',
+    flex: 1
   },
-  totalAmount: {
+  itemAmt: {
     fontSize: 13,
-    fontWeight: '900',
-    color: colors.primaryDark
+    fontWeight: '700',
+    color: '#1e293b'
   },
-  logisticsCard: {
+  netSilkRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#e8f4ed',
+    borderWidth: 1,
+    borderColor: '#bde0cc',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginTop: 6
+  },
+  netSilkLbl: {
+    fontSize: 13.5,
+    fontWeight: '700',
+    color: '#2e7d52'
+  },
+  netSilkVal: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#2e7d52'
+  },
+  estimated: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+    marginTop: 4
+  },
+  estimatedLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1e293b'
+  },
+  estimatedVal: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#2e7d52'
+  },
+
+  /* Driver / Logistics Card */
+  rentalCard: {
     backgroundColor: '#fffbeb',
     borderWidth: 1.5,
     borderColor: '#fde68a',
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    marginBottom: spacing.md
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 16,
+    gap: 8,
+    ...shadows.card
   },
-  logisticsHeaderTitle: {
-    fontSize: 12.5,
-    fontWeight: '900',
+  rentalTitle: {
+    fontSize: 15,
+    fontWeight: '700',
     color: '#92400e',
-    marginBottom: 8
+    marginBottom: 4
   },
-  logisticsRow: {
+  driverHighlight: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#78350f'
+  },
+  deductionNegText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#92400e'
+  },
+  rentalFinalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 5
-  },
-  logisticsLabel: {
-    fontSize: 11,
-    color: '#78350f',
-    fontWeight: '600',
-    flex: 1
-  },
-  driverNamePill: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#92400e',
-    backgroundColor: 'rgba(217, 119, 6, 0.15)',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: radius.full
-  },
-  deductionNeg: {
-    fontSize: 11.5,
-    fontWeight: '800',
-    color: '#b91c1c'
-  },
-  logisticsTotalRow: {
+    marginTop: 6,
+    paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#fde68a',
-    marginTop: 4,
-    paddingTop: 6
+    borderTopColor: '#fef3c7'
   },
-  logisticsTotalLabel: {
-    fontSize: 11.5,
+  rentalFinalLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#78350f'
+  },
+  deductionTotalText: {
+    fontSize: 14,
     fontWeight: '800',
     color: '#92400e'
   },
-  deductionTotalVal: {
-    fontSize: 12,
-    fontWeight: '900',
-    color: '#b91c1c'
-  },
-  finalPayoutRow: {
+  payoutHighlightRow: {
     borderTopWidth: 1.5,
     borderTopColor: '#d97706',
-    marginTop: 6,
-    paddingTop: 8,
     backgroundColor: '#fef3c7',
-    paddingHorizontal: 8,
-    borderRadius: radius.sm
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 8
   },
   finalPayoutLabel: {
-    fontSize: 12,
-    fontWeight: '900',
+    fontSize: 13.5,
+    fontWeight: '800',
     color: '#78350f'
   },
-  finalPayoutVal: {
-    fontSize: 14,
+  finalPayoutNumber: {
+    fontSize: 20,
     fontWeight: '900',
-    color: '#15803d'
+    color: '#92400e'
   },
+
+  /* Notes */
   notesBox: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    borderRadius: radius.md,
-    padding: spacing.sm,
-    marginBottom: spacing.md
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16
   },
   notesTitle: {
-    fontSize: 11,
-    fontWeight: '800',
+    fontSize: 12,
+    fontWeight: '700',
     color: colors.textMain,
-    marginBottom: 2
+    marginBottom: 4
   },
   notesText: {
-    fontSize: 11,
+    fontSize: 12,
     color: colors.textSecondary,
-    lineHeight: 15
+    lineHeight: 16
   },
-  ticketFooter: {
-    borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
-    paddingTop: 10,
-    alignItems: 'center'
+
+  /* Read Only Note */
+  readOnlyNote: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e0e0dc',
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10
   },
-  footerBarcode: {
-    fontSize: 13,
-    fontWeight: '900',
-    letterSpacing: 2,
-    color: '#94a3b8'
-  },
-  footerNote: {
-    fontSize: 9,
-    color: colors.textMuted,
-    marginTop: 3
+  readOnlyText: {
+    fontSize: 11.5,
+    color: '#64748b',
+    textAlign: 'center'
   }
 });
