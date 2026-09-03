@@ -5,6 +5,10 @@
  */
 
 const mongoose = require('mongoose');
+const { monitorEventLoopDelay } = require('perf_hooks');
+
+const eventLoopHistogram = monitorEventLoopDelay({ resolution: 10 });
+eventLoopHistogram.enable();
 
 const MAX_SAMPLES = 5000;
 const latencySamples = [];
@@ -128,6 +132,13 @@ function getSystemMetrics() {
       heapUsedMb: Math.round((memory.heapUsed / 1024 / 1024) * 100) / 100,
       heapTotalMb: Math.round((memory.heapTotal / 1024 / 1024) * 100) / 100,
       rssMb: Math.round((memory.rss / 1024 / 1024) * 100) / 100
+    },
+    eventLoopLag: {
+      p50Ms: Math.round((eventLoopHistogram.percentile(50) / 1e6) * 100) / 100,
+      p95Ms: Math.round((eventLoopHistogram.percentile(95) / 1e6) * 100) / 100,
+      p99Ms: Math.round((eventLoopHistogram.percentile(99) / 1e6) * 100) / 100,
+      meanMs: Math.round((eventLoopHistogram.mean / 1e6) * 100) / 100,
+      maxMs: Math.round((eventLoopHistogram.max / 1e6) * 100) / 100
     },
     topEndpoints: endpointBreakdown.slice(0, 15)
   };

@@ -4,7 +4,9 @@ const idempotencyKeySchema = new mongoose.Schema(
   {
     key: {
       type: String,
-      required: true
+      required: true,
+      trim: true,
+      maxlength: 128
     },
     userId: {
       type: String,
@@ -18,17 +20,22 @@ const idempotencyKeySchema = new mongoose.Schema(
       type: String,
       required: true
     },
+    requestPayloadHash: {
+      type: String,
+      required: true
+    },
     status: {
       type: String,
-      enum: ['in_flight', 'completed'],
+      enum: ['in_flight', 'completed', 'failed'],
       default: 'in_flight'
     },
     statusCode: Number,
     responseBody: mongoose.Schema.Types.Mixed,
+    errorDetails: String,
     createdAt: {
       type: Date,
       default: Date.now,
-      expires: 86400 // 24 hours TTL auto-deletion by MongoDB
+      expires: 86400 // 24 hours TTL auto-deletion
     }
   },
   { timestamps: true }
