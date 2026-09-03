@@ -102,19 +102,19 @@ export default function DashboardScreen({ user, onNavigateTab, onSelectBatch }) 
           <View style={styles.rateMainCol}>
             <Text style={styles.marketName}>📍 {currentLoc.label} Exchange</Text>
             <View style={styles.priceRow}>
-              <Text style={styles.priceVal}>{formatINR(currentRateVal)}</Text>
-              <Text style={styles.priceUnit}>/ kg</Text>
+              <Text style={styles.priceVal}>{currentRateVal > 0 ? formatINR(currentRateVal) : '-'}</Text>
+              {currentRateVal > 0 && <Text style={styles.priceUnit}>/ kg</Text>}
             </View>
           </View>
 
           <View style={styles.rateSubCol}>
             <View style={styles.subPill}>
               <Text style={styles.subPillLabel}>Day Avg</Text>
-              <Text style={styles.subPillVal}>{formatINR(currentAvgVal)}</Text>
+              <Text style={styles.subPillVal}>{currentAvgVal > 0 ? formatINR(currentAvgVal) : '-'}</Text>
             </View>
             <View style={styles.subPill}>
               <Text style={styles.subPillLabel}>Day Min</Text>
-              <Text style={styles.subPillVal}>{formatINR(currentMinVal)}</Text>
+              <Text style={styles.subPillVal}>{currentMinVal > 0 ? formatINR(currentMinVal) : '-'}</Text>
             </View>
           </View>
         </View>

@@ -77,16 +77,24 @@ router.post('/', protect, adminOnly, async (req, res) => {
       dharmapuriAvg,
       dharmapuriMin
     } = req.body;
-    const rates = [coimbatore, mamballi, ramnagar, dharmapuri];
-    const topRate = Math.max(...rates);
-    const markets = ['coimbatore','mamballi','ramnagar','dharmapuri'];
-    const topMarket = markets[rates.indexOf(topRate)];
+    const validMarkets = [
+      { key: 'coimbatore', val: Number(coimbatore) },
+      { key: 'mamballi', val: Number(mamballi) },
+      { key: 'ramnagar', val: Number(ramnagar) },
+      { key: 'dharmapuri', val: Number(dharmapuri) }
+    ].filter(m => Number.isFinite(m.val) && m.val > 0);
+
+    const sortedMarkets = [...validMarkets].sort((a, b) => b.val - a.val);
+    const topRate = sortedMarkets.length > 0 ? sortedMarkets[0].val : null;
+    const topMarket = sortedMarkets.length > 0 ? sortedMarkets[0].key : null;
+
     const avgInputs = [coimbatoreAvg, mamballiAvg, ramnagarAvg, dharmapuriAvg]
       .map((x) => Number(x))
       .filter((x) => Number.isFinite(x) && x > 0);
+
     const minAvg = avgInputs.length
       ? Math.round(avgInputs.reduce((a, b) => a + b, 0) / avgInputs.length)
-      : Math.round(rates.reduce((a,b)=>a+b,0)/4);
+      : (validMarkets.length ? Math.round(validMarkets.reduce((a, b) => a + b.val, 0) / validMarkets.length) : null);
     
     // Check for duplicate date
     const existing = await MarketRate.findOne({ date }).lean();
@@ -94,18 +102,18 @@ router.post('/', protect, adminOnly, async (req, res) => {
     
     const rate = await MarketRate.create({ 
       date,
-      coimbatore,
-      coimbatoreAvg,
-      coimbatoreMin: coimbatoreMin ?? null,
-      mamballi,
-      mamballiAvg,
-      mamballiMin: mamballiMin ?? null,
-      ramnagar,
-      ramnagarAvg,
-      ramnagarMin: ramnagarMin ?? null,
-      dharmapuri,
-      dharmapuriAvg,
-      dharmapuriMin: dharmapuriMin ?? null,
+      coimbatore: Number(coimbatore) || null,
+      coimbatoreAvg: Number(coimbatoreAvg) || null,
+      coimbatoreMin: Number(coimbatoreMin) || null,
+      mamballi: Number(mamballi) || null,
+      mamballiAvg: Number(mamballiAvg) || null,
+      mamballiMin: Number(mamballiMin) || null,
+      ramnagar: Number(ramnagar) || null,
+      ramnagarAvg: Number(ramnagarAvg) || null,
+      ramnagarMin: Number(ramnagarMin) || null,
+      dharmapuri: Number(dharmapuri) || null,
+      dharmapuriAvg: Number(dharmapuriAvg) || null,
+      dharmapuriMin: Number(dharmapuriMin) || null,
       topRate, topMarket, minAvg, updatedBy: req.user.id 
     });
 
@@ -140,33 +148,42 @@ router.put('/:id', protect, adminOnly, async (req, res) => {
       dharmapuriAvg,
       dharmapuriMin
     } = req.body;
-    const rates = [coimbatore, mamballi, ramnagar, dharmapuri];
-    const topRate = Math.max(...rates);
-    const markets = ['coimbatore','mamballi','ramnagar','dharmapuri'];
-    const topMarket = markets[rates.indexOf(topRate)];
+
+    const validMarkets = [
+      { key: 'coimbatore', val: Number(coimbatore) },
+      { key: 'mamballi', val: Number(mamballi) },
+      { key: 'ramnagar', val: Number(ramnagar) },
+      { key: 'dharmapuri', val: Number(dharmapuri) }
+    ].filter(m => Number.isFinite(m.val) && m.val > 0);
+
+    const sortedMarkets = [...validMarkets].sort((a, b) => b.val - a.val);
+    const topRate = sortedMarkets.length > 0 ? sortedMarkets[0].val : null;
+    const topMarket = sortedMarkets.length > 0 ? sortedMarkets[0].key : null;
+
     const avgInputs = [coimbatoreAvg, mamballiAvg, ramnagarAvg, dharmapuriAvg]
       .map((x) => Number(x))
       .filter((x) => Number.isFinite(x) && x > 0);
+
     const minAvg = avgInputs.length
       ? Math.round(avgInputs.reduce((a, b) => a + b, 0) / avgInputs.length)
-      : Math.round(rates.reduce((a,b)=>a+b,0)/4);
+      : (validMarkets.length ? Math.round(validMarkets.reduce((a, b) => a + b.val, 0) / validMarkets.length) : null);
     
     const rate = await MarketRate.findByIdAndUpdate(
       req.params.id,
       {
         date,
-        coimbatore,
-        coimbatoreAvg,
-        coimbatoreMin: coimbatoreMin ?? null,
-        mamballi,
-        mamballiAvg,
-        mamballiMin: mamballiMin ?? null,
-        ramnagar,
-        ramnagarAvg,
-        ramnagarMin: ramnagarMin ?? null,
-        dharmapuri,
-        dharmapuriAvg,
-        dharmapuriMin: dharmapuriMin ?? null,
+        coimbatore: Number(coimbatore) || null,
+        coimbatoreAvg: Number(coimbatoreAvg) || null,
+        coimbatoreMin: Number(coimbatoreMin) || null,
+        mamballi: Number(mamballi) || null,
+        mamballiAvg: Number(mamballiAvg) || null,
+        mamballiMin: Number(mamballiMin) || null,
+        ramnagar: Number(ramnagar) || null,
+        ramnagarAvg: Number(ramnagarAvg) || null,
+        ramnagarMin: Number(ramnagarMin) || null,
+        dharmapuri: Number(dharmapuri) || null,
+        dharmapuriAvg: Number(dharmapuriAvg) || null,
+        dharmapuriMin: Number(dharmapuriMin) || null,
         topRate, topMarket, minAvg, updatedBy: req.user.id
       },
       { new: true }

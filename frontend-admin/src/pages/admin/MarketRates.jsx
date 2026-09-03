@@ -44,11 +44,11 @@ function SummaryRotator({ latest }) {
     <div className={styles.summaryRotator} aria-live="polite">
       <div key={loc.key} className={styles.summarySlide}>
         <span>🏛️ {loc.label}: </span>
-        <span className={styles.summaryRate}>₹{rate ?? '—'}/kg</span>
+        <span className={styles.summaryRate}>{rate > 0 ? `₹${rate}/kg` : '-'}</span>
         {' · '}
-        <span className={styles.summaryAvg}>Avg: ₹{avg ?? '—'}</span>
+        <span className={styles.summaryAvg}>Avg: {avg > 0 ? `₹${avg}` : '-'}</span>
         {' · '}
-        <span className={styles.summaryAvg}>Min: ₹{min ?? '—'}</span>
+        <span className={styles.summaryAvg}>Min: {min > 0 ? `₹${min}` : '-'}</span>
       </div>
     </div>
   );
@@ -124,11 +124,11 @@ export default function MarketRates() {
                     <div key={loc.key} className={styles.marketLocationCard}>
                       <span className={styles.locBadge}>{loc.label}</span>
                       <div className={styles.locRate}>
-                        ₹{latest[loc.key] ?? '—'}
+                        {latest[loc.key] > 0 ? `₹${latest[loc.key]}` : '-'}
                       </div>
                       <div className={styles.locSubDetails}>
-                        <span>Avg: ₹{latest[loc.avgKey] ?? '—'}</span>
-                        <span>Min: ₹{latest[loc.minKey] ?? '—'}</span>
+                        <span>Avg: {latest[loc.avgKey] > 0 ? `₹${latest[loc.avgKey]}` : '-'}</span>
+                        <span>Min: {latest[loc.minKey] > 0 ? `₹${latest[loc.minKey]}` : '-'}</span>
                       </div>
                     </div>
                   ))}
@@ -167,7 +167,7 @@ export default function MarketRates() {
                         <td>🗓️ {formatDateShort(row.date)}</td>
                         {LOCS.map((loc) => (
                           <td key={loc.key}>
-                            <strong>₹{row[loc.key] ?? '—'}</strong>
+                            <strong>{row[loc.key] > 0 ? `₹${row[loc.key]}` : '-'}</strong>
                           </td>
                         ))}
                         <td>

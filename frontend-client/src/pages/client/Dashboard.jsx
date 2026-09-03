@@ -163,19 +163,25 @@ export default function Dashboard({ user }) {
                 </div>
 
                 <div className={styles.rateDisplay}>
-                  <span className={styles.rateCurrency}>₹</span>
-                  <span className={styles.rateNumber}>{rateVal ?? '—'}</span>
-                  <span className={styles.rateUnit}>/ kg</span>
+                  {rateVal > 0 ? (
+                    <>
+                      <span className={styles.rateCurrency}>₹</span>
+                      <span className={styles.rateNumber}>{rateVal}</span>
+                      <span className={styles.rateUnit}>/ kg</span>
+                    </>
+                  ) : (
+                    <span className={styles.rateNumber}>-</span>
+                  )}
                 </div>
 
                 <div className={styles.rateBreakdownGrid}>
                   <div className={styles.breakdownPill}>
                     <span className={styles.breakdownLbl}>Average Rate</span>
-                    <span className={styles.breakdownVal}>₹{rateAvg ?? '—'} / kg</span>
+                    <span className={styles.breakdownVal}>{rateAvg > 0 ? `₹${rateAvg} / kg` : '-'}</span>
                   </div>
                   <div className={styles.breakdownPill}>
                     <span className={styles.breakdownLbl}>Minimum Rate</span>
-                    <span className={styles.breakdownVal}>₹{rateMin ?? '—'} / kg</span>
+                    <span className={styles.breakdownVal}>{rateMin > 0 ? `₹${rateMin} / kg` : '-'}</span>
                   </div>
                 </div>
               </div>

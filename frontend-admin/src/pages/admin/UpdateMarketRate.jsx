@@ -32,15 +32,21 @@ export default function UpdateMarketRate() {
   const rAvg = Number(watch('ramnagarAvg')) || 0;
   const dAvg = Number(watch('dharmapuriAvg')) || 0;
 
-  const rates = [c, m, r, d];
-  const avgRates = [cAvg, mAvg, rAvg, dAvg].filter((x) => x > 0);
-  const topRate = Math.max(...rates);
-  const topIndex = rates.indexOf(topRate);
-  const topMarket = topRate > 0 ? MARKET_LOCATIONS[topIndex]?.name : '—';
-  
+  const validEntries = [
+    { name: 'Coimbatore', rate: c, avg: cAvg },
+    { name: 'Mamballi', rate: m, avg: mAvg },
+    { name: 'Ramnagar', rate: r, avg: rAvg },
+    { name: 'Dharmapuri', rate: d, avg: dAvg }
+  ].filter(item => item.rate > 0 || item.avg > 0);
+
+  const topRateObj = [...validEntries].sort((a, b) => b.rate - a.rate)[0];
+  const topRate = topRateObj?.rate > 0 ? topRateObj.rate : 0;
+  const topMarket = topRateObj?.name || '—';
+
+  const avgRates = validEntries.map(x => x.avg).filter(x => x > 0);
   const calculatedAvg = avgRates.length
     ? Math.round(avgRates.reduce((a, b) => a + b, 0) / avgRates.length)
-    : (rates.some((x) => x > 0) ? Math.round((c + m + r + d) / 4) : 0);
+    : (validEntries.some(x => x.rate > 0) ? Math.round(validEntries.reduce((a, b) => a + b.rate, 0) / validEntries.filter(x => x.rate > 0).length) : 0);
 
   useEffect(() => {
     if (editId) {
@@ -52,19 +58,33 @@ export default function UpdateMarketRate() {
 
   const onSubmit = async (data) => {
     setError('');
+    
+    // Check if at least one rate or average rate was filled
+    const hasAnyEntry = [
+      data.coimbatore, data.coimbatoreAvg, data.coimbatoreMin,
+      data.mamballi, data.mamballiAvg, data.mamballiMin,
+      data.ramnagar, data.ramnagarAvg, data.ramnagarMin,
+      data.dharmapuri, data.dharmapuriAvg, data.dharmapuriMin
+    ].some(val => Number(val) > 0);
+
+    if (!hasAnyEntry) {
+      setError('Please enter rates for at least one market location before saving.');
+      return;
+    }
+
     setSaving(true);
     const body = {
       date: data.date,
-      coimbatore: Number(data.coimbatore),
+      coimbatore: Number(data.coimbatore) || null,
       coimbatoreAvg: Number(data.coimbatoreAvg) || null,
       coimbatoreMin: Number(data.coimbatoreMin) || null,
-      mamballi: Number(data.mamballi),
+      mamballi: Number(data.mamballi) || null,
       mamballiAvg: Number(data.mamballiAvg) || null,
       mamballiMin: Number(data.mamballiMin) || null,
-      ramnagar: Number(data.ramnagar),
+      ramnagar: Number(data.ramnagar) || null,
       ramnagarAvg: Number(data.ramnagarAvg) || null,
       ramnagarMin: Number(data.ramnagarMin) || null,
-      dharmapuri: Number(data.dharmapuri),
+      dharmapuri: Number(data.dharmapuri) || null,
       dharmapuriAvg: Number(data.dharmapuriAvg) || null,
       dharmapuriMin: Number(data.dharmapuriMin) || null
     };
@@ -164,8 +184,8 @@ export default function UpdateMarketRate() {
                       type="number"
                       min={1}
                       className={styles.rateInput}
-                      placeholder="Rate"
-                      {...register(loc.key, { required: true, min: 1 })}
+                      placeholder="Optional"
+                      {...register(loc.key, { min: 1 })}
                     />
                   </div>
                 </div>
@@ -179,7 +199,7 @@ export default function UpdateMarketRate() {
                       type="number"
                       min={1}
                       className={styles.rateInput}
-                      placeholder="Avg Rate"
+                      placeholder="Optional"
                       {...register(`${loc.key}Avg`, { min: 1 })}
                     />
                   </div>
@@ -194,7 +214,7 @@ export default function UpdateMarketRate() {
                       type="number"
                       min={1}
                       className={styles.rateInput}
-                      placeholder="Min Rate"
+                      placeholder="Optional"
                       {...register(`${loc.key}Min`, { min: 1 })}
                     />
                   </div>
