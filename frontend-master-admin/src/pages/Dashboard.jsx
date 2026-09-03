@@ -8,6 +8,7 @@ import {
   Activity, 
   ShieldCheck, 
   TrendingUp, 
+  Server,
   RefreshCw,
   Clock,
   Trash2,
