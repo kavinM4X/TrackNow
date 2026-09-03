@@ -175,21 +175,6 @@ export default function UpdateMarketRate() {
               </div>
 
               <div className={styles.ratesGrid}>
-                {/* Base Rate */}
-                <div className={styles.rateInputGroup}>
-                  <label className={styles.inputLabel}>Base Rate (₹/kg)</label>
-                  <div className={styles.inputPrefixWrap}>
-                    <span className={styles.currencyPrefix}>₹</span>
-                    <input
-                      type="number"
-                      min={1}
-                      className={styles.rateInput}
-                      placeholder="Optional"
-                      {...register(loc.key, { min: 1 })}
-                    />
-                  </div>
-                </div>
-
                 {/* Average Rate */}
                 <div className={styles.rateInputGroup}>
                   <label className={styles.inputLabel}>Average Rate (₹/kg)</label>
@@ -201,6 +186,21 @@ export default function UpdateMarketRate() {
                       className={styles.rateInput}
                       placeholder="Optional"
                       {...register(`${loc.key}Avg`, { min: 1 })}
+                    />
+                  </div>
+                </div>
+
+                {/* Base Rate */}
+                <div className={styles.rateInputGroup}>
+                  <label className={styles.inputLabel}>Base Rate (₹/kg)</label>
+                  <div className={styles.inputPrefixWrap}>
+                    <span className={styles.currencyPrefix}>₹</span>
+                    <input
+                      type="number"
+                      min={1}
+                      className={styles.rateInput}
+                      placeholder="Optional"
+                      {...register(loc.key, { min: 1 })}
                     />
                   </div>
                 </div>
