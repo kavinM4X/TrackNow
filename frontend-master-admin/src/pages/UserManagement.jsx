@@ -117,10 +117,15 @@ const UserManagement = () => {
   const [activityLoading, setActivityLoading] = useState(false);
   const [activityData, setActivityData] = useState(null);
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (showNotification = false) => {
     setLoading(true);
+    if (showNotification) {
+      setMsg({ type: '', text: '' });
+    }
     try {
-      const res = await api.get('/admin/users');
+      const res = await api.get('/admin/users', {
+        params: { _t: Date.now() }
+      });
       let loadedUsers = Array.isArray(res.data) ? res.data : (res.data.users || []);
 
       // If live backend endpoint filters out admin role, supply registered Admin accounts
@@ -155,15 +160,29 @@ const UserManagement = () => {
         }
       });
       setUserPasswords(passMap);
+
+      if (showNotification) {
+        setMsg({
+          type: 'success',
+          text: `✔ Registry updated! Loaded ${loadedUsers.length} user accounts from MongoDB Atlas.`
+        });
+        setTimeout(() => setMsg((prev) => (prev.type === 'success' ? { type: '', text: '' } : prev)), 4000);
+      }
     } catch (err) {
       console.error('Error fetching users:', err);
+      if (showNotification) {
+        setMsg({
+          type: 'error',
+          text: err.response?.data?.error || err.response?.data?.message || 'Failed to refresh user registry from database.'
+        });
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchUsers(false);
   }, []);
 
   const togglePasswordVisibility = (userId, e) => {
@@ -416,9 +435,9 @@ const UserManagement = () => {
           </p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <button onClick={fetchUsers} className="btn btn-secondary">
+          <button onClick={() => fetchUsers(true)} className="btn btn-secondary" disabled={loading}>
             <RefreshCw size={16} className={loading ? 'spin' : ''} />
-            <span>Reload Registry</span>
+            <span>{loading ? 'Fetching...' : 'Reload Registry'}</span>
           </button>
           <button 
             onClick={() => {
