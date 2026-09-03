@@ -8,9 +8,12 @@ import {
   Activity, 
   ShieldCheck, 
   TrendingUp, 
-  Server, 
   RefreshCw,
-  Clock
+  Clock,
+  Trash2,
+  AlertTriangle,
+  Database,
+  CheckCircle2
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -94,6 +97,33 @@ const Dashboard = () => {
       console.error('Failed to load master dashboard stats:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const [purgeNotice, setPurgeNotice] = useState(null);
+  const [purgeLoading, setPurgeLoading] = useState(false);
+
+  const handleBulkPurge = async (target, targetLabel) => {
+    const isConfirmed = window.confirm(`🚨 MASTER ADMIN WARNING:\nAre you sure you want to purge ${targetLabel}?\nThis cannot be undone.`);
+    if (!isConfirmed) return;
+
+    setPurgeLoading(true);
+    setPurgeNotice(null);
+    try {
+      const res = await api.post('/admin/purge-data', { target });
+      setPurgeNotice({
+        type: 'success',
+        text: res.data?.message || `Successfully purged ${targetLabel}!`
+      });
+      await fetchDashboardData();
+    } catch (err) {
+      console.error('Bulk purge error:', err);
+      setPurgeNotice({
+        type: 'error',
+        text: err.response?.data?.error || err.response?.data?.message || 'Failed to execute bulk data purge.'
+      });
+    } finally {
+      setPurgeLoading(false);
     }
   };
 
@@ -236,6 +266,186 @@ const Dashboard = () => {
               </div>
             ))}
           </div>
+        </div>
+      </div>
+      {/* Notification Toast */}
+      {purgeNotice && (
+        <div style={{
+          background: purgeNotice.type === 'error' ? 'rgba(244, 63, 94, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+          border: purgeNotice.type === 'error' ? '1px solid var(--accent-rose)' : '1px solid var(--accent-emerald)',
+          color: purgeNotice.type === 'error' ? 'var(--accent-rose)' : 'var(--accent-emerald)',
+          padding: '0.85rem 1.25rem',
+          borderRadius: '8px',
+          marginBottom: '1.5rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
+            {purgeNotice.type === 'error' ? <AlertTriangle size={18} /> : <CheckCircle2 size={18} />}
+            <span>{purgeNotice.text}</span>
+          </div>
+          <button 
+            onClick={() => setPurgeNotice(null)} 
+            className="btn btn-secondary" 
+            style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {/* Platform Data Cleaner & Purge Center */}
+      <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', border: '1px solid rgba(244, 63, 94, 0.25)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ 
+              width: '36px', 
+              height: '36px', 
+              borderRadius: '8px', 
+              background: 'rgba(244, 63, 94, 0.15)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              color: 'var(--accent-rose)'
+            }}>
+              <Database size={20} />
+            </div>
+            <div>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.1rem', fontWeight: 700, color: '#fff' }}>
+                Master Platform Data Cleaner & Purge Center
+              </h3>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                Selectively purge test data, clear stale records, or clean specific collections across all user databases.
+              </p>
+            </div>
+          </div>
+          <span className="pill pill-rose">
+            <Trash2 size={12} />
+            <span>MASTER PURGE TOOLS</span>
+          </span>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', marginTop: '1rem' }}>
+          <button
+            onClick={() => handleBulkPurge('batches', 'ALL Harvest Batches')}
+            disabled={purgeLoading}
+            className="btn btn-secondary"
+            style={{ 
+              padding: '0.85rem', 
+              color: 'var(--accent-amber)', 
+              borderColor: 'rgba(245, 158, 11, 0.3)',
+              background: 'rgba(245, 158, 11, 0.05)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              gap: '0.35rem'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.85rem' }}>
+              <Trash2 size={14} />
+              <span>Purge Harvest Batches</span>
+            </div>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+              Clear recorded silk batches & weights
+            </span>
+          </button>
+
+          <button
+            onClick={() => handleBulkPurge('bookings', 'ALL Booking Orders')}
+            disabled={purgeLoading}
+            className="btn btn-secondary"
+            style={{ 
+              padding: '0.85rem', 
+              color: 'var(--accent-cyan)', 
+              borderColor: 'rgba(6, 182, 212, 0.3)',
+              background: 'rgba(6, 182, 212, 0.05)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              gap: '0.35rem'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.85rem' }}>
+              <Trash2 size={14} />
+              <span>Purge Bookings & Trips</span>
+            </div>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+              Clear farmer pickup orders & deliveries
+            </span>
+          </button>
+
+          <button
+            onClick={() => handleBulkPurge('expenses', 'ALL Driver Trip Expenses')}
+            disabled={purgeLoading}
+            className="btn btn-secondary"
+            style={{ 
+              padding: '0.85rem', 
+              color: 'var(--accent-emerald)', 
+              borderColor: 'rgba(16, 185, 129, 0.3)',
+              background: 'rgba(16, 185, 129, 0.05)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              gap: '0.35rem'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.85rem' }}>
+              <Trash2 size={14} />
+              <span>Purge Driver Expenses</span>
+            </div>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+              Clear fuel, toll, loading & food logs
+            </span>
+          </button>
+
+          <button
+            onClick={() => handleBulkPurge('logs', 'ALL System Activity Logs')}
+            disabled={purgeLoading}
+            className="btn btn-secondary"
+            style={{ 
+              padding: '0.85rem', 
+              color: 'var(--accent-purple)', 
+              borderColor: 'rgba(139, 92, 246, 0.3)',
+              background: 'rgba(139, 92, 246, 0.05)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              gap: '0.35rem'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.85rem' }}>
+              <Trash2 size={14} />
+              <span>Clear Activity Logs</span>
+            </div>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+              Flush audit streams & telemetry history
+            </span>
+          </button>
+
+          <button
+            onClick={() => handleBulkPurge('inactive-users', 'Disabled / Inactive User Accounts')}
+            disabled={purgeLoading}
+            className="btn btn-secondary"
+            style={{ 
+              padding: '0.85rem', 
+              color: 'var(--accent-rose)', 
+              borderColor: 'rgba(244, 63, 94, 0.35)',
+              background: 'rgba(244, 63, 94, 0.08)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              gap: '0.35rem'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.85rem' }}>
+              <Trash2 size={14} />
+              <span>Purge Inactive Accounts</span>
+            </div>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+              Remove disabled / deactivated users
+            </span>
+          </button>
         </div>
       </div>
 

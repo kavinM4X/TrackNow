@@ -31,7 +31,11 @@ import {
   Briefcase,
   History,
   FileText,
-  Wrench
+  Wrench,
+  Trash2,
+  AlertTriangle,
+  CheckSquare,
+  Square
 } from 'lucide-react';
 
 const UserManagement = () => {
@@ -71,6 +75,78 @@ const UserManagement = () => {
   const [submitting, setSubmitting] = useState(false);
   const [togglingId, setTogglingId] = useState(null);
   const [msg, setMsg] = useState({ type: '', text: '' });
+
+  // Delete / Purge User Data Modal State
+  const [purgeModalUser, setPurgeModalUser] = useState(null);
+  const [purgeMode, setPurgeMode] = useState('all'); // 'all' | 'custom'
+  const [customPurgeOptions, setCustomPurgeOptions] = useState({
+    deleteBatches: true,
+    deleteBookings: true,
+    deleteExpenses: true,
+    deleteParties: true,
+    deleteLogs: true,
+    deleteUserAccount: true
+  });
+  const [confirmInput, setConfirmInput] = useState('');
+  const [purgeSubmitting, setPurgeSubmitting] = useState(false);
+
+  const handleExecutePurge = async (e) => {
+    e.preventDefault();
+    if (!purgeModalUser) return;
+    const isConfirmationValid = 
+      confirmInput.trim().toUpperCase() === 'DELETE' || 
+      confirmInput.trim().toUpperCase() === 'PURGE' ||
+      confirmInput.trim().toLowerCase() === purgeModalUser.name.toLowerCase();
+
+    if (!isConfirmationValid) {
+      setMsg({ type: 'error', text: 'Confirmation failed. Please type DELETE, PURGE, or the user name to confirm.' });
+      return;
+    }
+
+    setPurgeSubmitting(true);
+    setMsg({ type: '', text: '' });
+
+    try {
+      const payload = purgeMode === 'all' ? {
+        purgeAll: true,
+        deleteUserAccount: true
+      } : {
+        purgeAll: false,
+        deleteBatches: customPurgeOptions.deleteBatches,
+        deleteBookings: customPurgeOptions.deleteBookings,
+        deleteExpenses: customPurgeOptions.deleteExpenses,
+        deleteParties: customPurgeOptions.deleteParties,
+        deleteLogs: customPurgeOptions.deleteLogs,
+        deleteUserAccount: customPurgeOptions.deleteUserAccount
+      };
+
+      if (!String(purgeModalUser._id).startsWith('master_admin')) {
+        const res = await api.delete(`/admin/users/${purgeModalUser._id}`, { data: payload });
+        const results = res.data?.results;
+        let summaryMsg = `Successfully purged data for ${purgeModalUser.name}!`;
+        if (results) {
+          summaryMsg = `✔ Deleted for ${purgeModalUser.name}: ${results.userAccountDeleted ? 'Account removed' : 'Account kept'}, ${results.batchesDeleted} batches, ${results.bookingsDeleted} bookings, ${results.expensesDeleted} expenses, ${results.partiesDeleted} parties, ${results.logsDeleted} logs.`;
+        }
+        setMsg({ type: 'success', text: summaryMsg });
+      } else {
+        setMsg({ type: 'success', text: `Data reset executed for ${purgeModalUser.name}.` });
+      }
+
+      setPurgeModalUser(null);
+      if (selectedUser?._id === purgeModalUser._id) {
+        setSelectedUser(null);
+      }
+      await fetchUsers(false);
+    } catch (err) {
+      console.error('Purge error:', err);
+      setMsg({
+        type: 'error',
+        text: err.response?.data?.error || err.response?.data?.message || 'Failed to delete user data.'
+      });
+    } finally {
+      setPurgeSubmitting(false);
+    }
+  };
 
   // User Activity Drawer / Modal state
   const [selectedUser, setSelectedUser] = useState(null);
@@ -633,6 +709,37 @@ const UserManagement = () => {
                             <Power size={12} />
                             <span>{togglingId === u._id ? 'Updating...' : u.isActive !== false ? 'Disable' : 'Enable'}</span>
                           </button>
+
+                          {u.email !== 'masteradmin@tracknow.com' && (
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPurgeModalUser(u);
+                                setPurgeMode('all');
+                                setConfirmInput('');
+                                setCustomPurgeOptions({
+                                  deleteBatches: true,
+                                  deleteBookings: true,
+                                  deleteExpenses: true,
+                                  deleteParties: true,
+                                  deleteLogs: true,
+                                  deleteUserAccount: true
+                                });
+                              }}
+                              className="btn btn-secondary"
+                              style={{ 
+                                padding: '0.35rem 0.65rem', 
+                                fontSize: '0.75rem', 
+                                color: 'var(--accent-rose)', 
+                                borderColor: 'rgba(244, 63, 94, 0.35)',
+                                background: 'rgba(244, 63, 94, 0.08)'
+                              }}
+                              title="Delete Account & Purge Data"
+                            >
+                              <Trash2 size={12} />
+                              <span>Delete / Purge</span>
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -1272,7 +1379,29 @@ const UserManagement = () => {
             </div>
 
             {/* Modal Footer */}
-            <div style={{ padding: '1rem 2rem', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ padding: '1rem 2rem', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+              {selectedUser?.email !== 'masteradmin@tracknow.com' ? (
+                <button 
+                  onClick={() => {
+                    setPurgeModalUser(selectedUser);
+                    setPurgeMode('all');
+                    setConfirmInput('');
+                    setCustomPurgeOptions({
+                      deleteBatches: true,
+                      deleteBookings: true,
+                      deleteExpenses: true,
+                      deleteParties: true,
+                      deleteLogs: true,
+                      deleteUserAccount: true
+                    });
+                  }} 
+                  className="btn btn-secondary"
+                  style={{ color: 'var(--accent-rose)', borderColor: 'rgba(244, 63, 94, 0.35)', background: 'rgba(244, 63, 94, 0.08)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                >
+                  <Trash2 size={14} />
+                  <span>Delete / Purge User Data</span>
+                </button>
+              ) : <div />}
               <button onClick={() => setSelectedUser(null)} className="btn btn-secondary">
                 Close Inspection Drawer
               </button>
@@ -1437,6 +1566,234 @@ const UserManagement = () => {
                   disabled={submitting}
                 >
                   {submitting ? 'Provisioning...' : 'Provision Account'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete / Purge User Data Modal */}
+      {purgeModalUser && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.85)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 150,
+          padding: '1.5rem'
+        }}>
+          <div className="glass-panel" style={{ width: '100%', maxWidth: '520px', padding: '2rem', border: '1px solid rgba(244, 63, 94, 0.35)', boxShadow: '0 0 35px rgba(244, 63, 94, 0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.35rem', fontWeight: 700, color: 'var(--accent-rose)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Trash2 size={22} />
+                <span>Delete / Purge User Records</span>
+              </h2>
+              <button onClick={() => setPurgeModalUser(null)} className="btn btn-secondary" style={{ padding: '0.35rem', borderRadius: '50%' }}>
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Target User Info Banner */}
+            <div style={{
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid var(--border-color)',
+              padding: '0.85rem 1.25rem',
+              borderRadius: '8px',
+              marginBottom: '1.25rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div>
+                <div style={{ fontWeight: 700, color: '#fff' }}>{purgeModalUser.name}</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  Phone: {purgeModalUser.phone} {purgeModalUser.email ? `• ${purgeModalUser.email}` : ''}
+                </div>
+              </div>
+              <span className={`pill ${
+                purgeModalUser.role === 'admin' ? 'pill-purple' : 
+                purgeModalUser.role === 'driver' ? 'pill-cyan' : 'pill-green'
+              }`}>
+                {purgeModalUser.role ? purgeModalUser.role.toUpperCase() : 'USER'}
+              </span>
+            </div>
+
+            {/* Mode Selection Tabs */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '1.25rem' }}>
+              <button
+                type="button"
+                onClick={() => setPurgeMode('all')}
+                style={{
+                  padding: '0.75rem',
+                  borderRadius: '8px',
+                  border: purgeMode === 'all' ? '1px solid var(--accent-rose)' : '1px solid var(--border-color)',
+                  background: purgeMode === 'all' ? 'rgba(244, 63, 94, 0.15)' : 'rgba(255,255,255,0.02)',
+                  color: purgeMode === 'all' ? '#fff' : 'var(--text-muted)',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  textAlign: 'center'
+                }}
+              >
+                💥 Delete Everything
+                <span style={{ display: 'block', fontSize: '0.72rem', opacity: 0.8, marginTop: '2px' }}>
+                  Full Wipeout + Account
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPurgeMode('custom')}
+                style={{
+                  padding: '0.75rem',
+                  borderRadius: '8px',
+                  border: purgeMode === 'custom' ? '1px solid var(--accent-cyan)' : '1px solid var(--border-color)',
+                  background: purgeMode === 'custom' ? 'rgba(6, 182, 212, 0.15)' : 'rgba(255,255,255,0.02)',
+                  color: purgeMode === 'custom' ? '#fff' : 'var(--text-muted)',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  textAlign: 'center'
+                }}
+              >
+                ⚙️ Customize Purge
+                <span style={{ display: 'block', fontSize: '0.72rem', opacity: 0.8, marginTop: '2px' }}>
+                  Selective Deletion
+                </span>
+              </button>
+            </div>
+
+            <form onSubmit={handleExecutePurge} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {purgeMode === 'all' ? (
+                <div style={{
+                  background: 'rgba(244, 63, 94, 0.08)',
+                  border: '1px solid rgba(244, 63, 94, 0.25)',
+                  padding: '1rem',
+                  borderRadius: '8px',
+                  fontSize: '0.85rem',
+                  color: 'var(--text-secondary)',
+                  lineHeight: 1.5
+                }}>
+                  <strong style={{ color: 'var(--accent-rose)', display: 'block', marginBottom: '4px' }}>
+                    ⚠️ Permanent Full Wipeout Notice
+                  </strong>
+                  This action will permanently delete:
+                  <ul style={{ margin: '6px 0 0 1.25rem', padding: 0 }}>
+                    <li>User login profile & credentials</li>
+                    <li>All recorded harvest silk batches & receipts</li>
+                    <li>All booking orders & pickup schedules</li>
+                    <li>All trip expenses, parties & audit logs</li>
+                  </ul>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--accent-cyan)', textTransform: 'uppercase' }}>
+                    Select Data Categories to Delete:
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.875rem', color: '#fff', cursor: 'pointer' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={customPurgeOptions.deleteBatches} 
+                      onChange={(e) => setCustomPurgeOptions({ ...customPurgeOptions, deleteBatches: e.target.checked })}
+                    />
+                    <span>📦 Harvest Batches & Silk Receipts</span>
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.875rem', color: '#fff', cursor: 'pointer' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={customPurgeOptions.deleteBookings} 
+                      onChange={(e) => setCustomPurgeOptions({ ...customPurgeOptions, deleteBookings: e.target.checked })}
+                    />
+                    <span>🗓️ Farmer Bookings & Delivery Schedules</span>
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.875rem', color: '#fff', cursor: 'pointer' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={customPurgeOptions.deleteExpenses} 
+                      onChange={(e) => setCustomPurgeOptions({ ...customPurgeOptions, deleteExpenses: e.target.checked })}
+                    />
+                    <span>💰 Driver Trip Expenses (Fuel, Toll, Food)</span>
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.875rem', color: '#fff', cursor: 'pointer' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={customPurgeOptions.deleteParties} 
+                      onChange={(e) => setCustomPurgeOptions({ ...customPurgeOptions, deleteParties: e.target.checked })}
+                    />
+                    <span>🚛 Assigned Party Ledgers & Rentals</span>
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.875rem', color: '#fff', cursor: 'pointer' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={customPurgeOptions.deleteLogs} 
+                      onChange={(e) => setCustomPurgeOptions({ ...customPurgeOptions, deleteLogs: e.target.checked })}
+                    />
+                    <span>📜 Activity & Audit History Logs</span>
+                  </label>
+
+                  <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '4px 0' }} />
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.875rem', color: 'var(--accent-rose)', cursor: 'pointer', fontWeight: 600 }}>
+                    <input 
+                      type="checkbox" 
+                      checked={customPurgeOptions.deleteUserAccount} 
+                      onChange={(e) => setCustomPurgeOptions({ ...customPurgeOptions, deleteUserAccount: e.target.checked })}
+                    />
+                    <span>🗑️ Permanently Delete User Account Profile</span>
+                  </label>
+                  {!customPurgeOptions.deleteUserAccount && (
+                    <span style={{ fontSize: '0.75rem', color: 'var(--accent-emerald)', marginLeft: '1.5rem' }}>
+                      (User login profile will remain intact with data wiped)
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Confirmation Input */}
+              <div style={{ marginTop: '0.5rem' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.4rem' }}>
+                  Type <strong style={{ color: 'var(--accent-rose)' }}>DELETE</strong> or <strong style={{ color: '#fff' }}>{purgeModalUser.name}</strong> to confirm:
+                </label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  style={{ borderColor: 'rgba(244, 63, 94, 0.4)', fontFamily: 'monospace', fontWeight: 700 }}
+                  placeholder="Type DELETE here..."
+                  value={confirmInput}
+                  onChange={(e) => setConfirmInput(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
+                <button 
+                  type="button" 
+                  onClick={() => setPurgeModalUser(null)} 
+                  className="btn btn-secondary" 
+                  style={{ flex: 1 }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="btn btn-danger" 
+                  style={{ flex: 1, padding: '0.75rem' }}
+                  disabled={purgeSubmitting}
+                >
+                  <Trash2 size={16} />
+                  <span>{purgeSubmitting ? 'Purging Data...' : 'Confirm & Execute Purge'}</span>
                 </button>
               </div>
             </form>

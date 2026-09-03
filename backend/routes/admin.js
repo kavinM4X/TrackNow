@@ -936,4 +936,156 @@ router.post('/system/reboot', async (req, res) => {
   }
 });
 
+// DELETE /api/admin/users/:id (Master Admin user deletion & data purge)
+router.delete('/users/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { 
+      purgeAll = true, 
+      deleteBatches = true, 
+      deleteBookings = true, 
+      deleteExpenses = true, 
+      deleteParties = true, 
+      deleteLogs = true, 
+      deleteUserAccount = true 
+    } = req.body || {};
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User account not found' });
+    }
+
+    // Prevent deleting root master admin
+    if (user.email === 'masteradmin@tracknow.com') {
+      return res.status(403).json({ success: false, error: 'Root Master Admin account cannot be deleted' });
+    }
+
+    const results = {
+      batchesDeleted: 0,
+      bookingsDeleted: 0,
+      expensesDeleted: 0,
+      partiesDeleted: 0,
+      logsDeleted: 0,
+      userAccountDeleted: false
+    };
+
+    // Delete Harvest Batches
+    if (purgeAll || deleteBatches) {
+      const bRes = await Batch.deleteMany({ $or: [{ userId: id }, { userName: user.name }] });
+      results.batchesDeleted = bRes.deletedCount || 0;
+    }
+
+    // Delete Booking Orders
+    if (purgeAll || deleteBookings) {
+      const bkRes = await Booking.deleteMany({ $or: [{ userId: id }, { userName: user.name }] });
+      results.bookingsDeleted = bkRes.deletedCount || 0;
+    }
+
+    // Delete Driver Expenses
+    if (purgeAll || deleteExpenses) {
+      const DriverExpense = require('../models/DriverExpense');
+      const expRes = await DriverExpense.deleteMany({ createdBy: id });
+      results.expensesDeleted = expRes.deletedCount || 0;
+    }
+
+    // Delete Driver Parties & Batches
+    if (purgeAll || deleteParties) {
+      const DriverParty = require('../models/DriverParty');
+      const DriverPartyBatch = require('../models/DriverPartyBatch');
+      const pRes = await DriverParty.deleteMany({ createdBy: id });
+      const pbRes = await DriverPartyBatch.deleteMany({ $or: [{ driverId: id }, { userId: id }] });
+      results.partiesDeleted = (pRes.deletedCount || 0) + (pbRes.deletedCount || 0);
+    }
+
+    // Delete Tracker Configs & Days
+    if (purgeAll) {
+      const TrackerConfig = require('../models/TrackerConfig');
+      const TrackerDay = require('../models/TrackerDay');
+      await TrackerConfig.deleteMany({ userId: id });
+      await TrackerDay.deleteMany({ userId: id });
+    }
+
+    // Delete Activity Logs
+    if (purgeAll || deleteLogs) {
+      const logRes = await Log.deleteMany({ $or: [{ userId: id }, { userName: user.name }] });
+      results.logsDeleted = logRes.deletedCount || 0;
+    }
+
+    // Delete User Account
+    if (purgeAll || deleteUserAccount) {
+      await User.findByIdAndDelete(id);
+      results.userAccountDeleted = true;
+    }
+
+    // Log the administrative action
+    await Log.create({
+      userId: req.user._id,
+      userName: req.user.name,
+      action: `Master Admin deleted data for ${user.name} (${user.role}): ${JSON.stringify(results)}`,
+      type: 'admin',
+      page: 'master-data-purge'
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Successfully executed data deletion for ${user.name}!`,
+      results
+    });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// POST /api/admin/purge-data (Master Admin Bulk Platform Data Cleaner)
+router.post('/purge-data', protect, adminOnly, async (req, res) => {
+  try {
+    const { target } = req.body;
+    let count = 0;
+
+    if (target === 'batches') {
+      const r = await Batch.deleteMany({});
+      count = r.deletedCount || 0;
+    } else if (target === 'bookings') {
+      const r = await Booking.deleteMany({});
+      count = r.deletedCount || 0;
+    } else if (target === 'expenses') {
+      const DriverExpense = require('../models/DriverExpense');
+      const r = await DriverExpense.deleteMany({});
+      count = r.deletedCount || 0;
+    } else if (target === 'parties') {
+      const DriverParty = require('../models/DriverParty');
+      const DriverPartyBatch = require('../models/DriverPartyBatch');
+      const p = await DriverParty.deleteMany({});
+      const pb = await DriverPartyBatch.deleteMany({});
+      count = (p.deletedCount || 0) + (pb.deletedCount || 0);
+    } else if (target === 'logs') {
+      const r = await Log.deleteMany({ page: { $ne: 'master-data-purge' } });
+      count = r.deletedCount || 0;
+    } else if (target === 'inactive-users') {
+      const r = await User.deleteMany({ isActive: false, role: { $ne: 'admin' } });
+      count = r.deletedCount || 0;
+    } else {
+      return res.status(400).json({ success: false, error: 'Invalid purge target specified' });
+    }
+
+    await Log.create({
+      userId: req.user._id,
+      userName: req.user.name,
+      action: `Master Admin bulk purged: ${target} (${count} records deleted)`,
+      type: 'admin',
+      page: 'master-data-purge'
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Successfully purged ${count} records from ${target}!`,
+      count
+    });
+  } catch (error) {
+    console.error('Bulk purge error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 module.exports = router;
