@@ -75,4 +75,8 @@ const batchSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+batchSchema.index({ userId: 1, date: -1 });
+batchSchema.index({ date: -1 });
+batchSchema.index({ linkedBookingId: 1 });
+
 module.exports = mongoose.model('Batch', batchSchema);
