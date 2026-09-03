@@ -143,15 +143,6 @@ export default function BookingGate({ user }) {
     logClick('viewed booking-gate', 'booking-gate');
   }, []);
 
-  useEffect(() => {
-    const blockBack = () => {
-      window.history.pushState(null, '', window.location.href);
-    };
-    window.history.pushState(null, '', window.location.href);
-    window.addEventListener('popstate', blockBack);
-    return () => window.removeEventListener('popstate', blockBack);
-  }, []);
-
   const handleSelectPreset = (presetKg) => {
     setValue('quantityKg', String(presetKg), { shouldValidate: true });
   };
@@ -170,6 +161,8 @@ export default function BookingGate({ user }) {
         quantityKg: Number(data.quantityKg),
         notes: ''
       });
+      localStorage.setItem('has_active_booking', 'true');
+      localStorage.setItem('last_booking_date', data.date);
       localStorage.setItem('last_location', data.location);
       setConfirmedBooking(res.data);
       setStep('success');

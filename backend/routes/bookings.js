@@ -14,14 +14,29 @@ function todayISO() {
 // GET /api/bookings/upcoming — next pending/confirmed booking on or after today (login gate)
 router.get('/upcoming', protect, async (req, res) => {
   try {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     const today = todayISO();
-    const booking = await Booking.findOne({
-      userId: req.user._id,
-      status: { $in: ['pending', 'confirmed'] },
+    const uid = req.user._id || req.user.id;
+    
+    // 1. Check for upcoming pending or confirmed booking on or after today
+    let booking = await Booking.findOne({
+      userId: uid,
+      status: { $in: ['pending', 'confirmed', 'in_transit'] },
       date: { $gte: today }
     })
       .sort({ date: 1 })
       .lean();
+
+    // 2. If not found by date >= today, check if user has any active pending/confirmed booking
+    if (!booking) {
+      booking = await Booking.findOne({
+        userId: uid,
+        status: { $in: ['pending', 'confirmed', 'in_transit'] }
+      })
+        .sort({ date: -1 })
+        .lean();
+    }
+
     res.json(booking || null);
   } catch (error) {
     res.status(500).json({ error: error.message });
