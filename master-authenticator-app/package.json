@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "start": "npx expo start -c",
     "android": "npx expo start --android",
     "ios": "npx expo start --ios",
