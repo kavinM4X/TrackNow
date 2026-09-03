@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, StatusBar, Platform } from 'react-native';
+import { View, Text, StyleSheet, StatusBar, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import BrandLogo from '../common/BrandLogo';
 import { colors, spacing } from '../../styles/theme';
 

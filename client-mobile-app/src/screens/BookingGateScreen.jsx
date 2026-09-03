@@ -6,10 +6,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   ActivityIndicator
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import BrandLogo from '../components/common/BrandLogo';
 import Badge from '../components/common/Badge';
 import DatePickerCalendar from '../components/common/DatePickerCalendar';

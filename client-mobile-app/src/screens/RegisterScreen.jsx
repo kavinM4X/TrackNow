@@ -6,10 +6,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   ActivityIndicator
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import BrandLogo from '../components/common/BrandLogo';
 import api, { setSession } from '../api/client';
 import { colors, radius, spacing, shadows } from '../styles/theme';

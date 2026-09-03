@@ -3,7 +3,6 @@ import {
   StyleSheet, 
   Text, 
   View, 
-  SafeAreaView, 
   StatusBar, 
   TouchableOpacity, 
   Dimensions,
@@ -12,6 +11,7 @@ import {
   AppState,
   Platform
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { getDailyUserId, getAuthenticatorCode, getRemainingSeconds } from './src/utils/cryptoTotp';
 

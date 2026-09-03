@@ -6,12 +6,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import BrandLogo from '../components/common/BrandLogo';
 import api, { setSession } from '../api/client';
 import { hasUpcomingBooking } from '../utils/bookingGate';
