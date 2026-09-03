@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
 const Booking = require('../models/Booking');
+const Batch = require('../models/Batch');
 const Log = require('../models/Log');
 const cache = require('../utils/cache');
 
@@ -11,23 +12,23 @@ function todayISO() {
   return new Date().toISOString().split('T')[0];
 }
 
-// GET /api/bookings/upcoming — next pending/confirmed booking on or after today (login gate)
+// GET /api/bookings/upcoming — next booking or existing farmer status (login gate)
 router.get('/upcoming', protect, async (req, res) => {
   try {
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     const today = todayISO();
     const uid = req.user._id || req.user.id;
     
-    // 1. Check for upcoming pending or confirmed booking on or after today
+    // 1. Check for upcoming booking on or after today (non-cancelled)
     let booking = await Booking.findOne({
       userId: uid,
-      status: { $in: ['pending', 'confirmed', 'in_transit'] },
+      status: { $ne: 'cancelled' },
       date: { $gte: today }
     })
       .sort({ date: 1 })
       .lean();
 
-    // 2. If not found by date >= today, check if user has any active pending/confirmed booking
+    // 2. If not found by date >= today, check if user has any active pending/confirmed/in_transit booking
     if (!booking) {
       booking = await Booking.findOne({
         userId: uid,
@@ -35,6 +36,21 @@ router.get('/upcoming', protect, async (req, res) => {
       })
         .sort({ date: -1 })
         .lean();
+    }
+
+    // 3. If no active upcoming booking, check if user is an established farmer with previous bookings or batches
+    if (!booking) {
+      const lastBooking = await Booking.findOne({ userId: uid }).sort({ date: -1 }).lean();
+      const hasBatch = await Batch.exists({ userId: uid });
+      if (lastBooking || hasBatch) {
+        return res.json({
+          _id: lastBooking?._id || 'cleared',
+          date: lastBooking?.date || today,
+          status: lastBooking?.status || 'completed',
+          location: lastBooking?.location || 'Coimbatore',
+          isExistingFarmer: true
+        });
+      }
     }
 
     res.json(booking || null);
