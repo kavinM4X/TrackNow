@@ -7,10 +7,15 @@ const { connectDB, mongoose } = require('./db');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
+const { metricsCollector, getSystemMetrics } = require('./middleware/metrics');
+const { idempotencyMiddleware } = require('./middleware/idempotency');
 
 dotenv.config();
 
 const app = express();
+
+// Real-time Latency & Telemetry Metrics Collector
+app.use(metricsCollector);
 
 // Security HTTP Headers
 app.use(
@@ -60,18 +65,13 @@ app.use('/api/', globalLimiter);
 app.use('/api/auth/', authLimiter);
 app.use('/api/admin/driver/auth/', authLimiter);
 
+// Idempotency Key Middleware for safe mobile retries
+app.use(idempotencyMiddleware);
+
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
 app.use((req, res, next) => {
   res.setHeader('Keep-Alive', 'timeout=60, max=1000');
-  const start = process.hrtime.bigint();
-  res.on('finish', () => {
-    const end = process.hrtime.bigint();
-    const duration = Number(end - start) / 1_000_000;
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(`[PERF] ${req.method} ${req.originalUrl} - ${duration.toFixed(2)}ms`);
-    }
-  });
   next();
 });
 
@@ -80,6 +80,7 @@ function rootPayload() {
     name: 'TrackNow API',
     status: 'running',
     health: '/api/health',
+    metrics: '/api/metrics',
     docs: 'Use /api/* endpoints from the admin or client app'
   };
 }
@@ -87,6 +88,7 @@ function rootPayload() {
 /** No database — must run before DB middleware (Vercel preview opens `/`) */
 app.get('/', (req, res) => res.json(rootPayload()));
 app.get('/api', (req, res) => res.json(rootPayload()));
+app.get('/api/metrics', (req, res) => res.json(getSystemMetrics()));
 
 app.get('/api/health', (req, res) => {
   const onServerless = Boolean(
