@@ -285,3 +285,143 @@
   color: var(--text-muted, #64748b);
   font-size: 13px;
 }
+
+/* Active Scheduled Harvest Card */
+.activeScheduledCard {
+  background: linear-gradient(145deg, #ffffff 0%, #f0fdf4 100%);
+  border: 1.5px solid #86efac;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.activeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #dcfce7;
+}
+
+.activeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.greenDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.7; }
+}
+
+.activeHeroGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  background: #ffffff;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+@media (max-width: 480px) {
+  .activeHeroGrid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+.activeStatBox {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.activeStatLabel {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.activeStatValue {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.activeInfoText {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #1e3a2b;
+  background: rgba(220, 252, 231, 0.6);
+  border-left: 3px solid #22c55e;
+  border-radius: 0 8px 8px 0;
+  padding: 10px 14px;
+  margin: 0;
+}
+
+.activeBtnRow {
+  display: flex;
+  gap: 10px;
+}
+
+.primaryTrackerBtn {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 16px;
+  background: #166534;
+  color: #ffffff;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.primaryTrackerBtn:hover {
+  background: #14532d;
+}
+
+.secondaryDashBtn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 16px;
+  background: #ffffff;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.secondaryDashBtn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}

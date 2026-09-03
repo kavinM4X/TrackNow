@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/common/Badge';
@@ -16,6 +17,10 @@ export default function Booking() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState('');
   const [apiError, setApiError] = useState('');
+
+  const activeBooking = bookings.find(
+    (b) => ['pending', 'confirmed', 'in_transit'].includes(b.status) && b.date >= todayISO()
+  );
 
   const {
     register,
@@ -97,25 +102,65 @@ export default function Booking() {
           </p>
         </div>
 
-        {/* New Booking Form */}
-        <form className={styles.formCard} onSubmit={handleSubmit(onSubmit)}>
-          <div className={styles.sectionHeader}>
-            <h3 className={styles.formTitle}>✨ Create New Booking</h3>
-          </div>
+        {/* If farmer ALREADY has an active upcoming booking, show Active Status Card */}
+        {activeBooking ? (
+          <div className={styles.activeScheduledCard}>
+            <div className={styles.activeHeader}>
+              <div className={styles.activeBadge}>
+                <span className={styles.greenDot} />
+                <span>ACTIVE SCHEDULED PICKUP</span>
+              </div>
+              <Badge status={activeBooking.status} />
+            </div>
 
-          {/* Date Picker */}
-          <div className={styles.fieldGroup}>
-            <label className={styles.fieldLabel}>🗓️ Pickup Date</label>
-            <input
-              type="date"
-              className={styles.fieldInput}
-              min={todayISO()}
-              {...register('date', { required: true })}
-            />
-            {dateVal && dateVal < todayISO() && (
-              <p className="form-error">⚠ Past dates are not allowed</p>
-            )}
+            <div className={styles.activeHeroGrid}>
+              <div className={styles.activeStatBox}>
+                <span className={styles.activeStatLabel}>Pickup Date</span>
+                <span className={styles.activeStatValue}>🗓️ {formatDateDayMonth(activeBooking.date)}</span>
+              </div>
+              <div className={styles.activeStatBox}>
+                <span className={styles.activeStatLabel}>Market Destination</span>
+                <span className={styles.activeStatValue}>📍 {activeBooking.location}</span>
+              </div>
+              <div className={styles.activeStatBox}>
+                <span className={styles.activeStatLabel}>Estimated Harvest</span>
+                <span className={styles.activeStatValue}>⚖️ {activeBooking.quantityKg} kg</span>
+              </div>
+            </div>
+
+            <p className={styles.activeInfoText}>
+              ✨ You already have a harvest delivery scheduled for <strong>{formatDateDayMonth(activeBooking.date)}</strong>. Once this batch is picked up and completed, you will be able to schedule your next harvest pickup.
+            </p>
+
+            <div className={styles.activeBtnRow}>
+              <Link to="/tracker" className={styles.primaryTrackerBtn}>
+                🗺️ View Live GPS Tracker →
+              </Link>
+              <Link to="/dashboard" className={styles.secondaryDashBtn}>
+                📊 Dashboard
+              </Link>
+            </div>
           </div>
+        ) : (
+          /* New Booking Form only when NO active batch is pending */
+          <form className={styles.formCard} onSubmit={handleSubmit(onSubmit)}>
+            <div className={styles.sectionHeader}>
+              <h3 className={styles.formTitle}>✨ Create New Booking</h3>
+            </div>
+
+            {/* Date Picker */}
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel}>🗓️ Pickup Date</label>
+              <input
+                type="date"
+                className={styles.fieldInput}
+                min={todayISO()}
+                {...register('date', { required: true })}
+              />
+              {dateVal && dateVal < todayISO() && (
+                <p className="form-error">⚠ Past dates are not allowed</p>
+              )}
+            </div>
 
           {/* Location Chip Selector */}
           <div className={styles.fieldGroup}>
@@ -188,6 +233,7 @@ export default function Booking() {
             {submitting ? 'Saving Booking…' : '✓ Confirm Pickup Booking'}
           </button>
         </form>
+        )}
 
         {/* Existing Bookings List */}
         <div className={styles.historySection}>

@@ -91,6 +91,10 @@ export default function BookingScreen() {
     }
   };
 
+  const activeBooking = bookings.find(
+    (b) => ['pending', 'confirmed', 'in_transit'].includes(b.status) && b.date >= todayISO()
+  );
+
   return (
     <ScrollView
       style={styles.container}
@@ -106,113 +110,147 @@ export default function BookingScreen() {
         </Text>
       </View>
 
-      {/* Form Card */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>✨ Create New Booking</Text>
+      {/* If farmer ALREADY has an active upcoming batch, show Active Status Card */}
+      {activeBooking ? (
+        <View style={styles.activeCard}>
+          <View style={styles.activeCardHeader}>
+            <View style={styles.activeBadgePill}>
+              <View style={styles.greenPulseDot} />
+              <Text style={styles.activeBadgeText}>ACTIVE SCHEDULED PICKUP</Text>
+            </View>
+            <Badge status={activeBooking.status} />
+          </View>
 
-        {/* Interactive Calendar Date Picker (Present & Future Days Only) */}
-        <DatePickerCalendar
-          selectedDate={date}
-          onSelectDate={setDate}
-        />
+          <View style={styles.activeStatsGrid}>
+            <View style={styles.activeStatBox}>
+              <Text style={styles.activeStatLabel}>PICKUP DATE</Text>
+              <Text style={styles.activeStatValue}>🗓️ {formatDateDayMonth(activeBooking.date)}</Text>
+            </View>
+            <View style={styles.activeStatBox}>
+              <Text style={styles.activeStatLabel}>MARKET</Text>
+              <Text style={styles.activeStatValue}>📍 {activeBooking.location}</Text>
+            </View>
+            <View style={styles.activeStatBox}>
+              <Text style={styles.activeStatLabel}>HARVEST WEIGHT</Text>
+              <Text style={styles.activeStatValue}>⚖️ {activeBooking.quantityKg} kg</Text>
+            </View>
+          </View>
 
-        {/* Location Chips */}
-        <View style={styles.field}>
-          <Text style={styles.label}>🏛️ Delivery Market Center</Text>
-          <View style={styles.chipGrid}>
-            {LOCATIONS.map((loc) => {
-              const isSelected = location === loc;
-              return (
-                <TouchableOpacity
-                  key={loc}
-                  style={[styles.chip, isSelected && styles.chipActive]}
-                  onPress={() => setLocation(loc)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.chipText, isSelected && styles.chipTextActive]}>
-                    📍 {loc}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+          <View style={styles.activeInfoBanner}>
+            <Text style={styles.activeInfoMsg}>
+              ✨ You already have a harvest delivery scheduled for {formatDateDayMonth(activeBooking.date)}. Once this batch is picked up and completed, you will be able to schedule your next harvest pickup.
+            </Text>
           </View>
         </View>
+      ) : (
+        /* Form Card */
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>✨ Create New Booking</Text>
 
-        {/* Quantity Field & Presets */}
-        <View style={styles.field}>
-          <View style={styles.labelRow}>
-            <Text style={styles.label}>⚖️ Quantity (kg)</Text>
-            <Text style={styles.quickText}>Quick Select:</Text>
-          </View>
-
-          <View style={styles.inputWrap}>
-            <TextInput
-              style={styles.input}
-              value={quantityKg}
-              onChangeText={setQuantityKg}
-              placeholder="e.g. 100"
-              keyboardType="numeric"
-            />
-            <Text style={styles.unitText}>kg</Text>
-          </View>
-
-          <View style={styles.presetRow}>
-            {WEIGHT_PRESETS.map((preset) => {
-              const isSelected = Number(quantityKg) === preset;
-              return (
-                <TouchableOpacity
-                  key={preset}
-                  style={[styles.presetBtn, isSelected && styles.presetBtnActive]}
-                  onPress={() => setQuantityKg(String(preset))}
-                >
-                  <Text style={[styles.presetBtnText, isSelected && styles.presetBtnTextActive]}>
-                    {preset} kg
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
-
-        {/* Notes Field */}
-        <View style={styles.field}>
-          <Text style={styles.label}>📝 Notes / Farmer Instructions (Optional)</Text>
-          <TextInput
-            style={styles.textarea}
-            value={notes}
-            onChangeText={setNotes}
-            placeholder="e.g. Call before arrival, farm landmark..."
-            placeholderTextColor={colors.textMuted}
-            multiline
-            numberOfLines={2}
+          {/* Interactive Calendar Date Picker (Present & Future Days Only) */}
+          <DatePickerCalendar
+            selectedDate={date}
+            onSelectDate={setDate}
           />
+
+          {/* Location Chips */}
+          <View style={styles.field}>
+            <Text style={styles.label}>🏛️ Delivery Market Center</Text>
+            <View style={styles.chipGrid}>
+              {LOCATIONS.map((loc) => {
+                const isSelected = location === loc;
+                return (
+                  <TouchableOpacity
+                    key={loc}
+                    style={[styles.chip, isSelected && styles.chipActive]}
+                    onPress={() => setLocation(loc)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.chipText, isSelected && styles.chipTextActive]}>
+                      📍 {loc}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Quantity Field & Presets */}
+          <View style={styles.field}>
+            <View style={styles.labelRow}>
+              <Text style={styles.label}>⚖️ Quantity (kg)</Text>
+              <Text style={styles.quickText}>Quick Select:</Text>
+            </View>
+
+            <View style={styles.inputWrap}>
+              <TextInput
+                style={styles.input}
+                value={quantityKg}
+                onChangeText={setQuantityKg}
+                placeholder="e.g. 100"
+                keyboardType="numeric"
+              />
+              <Text style={styles.unitText}>kg</Text>
+            </View>
+
+            <View style={styles.presetRow}>
+              {WEIGHT_PRESETS.map((preset) => {
+                const isSelected = Number(quantityKg) === preset;
+                return (
+                  <TouchableOpacity
+                    key={preset}
+                    style={[styles.presetBtn, isSelected && styles.presetBtnActive]}
+                    onPress={() => setQuantityKg(String(preset))}
+                  >
+                    <Text style={[styles.presetBtnText, isSelected && styles.presetBtnTextActive]}>
+                      {preset} kg
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Notes Field */}
+          <View style={styles.field}>
+            <Text style={styles.label}>📝 Notes / Farmer Instructions (Optional)</Text>
+            <TextInput
+              style={styles.textarea}
+              value={notes}
+              onChangeText={setNotes}
+              placeholder="e.g. Call before arrival, farm landmark..."
+              placeholderTextColor={colors.textMuted}
+              multiline
+              numberOfLines={2}
+            />
+          </View>
+
+          {error ? (
+            <View style={styles.errorBox}>
+              <Text style={styles.errorText}>⚠ {error}</Text>
+            </View>
+          ) : null}
+
+          {success ? (
+            <View style={styles.successBox}>
+              <Text style={styles.successText}>{success}</Text>
+            </View>
+          ) : null}
+
+          <TouchableOpacity
+            style={[styles.submitBtn, submitting && styles.submitBtnDisabled]}
+            onPress={handleSubmit}
+            disabled={submitting}
+            activeOpacity={0.8}
+          >
+            {submitting ? (
+              <ActivityIndicator color="#ffffff" size="small" />
+            ) : (
+              <Text style={styles.submitBtnText}>✓ Confirm Pickup Booking</Text>
+            )}
+          </TouchableOpacity>
         </View>
-
-        {error ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>⚠ {error}</Text>
-          </View>
-        ) : null}
-
-        {success ? (
-          <View style={styles.successBox}>
-            <Text style={styles.successText}>{success}</Text>
-          </View>
-        ) : null}
-
-        <TouchableOpacity
-          style={[styles.submitBtn, submitting && styles.submitBtnDisabled]}
-          onPress={handleSubmit}
-          disabled={submitting}
-          activeOpacity={0.8}
-        >
-          {submitting ? (
-            <ActivityIndicator color="#ffffff" size="small" />
-          ) : (
-            <Text style={styles.submitBtnText}>✓ Confirm Pickup Booking</Text>
-          )}
-        </TouchableOpacity>
-      </View>
+      )}
 
       {/* Bookings List */}
       <View style={styles.historySection}>
@@ -277,6 +315,83 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: 'rgba(255, 255, 255, 0.75)',
     marginTop: 3
+  },
+  activeCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: radius.xl,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    borderWidth: 1.5,
+    borderColor: '#86efac',
+    ...shadows.card
+  },
+  activeCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: '#dcfce7',
+    marginBottom: spacing.sm
+  },
+  activeBadgePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#dcfce7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: radius.full
+  },
+  greenPulseDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#22c55e'
+  },
+  activeBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#166534',
+    letterSpacing: 0.5
+  },
+  activeStatsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: '#f0fdf4',
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    borderRadius: radius.md,
+    padding: spacing.sm + 2,
+    marginBottom: spacing.sm
+  },
+  activeStatBox: {
+    flex: 1,
+    alignItems: 'center'
+  },
+  activeStatLabel: {
+    fontSize: 9.5,
+    fontWeight: '700',
+    color: '#64748b',
+    marginBottom: 2
+  },
+  activeStatValue: {
+    fontSize: 12.5,
+    fontWeight: '800',
+    color: '#0f172a'
+  },
+  activeInfoBanner: {
+    backgroundColor: 'rgba(220, 252, 231, 0.6)',
+    borderLeftWidth: 3,
+    borderLeftColor: '#22c55e',
+    borderRadius: radius.sm,
+    padding: spacing.sm
+  },
+  activeInfoMsg: {
+    fontSize: 11.5,
+    lineHeight: 16,
+    color: '#1e3a2b',
+    fontWeight: '600'
   },
   card: {
     backgroundColor: '#ffffff',
