@@ -381,6 +381,8 @@ adminRouter.get('/party-batches/:id', protect, adminOnly, async (req, res) => {
     let batch = await DriverPartyBatch.findById(req.params.id);
     if (!batch) return res.status(404).json({ error: 'Batch not found' });
     await hydrateBatchRental(batch);
+    await refreshBatchRates(batch);
+    await batch.save();
 
     const partyFilter = {
       driverUserId: batch.driverUserId,
@@ -1188,6 +1190,14 @@ function batchPayload(doc) {
 }
 
 async function refreshBatchRates(batch) {
+  const sumGoodSilk = batch.entries?.reduce((acc, e) => acc + (Number(e.goodSilkKg) || 0), 0) || 0;
+  if (!batch.totalSilkKg || batch.totalSilkKg <= 0 || batch.isAutoTotalSilkKg) {
+    if (sumGoodSilk > 0) {
+      batch.totalSilkKg = sumGoodSilk;
+      batch.isAutoTotalSilkKg = true;
+    }
+  }
+
   const rate = calcEffectiveRatePerKg(
     batch.rentalAmount,
     batch.totalSilkKg,
@@ -1280,6 +1290,8 @@ driverRouter.get('/party-batches/:id', protect, driverOnly, async (req, res) => 
     });
     if (!batch) return res.status(404).json({ error: 'Batch not found' });
     await hydrateBatchRental(batch);
+    await refreshBatchRates(batch);
+    await batch.save();
     res.json(batchPayload(batch));
   } catch (e) {
     res.status(500).json({ error: e.message });

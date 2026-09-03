@@ -19,7 +19,9 @@ export default function PartyBatchPortal() {
       .get(`/driver/party-batches/${batchId}`)
       .then((r) => {
         setBatch(r.data);
-        setTotalSilkKg(String(r.data.totalSilkKg || ''));
+        const sum = r.data.entries?.reduce((acc, e) => acc + (Number(e.goodSilkKg) || 0), 0) || 0;
+        const initialTotal = r.data.totalSilkKg > 0 ? r.data.totalSilkKg : sum;
+        setTotalSilkKg(initialTotal > 0 ? String(initialTotal) : '');
         setManualExtra(String(r.data.manualRateExtra ?? ''));
         setError('');
       })
@@ -33,9 +35,15 @@ export default function PartyBatchPortal() {
     load();
   }, [load]);
 
+  const autoTotalGoodSilk =
+    batch?.entries?.reduce((sum, e) => sum + (Number(e.goodSilkKg) || 0), 0) || 0;
+
+  const currentTotalSilkKg = Number(totalSilkKg) > 0 ? Number(totalSilkKg) : autoTotalGoodSilk;
+
   const saveSettings = async () => {
+    const finalTotal = currentTotalSilkKg;
     const res = await api.patch(`/driver/party-batches/${batchId}/settings`, {
-      totalSilkKg: Number(totalSilkKg) || 0,
+      totalSilkKg: finalTotal,
       manualRateExtra: Number(manualExtra) || 0
     });
     setBatch(res.data);
@@ -43,11 +51,11 @@ export default function PartyBatchPortal() {
   };
 
   const baseRate =
-    batch?.rentalAmount && Number(totalSilkKg) > 0
-      ? batch.rentalAmount / Number(totalSilkKg)
+    batch?.rentalAmount && currentTotalSilkKg > 0
+      ? batch.rentalAmount / currentTotalSilkKg
       : 0;
+
   const effective =
-    batch?.effectiveRatePerKg ??
     Math.round((baseRate + (Number(manualExtra) || 0)) * 100) / 100;
 
   const onSubmitAll = async () => {
@@ -132,18 +140,18 @@ export default function PartyBatchPortal() {
                     min="0"
                     step="0.1"
                     className={styles.miniInput}
-                    value={totalSilkKg}
+                    value={totalSilkKg || (autoTotalGoodSilk > 0 ? String(autoTotalGoodSilk) : '')}
                     onChange={(e) => setTotalSilkKg(e.target.value)}
-                    placeholder="0.0"
+                    placeholder={autoTotalGoodSilk > 0 ? String(autoTotalGoodSilk) : '0.0'}
                   />
                   <strong>kg</strong>
                 </div>
               </div>
 
               <div className={styles.calcRow}>
-                <span>Base Rate ({formatINR(batch.rentalAmount)} ÷ {totalSilkKg || '0'} kg)</span>
+                <span>Base Rate ({formatINR(batch.rentalAmount)} ÷ {currentTotalSilkKg || '0'} kg)</span>
                 <strong style={{ color: '#1e293b' }}>
-                  {Number(totalSilkKg) > 0 ? `${formatINR(baseRate)}/kg` : '—'}
+                  {currentTotalSilkKg > 0 ? `${formatINR(baseRate)}/kg` : '—'}
                 </strong>
               </div>
 
