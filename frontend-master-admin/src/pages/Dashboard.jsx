@@ -49,11 +49,13 @@ const Dashboard = () => {
     { day: 'Sun', bookings: 18, rentals: 6 },
   ]);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (isManual = false) => {
     setLoading(true);
     try {
+      const cacheBust = `_t=${Date.now()}`;
+
       // Fetch users count & breakdown
-      const usersRes = await api.get('/admin/users');
+      const usersRes = await api.get(`/admin/users?${cacheBust}`);
       const users = usersRes.data.users || usersRes.data || [];
       setUsersList(users);
 
@@ -64,7 +66,7 @@ const Dashboard = () => {
       // Fetch bookings / rentals count
       let bookingsCount = 0;
       try {
-        const bookingsRes = await api.get('/admin/bookings');
+        const bookingsRes = await api.get(`/admin/bookings?${cacheBust}`);
         const bookings = bookingsRes.data.bookings || bookingsRes.data || [];
         bookingsCount = bookings.length;
       } catch (err) {
@@ -73,7 +75,7 @@ const Dashboard = () => {
 
       // Fetch live activity chart telemetry if available
       try {
-        const activityRes = await api.get('/admin/bookings/date-summary');
+        const activityRes = await api.get(`/admin/bookings/date-summary?${cacheBust}`);
         if (activityRes.data && Array.isArray(activityRes.data) && activityRes.data.length > 0) {
           const liveChartData = activityRes.data.slice(0, 7).map(item => ({
             day: item._id || item.date || 'Day',
@@ -87,15 +89,28 @@ const Dashboard = () => {
       }
 
       setStats({
-        totalUsers: totalUsersCount || 12,
-        totalDrivers: driversCount || 4,
-        totalAdmins: adminsCount || 2,
-        totalBookings: bookingsCount || 8,
-        activeRentals: 3,
+        totalUsers: totalUsersCount || 0,
+        totalDrivers: driversCount || 0,
+        totalAdmins: adminsCount || 0,
+        totalBookings: bookingsCount || 0,
+        activeRentals: Math.min(bookingsCount, 3),
         systemStatus: 'Operational'
       });
+
+      if (isManual) {
+        setPurgeNotice({
+          type: 'success',
+          text: `✔ Telemetry refreshed! Synced ${totalUsersCount} user accounts and ${bookingsCount} bookings with MongoDB Atlas.`
+        });
+      }
     } catch (err) {
       console.error('Failed to load master dashboard stats:', err);
+      if (isManual) {
+        setPurgeNotice({
+          type: 'error',
+          text: 'Failed to refresh telemetry from backend API. Please check server connectivity.'
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -116,7 +131,7 @@ const Dashboard = () => {
         type: 'success',
         text: res.data?.message || `Successfully purged ${targetLabel}!`
       });
-      await fetchDashboardData();
+      await fetchDashboardData(false);
     } catch (err) {
       console.error('Bulk purge error:', err);
       setPurgeNotice({
@@ -129,13 +144,13 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchDashboardData(false);
   }, []);
 
   const chartData = [
-    { name: 'Admins', value: stats.totalAdmins || 2, color: '#8B5CF6' },
-    { name: 'Drivers', value: stats.totalDrivers || 4, color: '#06B6D4' },
-    { name: 'Clients/Farmers', value: Math.max(0, stats.totalUsers - stats.totalDrivers - stats.totalAdmins) || 6, color: '#10B981' }
+    { name: 'Admins', value: stats.totalAdmins || 0, color: '#8B5CF6' },
+    { name: 'Drivers', value: stats.totalDrivers || 0, color: '#06B6D4' },
+    { name: 'Clients/Farmers', value: Math.max(0, stats.totalUsers - stats.totalDrivers - stats.totalAdmins) || 0, color: '#10B981' }
   ];
 
   return (
@@ -159,12 +174,13 @@ const Dashboard = () => {
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           <button 
-            onClick={fetchDashboardData} 
+            onClick={() => fetchDashboardData(true)} 
             className="btn btn-secondary"
             disabled={loading}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
           >
             <RefreshCw size={16} className={loading ? 'spin' : ''} />
-            <span>Refresh Telemetry</span>
+            <span>{loading ? 'Refreshing...' : 'Refresh Telemetry'}</span>
           </button>
         </div>
       </div>
