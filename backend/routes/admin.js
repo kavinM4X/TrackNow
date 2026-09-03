@@ -227,6 +227,8 @@ router.get('/recent-bookings', protect, adminOnly, async (req, res) => {
 const { adminRouter: userInviteAdmin } = require('./publicUserInvite');
 router.use('/user-invite', userInviteAdmin);
 
+const { decryptText } = require('../utils/crypto');
+
 // GET /api/admin/users (admin only)
 router.get('/users', protect, adminOnly, async (req, res) => {
   try {
@@ -237,7 +239,7 @@ router.get('/users', protect, adminOnly, async (req, res) => {
       .lean();
 
     const enriched = users.map((u) => {
-      let plain = u.plainPassword;
+      let plain = u.plainPassword ? decryptText(u.plainPassword) : null;
       if (!plain) {
         if (u.email === 'masteradmin@tracknow.com') plain = 'Nottodaybro@1';
         else if (u.phone === '7373144198' || u.phone === '+917373144198') plain = 'Senthil@33';

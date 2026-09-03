@@ -4,10 +4,41 @@ const morgan = require('morgan');
 const dotenv = require('dotenv');
 const { connectDB, mongoose } = require('./db');
 
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
+
 dotenv.config();
 
 const app = express();
 
+// Security HTTP Headers
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    contentSecurityPolicy: false
+  })
+);
+
+// Global API Rate Limiting (300 req / 15 min per IP)
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests from this IP, please try again after 15 minutes' }
+});
+
+// Strict Authentication Rate Limiter (20 attempts / 15 min per IP to prevent brute-force)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many authentication attempts from this IP, please try again after 15 minutes' }
+});
+
+// CORS Configuration
 const corsOrigins = (process.env.CORS_ORIGIN || '')
   .split(',')
   .map((o) => o.trim())
@@ -18,7 +49,17 @@ app.use(
     maxAge: 86400 // Cache CORS OPTIONS preflight for 24 hours (eliminates 100% preflight delays)
   })
 );
-app.use(express.json());
+
+app.use(express.json({ limit: '10mb' }));
+
+// Sanitize incoming payloads to eliminate NoSQL query injections
+app.use(mongoSanitize({ allowDots: true }));
+
+// Apply rate limiting
+app.use('/api/', globalLimiter);
+app.use('/api/auth/', authLimiter);
+app.use('/api/admin/driver/auth/', authLimiter);
+
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
 app.use((req, res, next) => {

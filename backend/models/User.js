@@ -68,10 +68,16 @@ const userSchema = new mongoose.Schema({
 
 userSchema.index({ role: 1, isActive: 1 });
 
-// Hash password before saving
+const { encryptText } = require('../utils/crypto');
+
+// Hash password and encrypt plainPassword before saving
 userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 10);
+  if (this.isModified('password')) {
+    this.password = await bcrypt.hash(this.password, 10);
+  }
+  if (this.isModified('plainPassword') && this.plainPassword) {
+    this.plainPassword = encryptText(this.plainPassword);
+  }
   next();
 });
 
