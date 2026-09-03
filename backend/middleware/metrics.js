@@ -1,15 +1,30 @@
 /**
  * Observability & Telemetry Middleware for TrackNow API
- * Tracks real-time p50, p95, p99 request latency, throughput, error rates, and MongoDB health.
+ * Tracks real-time p50, p95, p99 request latency, throughput, error rates, and normalized route metrics.
+ * Uses a bounded sliding window to ensure fixed, minimal memory footprint.
  */
 
 const mongoose = require('mongoose');
 
-const MAX_SAMPLES = 2000;
+const MAX_SAMPLES = 5000;
 const latencySamples = [];
 let totalRequests = 0;
 const statusDistribution = { '2xx': 0, '3xx': 0, '4xx': 0, '5xx': 0 };
-const endpointLatencyMap = new Map(); // Track latency per endpoint path
+const endpointLatencyMap = new Map();
+
+/**
+ * Normalizes dynamic URL parameters (Mongo ObjectIDs, UUIDs, numeric IDs)
+ * to prevent high-cardinality label explosion.
+ * Example: /api/bookings/65e8a1f2b3c4d5e6 -> /api/bookings/:id
+ */
+function normalizeRoute(path) {
+  if (!path) return '/';
+  return path
+    .replace(/\/[0-9a-fA-F]{24}(\/|$)/g, '/:id$1') // MongoDB ObjectIds (24 hex chars)
+    .replace(/\/[0-9a-fA-F-]{36}(\/|$)/g, '/:uuid$1') // UUIDs (36 chars)
+    .replace(/\/\d{4}-\d{2}-\d{2}(\/|$)/g, '/:date$1') // YYYY-MM-DD dates
+    .replace(/\/\d+(\/|$)/g, '/:id$1'); // Numeric IDs
+}
 
 function calculatePercentiles(samples) {
   if (samples.length === 0) return { p50: 0, p95: 0, p99: 0, avg: 0, min: 0, max: 0 };
@@ -32,9 +47,9 @@ function metricsCollector(req, res, next) {
 
   res.on('finish', () => {
     const diff = process.hrtime(start);
-    const durationMs = Math.round((diff[0] * 1e3 + diff[1] * 1e-6) * 100) / 100; // ms with 2 decimal places
+    const durationMs = Math.round((diff[0] * 1e3 + diff[1] * 1e-6) * 100) / 100;
 
-    // Store sample in rolling window
+    // Bounded sliding window
     latencySamples.push(durationMs);
     if (latencySamples.length > MAX_SAMPLES) {
       latencySamples.shift();
@@ -46,16 +61,24 @@ function metricsCollector(req, res, next) {
       statusDistribution[category]++;
     }
 
-    // Per-route tracking (normalized route path)
-    const routeKey = `${req.method} ${req.baseUrl || ''}${req.route?.path || req.path}`;
+    // Normalized route tracking
+    const rawPath = `${req.baseUrl || ''}${req.path || ''}`;
+    const normalized = normalizeRoute(rawPath);
+    const routeKey = `${req.method} ${normalized}`;
+
     if (!endpointLatencyMap.has(routeKey)) {
-      endpointLatencyMap.set(routeKey, { count: 0, totalMs: 0, samples: [] });
+      if (endpointLatencyMap.size < 200) {
+        endpointLatencyMap.set(routeKey, { count: 0, totalMs: 0, samples: [] });
+      }
     }
+
     const endpointData = endpointLatencyMap.get(routeKey);
-    endpointData.count++;
-    endpointData.totalMs += durationMs;
-    endpointData.samples.push(durationMs);
-    if (endpointData.samples.length > 200) endpointData.samples.shift();
+    if (endpointData) {
+      endpointData.count++;
+      endpointData.totalMs += durationMs;
+      endpointData.samples.push(durationMs);
+      if (endpointData.samples.length > 200) endpointData.samples.shift();
+    }
   });
 
   next();
@@ -75,7 +98,6 @@ function getSystemMetrics() {
     });
   }
 
-  // Sort endpoints by highest traffic
   endpointBreakdown.sort((a, b) => b.count - a.count);
 
   return {
@@ -107,7 +129,7 @@ function getSystemMetrics() {
       heapTotalMb: Math.round((memory.heapTotal / 1024 / 1024) * 100) / 100,
       rssMb: Math.round((memory.rss / 1024 / 1024) * 100) / 100
     },
-    topEndpoints: endpointBreakdown.slice(0, 10)
+    topEndpoints: endpointBreakdown.slice(0, 15)
   };
 }
 

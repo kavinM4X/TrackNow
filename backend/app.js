@@ -79,35 +79,83 @@ function rootPayload() {
   return {
     name: 'TrackNow API',
     status: 'running',
-    health: '/api/health',
-    metrics: '/api/metrics',
-    docs: 'Use /api/* endpoints from the admin or client app'
+    health: {
+      live: '/api/health/live',
+      ready: '/api/health/ready'
+    },
+    docs: 'Use /api/* endpoints from the admin, client, or driver portal'
   };
 }
 
 /** No database — must run before DB middleware (Vercel preview opens `/`) */
 app.get('/', (req, res) => res.json(rootPayload()));
 app.get('/api', (req, res) => res.json(rootPayload()));
-app.get('/api/metrics', (req, res) => res.json(getSystemMetrics()));
 
-app.get('/api/health', (req, res) => {
-  const onServerless = Boolean(
-    process.env.VERCEL || process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME
-  );
-  const host = process.env.VERCEL
-    ? 'vercel'
-    : process.env.NETLIFY
-      ? 'netlify'
-      : 'node';
-  const dbReady = mongoose.connection.readyState === 1;
-  res.json({
-    status: 'OK',
-    message: 'TrackNow API is running',
-    host: onServerless ? host : 'node',
-    database: dbReady ? 'connected' : 'not_connected_yet',
-    features: ['vehicle-rental', 'user-invite', 'public-register', 'driver-management']
+// 1. Liveness Probe (checks if Node process is alive and responsive)
+app.get('/api/health/live', (req, res) => {
+  res.status(200).json({
+    status: 'alive',
+    uptimeSeconds: Math.round(process.uptime()),
+    timestamp: new Date().toISOString()
   });
 });
+
+// 2. Readiness Probe (checks if application dependencies and MongoDB are ready for traffic)
+app.get('/api/health/ready', async (req, res) => {
+  try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        status: 'not_ready',
+        error: 'Database connecting or disconnected',
+        state: mongoose.connection.readyState
+      });
+    }
+
+    // Actively ping the database to ensure real connectivity & measure round-trip response
+    const startPing = process.hrtime();
+    await mongoose.connection.db.admin().ping();
+    const diff = process.hrtime(startPing);
+    const pingMs = Math.round((diff[0] * 1e3 + diff[1] * 1e-6) * 100) / 100;
+
+    res.status(200).json({
+      status: 'ready',
+      database: 'connected',
+      dbPingLatencyMs: pingMs,
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    res.status(503).json({
+      status: 'not_ready',
+      error: err.message
+    });
+  }
+});
+
+// Backward-compatible health check
+app.get('/api/health', (req, res) => {
+  const dbReady = mongoose.connection.readyState === 1;
+  res.status(dbReady ? 200 : 503).json({
+    status: dbReady ? 'OK' : 'DEGRADED',
+    message: 'TrackNow API is running',
+    database: dbReady ? 'connected' : 'disconnected',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// 3. Secured Metrics & Observability Endpoint (Admin / Monitoring credentials only)
+const { protect } = require('./middleware/auth');
+function metricsAuth(req, res, next) {
+  if (process.env.METRICS_SECRET && req.headers['x-metrics-secret'] === process.env.METRICS_SECRET) {
+    return next();
+  }
+  return protect(req, res, () => {
+    if (['admin', 'master_admin'].includes(req.user?.role)) {
+      return next();
+    }
+    return res.status(403).json({ error: 'Access denied: Admin monitoring role required' });
+  });
+}
+app.get('/api/metrics', metricsAuth, (req, res) => res.json(getSystemMetrics()));
 
 let initPromise = null;
 
