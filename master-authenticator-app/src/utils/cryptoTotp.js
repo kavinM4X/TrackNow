@@ -1,5 +1,8 @@
-// Client-side TOTP & 6-Digit Daily User ID calculation utility for React Native
-const MASTER_SECRET = (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_MASTER_SECRET) || 'TRACKNOW_MASTER_SECRET_KEY_2026';
+// Client-side TOTP & 6-Digit Daily User ID calculation utility
+const MASTER_SECRET = 
+  (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_MASTER_SECRET) ||
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_MASTER_SECRET) ||
+  'TRACKNOW_MASTER_SECRET_KEY_2026';
 const ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 
 function simpleHmacSha256(key, message) {
