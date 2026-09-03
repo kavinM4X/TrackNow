@@ -1233,37 +1233,51 @@ async function updateBatchPartyEntry(batch, partyId, body) {
     lotAmount
   } = body;
 
-  if (Array.isArray(goodSilkRows)) {
+  if (Array.isArray(goodSilkRows) && goodSilkRows.length > 0) {
     entry.goodSilkRows = goodSilkRows.map(r => ({
       kg: Number(r.kg) || 0,
       rate: Number(r.rate) || 0,
       amount: Math.round((Number(r.kg) || 0) * (Number(r.rate) || 0))
     }));
+    entry.goodSilkKg = entry.goodSilkRows.reduce((s, r) => s + (Number(r.kg) || 0), 0);
+    entry.goodSilkAmount = entry.goodSilkRows.reduce((s, r) => s + (Number(r.amount) || 0), 0);
+    entry.goodSilkRatePerKg = entry.goodSilkKg > 0 ? (entry.goodSilkAmount / entry.goodSilkKg) : 0;
+  } else if (goodSilkKg != null) {
+    entry.goodSilkKg = Number(goodSilkKg) || 0;
+    entry.goodSilkRatePerKg = Number(goodSilkRatePerKg) || defaults.goodRate || 0;
+    entry.goodSilkAmount = Math.round(entry.goodSilkKg * entry.goodSilkRatePerKg);
   }
-  if (Array.isArray(wasteRows)) {
+
+  if (Array.isArray(wasteRows) && wasteRows.length > 0) {
     entry.wasteRows = wasteRows.map(r => ({
       kg: Number(r.kg) || 0,
       rate: Number(r.rate) || 0,
       amount: Math.round((Number(r.kg) || 0) * (Number(r.rate) || 0))
     }));
+    entry.wasteKg = entry.wasteRows.reduce((s, r) => s + (Number(r.kg) || 0), 0);
+    entry.wasteAmount = entry.wasteRows.reduce((s, r) => s + (Number(r.amount) || 0), 0);
+    entry.wasteRatePerKg = entry.wasteKg > 0 ? (entry.wasteAmount / entry.wasteKg) : 0;
+  } else if (wasteKg != null) {
+    entry.wasteKg = Number(wasteKg) || 0;
+    entry.wasteRatePerKg = Number(wasteRatePerKg) || defaults.wasteRate || 0;
+    entry.wasteAmount = Math.round(entry.wasteKg * entry.wasteRatePerKg);
   }
-  if (Array.isArray(doublesRows)) {
+
+  if (Array.isArray(doublesRows) && doublesRows.length > 0) {
     entry.doublesRows = doublesRows.map(r => ({
       kg: Number(r.kg) || 0,
       rate: Number(r.rate) || 0,
       amount: Math.round((Number(r.kg) || 0) * (Number(r.rate) || 0))
     }));
+    entry.doublesKg = entry.doublesRows.reduce((s, r) => s + (Number(r.kg) || 0), 0);
+    entry.doublesAmount = entry.doublesRows.reduce((s, r) => s + (Number(r.amount) || 0), 0);
+    entry.doublesRatePerKg = entry.doublesKg > 0 ? (entry.doublesAmount / entry.doublesKg) : 0;
+  } else if (doublesKg != null) {
+    entry.doublesKg = Number(doublesKg) || 0;
+    entry.doublesRatePerKg = Number(doublesRatePerKg) || defaults.doubleRate || 0;
+    entry.doublesAmount = Math.round(entry.doublesKg * entry.doublesRatePerKg);
   }
 
-  if (goodSilkKg != null) entry.goodSilkKg = Number(goodSilkKg) || 0;
-  if (goodSilkRatePerKg != null) entry.goodSilkRatePerKg = Number(goodSilkRatePerKg) || 0;
-  else if (!entry.goodSilkRatePerKg) entry.goodSilkRatePerKg = defaults.goodRate || 0;
-  if (wasteKg != null) entry.wasteKg = Number(wasteKg) || 0;
-  if (wasteRatePerKg != null) entry.wasteRatePerKg = Number(wasteRatePerKg) || 0;
-  else if (!entry.wasteRatePerKg) entry.wasteRatePerKg = defaults.wasteRate || 0;
-  if (doublesKg != null) entry.doublesKg = Number(doublesKg) || 0;
-  if (doublesRatePerKg != null) entry.doublesRatePerKg = Number(doublesRatePerKg) || 0;
-  else if (!entry.doublesRatePerKg) entry.doublesRatePerKg = defaults.doubleRate || 0;
   if (lotQty != null) entry.lotQty = Number(lotQty) || 0;
   if (lotPrice != null) entry.lotPrice = Number(lotPrice) || 0;
 
