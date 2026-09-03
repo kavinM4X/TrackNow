@@ -388,7 +388,20 @@ function PartyAddForm() {
   }, [selectedDriverId]);
 
   const filteredUsers = useMemo(() => {
-    let list = users;
+    const driverIds = new Set(drivers.map((d) => String(d._id)));
+    if (selectedDriverId) driverIds.add(String(selectedDriverId));
+
+    let list = users.filter((u) => {
+      const uId = String(u._id);
+      const isDriverOrStaff =
+        driverIds.has(uId) ||
+        u.role === 'driver' ||
+        u.role === 'staff' ||
+        u.role === 'admin' ||
+        u.name?.toLowerCase().includes('driver');
+      return !isDriverOrStaff;
+    });
+
     if (targetBookedUsers.active) {
       list = list.filter((u) => {
         const uId = String(u._id);
@@ -404,7 +417,7 @@ function PartyAddForm() {
     const q = userSearch.trim().toLowerCase();
     if (!q) return list;
     return list.filter((u) => u.name?.toLowerCase().includes(q) || u.phone?.includes(q));
-  }, [users, userSearch, targetBookedUsers]);
+  }, [users, userSearch, targetBookedUsers, drivers, selectedDriverId]);
 
   const filteredDrivers = useMemo(() => {
     const q = driverSearch.trim().toLowerCase();
@@ -419,7 +432,13 @@ function PartyAddForm() {
   };
 
   const pickDriver = (driverId) => {
-    setSelectedDriverId((prev) => (prev === driverId ? '' : driverId));
+    setSelectedDriverId((prev) => {
+      const next = prev === driverId ? '' : driverId;
+      if (next) {
+        setSelectedUserIds((uIds) => uIds.filter((id) => String(id) !== String(next)));
+      }
+      return next;
+    });
     setDriverSearch('');
   };
 
