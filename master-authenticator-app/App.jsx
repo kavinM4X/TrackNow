@@ -17,13 +17,6 @@ import { getDailyUserId, getAuthenticatorCode, getRemainingSeconds } from './src
 
 const { width } = Dimensions.get('window');
 
-const safeMetrics = initialWindowMetrics || {
-  frame: { x: 0, y: 0, width: 375, height: 812 },
-  insets: { top: 0, left: 0, right: 0, bottom: 0 }
-};
-
-const ContainerComponent = Platform.OS === 'web' ? View : SafeAreaView;
-
 export default function App() {
   const [dailyUserId, setDailyUserId] = useState(getDailyUserId());
   const [authCode, setAuthCode] = useState(getAuthenticatorCode());
@@ -174,15 +167,16 @@ export default function App() {
   const progressPct = (remainingSec / 60) * 100;
   const formattedTime = `00:${remainingSec < 10 ? '0' : ''}${remainingSec}`;
 
-  const content = (
-    <ContainerComponent style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B0F19" />
+  return (
+    <SafeAreaProvider initialMetrics={initialWindowMetrics} style={{ flex: 1, backgroundColor: '#0B0F19', minHeight: '100vh', width: '100%' }}>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor="#0B0F19" />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>MASTER AUTHENTICATOR</Text>
-        <Text style={styles.headerSubtitle}>TRACKNOW SECURITY KEEPER</Text>
-      </View>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>MASTER AUTHENTICATOR</Text>
+          <Text style={styles.headerSubtitle}>TRACKNOW SECURITY KEEPER</Text>
+        </View>
 
       {!isUnlocked ? (
         /* Hidden / Locked Screen State with Masked Codes */
@@ -269,17 +263,8 @@ export default function App() {
       <View style={styles.footer}>
         <Text style={styles.footerText}>🔐 Hardware-Encrypted Master Key Synchronization</Text>
       </View>
-    </ContainerComponent>
-  );
-
-  if (Platform.OS === 'web') {
-    return content;
-  }
-
-  return (
-    <SafeAreaProvider initialMetrics={safeMetrics} style={{ flex: 1, backgroundColor: '#0B0F19' }}>
-      {content}
-    </SafeAreaProvider>
+    </SafeAreaView>
+  </SafeAreaProvider>
   );
 }
 
