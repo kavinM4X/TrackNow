@@ -663,83 +663,26 @@ const UserManagement = () => {
                         </span>
                       </td>
 
-                      <td>
-                        <div style={{ display: 'flex', gap: '0.4rem' }} onClick={(e) => e.stopPropagation()}>
-                          <button 
-                            onClick={(e) => handleOpenEditModal(u, e)}
-                            className="btn btn-secondary"
-                            style={{ padding: '0.35rem 0.65rem', fontSize: '0.75rem', color: 'var(--accent-cyan)' }}
-                            title="Edit Account & Phone"
-                          >
-                            <Edit2 size={12} />
-                            <span>Edit Phone</span>
-                          </button>
-
+                      <td onClick={(e) => e.stopPropagation()}>
+                        <div style={{ display: 'flex', justifyContent: 'center' }}>
                           <button 
                             onClick={() => handleInspectUser(u)}
-                            className="btn btn-secondary"
-                            style={{ padding: '0.35rem 0.65rem', fontSize: '0.75rem' }}
-                            title="Inspect Activity & Role Details"
+                            className="btn btn-primary"
+                            style={{ 
+                              padding: '0.45rem 1.1rem', 
+                              fontSize: '0.8rem', 
+                              fontWeight: 600,
+                              display: 'inline-flex', 
+                              alignItems: 'center', 
+                              gap: '0.45rem',
+                              borderRadius: '8px',
+                              boxShadow: '0 2px 10px rgba(99, 102, 241, 0.25)' 
+                            }}
+                            title="Inspect User Details & Manage Account"
                           >
-                            <Eye size={12} />
+                            <Eye size={14} />
                             <span>Details</span>
                           </button>
-
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setResetModalUser(u);
-                              setNewPasswordInput('');
-                            }}
-                            className="btn btn-secondary"
-                            style={{ padding: '0.35rem 0.65rem', fontSize: '0.75rem', color: 'var(--accent-purple)', borderColor: 'rgba(139, 92, 246, 0.3)' }}
-                            title="Reset Account Password"
-                          >
-                            <RotateCcw size={12} />
-                            <span>Reset Pass</span>
-                          </button>
-
-                          <button 
-                            onClick={(e) => handleToggleStatus(u, e)}
-                            className={`btn ${u.isActive !== false ? 'btn-danger' : 'btn-secondary'}`}
-                            style={{ padding: '0.35rem 0.65rem', fontSize: '0.75rem' }}
-                            disabled={togglingId === u._id}
-                            title={u.isActive !== false ? 'Disable Account' : 'Activate Account'}
-                          >
-                            <Power size={12} />
-                            <span>{togglingId === u._id ? 'Updating...' : u.isActive !== false ? 'Disable' : 'Enable'}</span>
-                          </button>
-
-                          {u.email !== 'masteradmin@tracknow.com' && (
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setPurgeModalUser(u);
-                                setPurgeMode('all');
-                                setConfirmInput('');
-                                setCustomPurgeOptions({
-                                  deleteBatches: true,
-                                  deleteBookings: true,
-                                  deleteExpenses: true,
-                                  deleteParties: true,
-                                  deleteLogs: true,
-                                  deleteUserAccount: true
-                                });
-                              }}
-                              className="btn btn-secondary"
-                              style={{ 
-                                padding: '0.35rem 0.65rem', 
-                                fontSize: '0.75rem', 
-                                color: 'var(--accent-rose)', 
-                                borderColor: 'rgba(244, 63, 94, 0.35)',
-                                background: 'rgba(244, 63, 94, 0.08)'
-                              }}
-                              title="Delete Account & Purge Data"
-                            >
-                              <Trash2 size={12} />
-                              <span>Delete / Purge</span>
-                            </button>
-                          )}
                         </div>
                       </td>
                     </tr>
@@ -1012,6 +955,95 @@ const UserManagement = () => {
                 >
                   <X size={18} />
                 </button>
+              </div>
+            </div>
+
+            {/* Account Quick Management Action Toolbar inside Details */}
+            <div style={{ 
+              padding: '0.85rem 2rem', 
+              background: 'rgba(255,255,255,0.03)', 
+              borderBottom: '1px solid var(--border-color)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '0.75rem'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <button 
+                  onClick={(e) => handleOpenEditModal(selectedUser, e)}
+                  className="btn btn-secondary"
+                  style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem', color: 'var(--accent-cyan)', borderColor: 'rgba(6, 182, 212, 0.35)' }}
+                  title="Edit Account Phone & Info"
+                >
+                  <Edit2 size={13} />
+                  <span>Edit Phone</span>
+                </button>
+
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setResetModalUser(selectedUser);
+                    setNewPasswordInput('');
+                  }}
+                  className="btn btn-secondary"
+                  style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem', color: 'var(--accent-purple)', borderColor: 'rgba(139, 92, 246, 0.35)' }}
+                  title="Reset Account Password"
+                >
+                  <RotateCcw size={13} />
+                  <span>Reset Pass</span>
+                </button>
+
+                <button 
+                  onClick={async (e) => {
+                    await handleToggleStatus(selectedUser, e);
+                    setSelectedUser(prev => prev ? { ...prev, isActive: prev.isActive === false } : null);
+                  }}
+                  className={`btn ${selectedUser.isActive !== false ? 'btn-danger' : 'btn-secondary'}`}
+                  style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}
+                  disabled={togglingId === selectedUser._id}
+                  title={selectedUser.isActive !== false ? 'Disable Account' : 'Activate Account'}
+                >
+                  <Power size={13} />
+                  <span>{togglingId === selectedUser._id ? 'Updating...' : selectedUser.isActive !== false ? 'Disable' : 'Enable'}</span>
+                </button>
+
+                {selectedUser.email !== 'masteradmin@tracknow.com' && (
+                  <button 
+                    onClick={() => {
+                      setPurgeModalUser(selectedUser);
+                      setPurgeMode('all');
+                      setConfirmInput('');
+                      setCustomPurgeOptions({
+                        deleteBatches: true,
+                        deleteBookings: true,
+                        deleteExpenses: true,
+                        deleteParties: true,
+                        deleteLogs: true,
+                        deleteUserAccount: true
+                      });
+                    }}
+                    className="btn btn-secondary"
+                    style={{ 
+                      padding: '0.4rem 0.85rem', 
+                      fontSize: '0.8rem', 
+                      color: 'var(--accent-rose)', 
+                      borderColor: 'rgba(244, 63, 94, 0.35)',
+                      background: 'rgba(244, 63, 94, 0.08)'
+                    }}
+                    title="Delete Account & Purge Data"
+                  >
+                    <Trash2 size={13} />
+                    <span>Delete / Purge</span>
+                  </button>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Status:</span>
+                <span className={`pill ${selectedUser.isActive !== false ? 'pill-green' : 'pill-rose'}`} style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem' }}>
+                  {selectedUser.isActive !== false ? 'ACTIVE' : 'DISABLED'}
+                </span>
               </div>
             </div>
 
