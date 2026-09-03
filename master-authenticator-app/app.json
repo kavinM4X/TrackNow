@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "Master Authenticator",
+    "slug": "master-authenticator-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "backgroundColor": "#0B0F19",
+      "resizeMode": "contain"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.tracknow.masterauthenticator"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0B0F19"
+      },
+      "package": "com.tracknow.masterauthenticator"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow Master Authenticator to use Face ID / Biometrics to unlock your security codes."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "0ed6a25b-9d77-4253-8d9e-7ab470a7167e"
+      }
+    }
+  }
+}
