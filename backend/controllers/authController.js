@@ -374,7 +374,7 @@ exports.masterAdminLogin = async (req, res) => {
     }
 
     const userIdToUse = masterUser ? masterUser._id : 'master_admin_root';
-    const token = generateToken(userIdToUse);
+    const token = generateToken(userIdToUse, '10m');
 
     await Log.create({
       userId: userIdToUse,

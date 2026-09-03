@@ -80,8 +80,8 @@ exports.userOnly = (req, res, next) => {
 };
 
 // Generate JWT Token
-exports.generateToken = (id) => {
+exports.generateToken = (id, expiresIn = '30d') => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: '30d'
+    expiresIn
   });
 };

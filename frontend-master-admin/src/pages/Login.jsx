@@ -5,15 +5,15 @@ import { ShieldCheck, Lock, Mail, AlertCircle, ArrowRight, Smartphone, Key, Info
 import api from '../api/client';
 
 const Login = () => {
-  const [userId, setUserId] = useState('763412');
-  const [authCode, setAuthCode] = useState('RATCV');
+  const [userId, setUserId] = useState('');
+  const [authCode, setAuthCode] = useState('');
   const [useLegacy, setUseLegacy] = useState(false);
-  const [email, setEmail] = useState('masteradmin@tracknow.com');
-  const [password, setPassword] = useState('Nottodaybro@1');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { login } = useAuth();
+  const { login, loginWithAuthenticator } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -28,24 +28,17 @@ const Login = () => {
         // Authenticator App Dynamic Login
         try {
           const res = await api.post('/auth/master-admin/login', {
-            userId,
-            authCode
+            userId: userId.trim(),
+            authCode: authCode.trim()
           });
 
           if (res.data && res.data.token) {
-            localStorage.setItem('master_admin_token', res.data.token);
-            localStorage.setItem('master_admin_user', JSON.stringify(res.data.user));
-            window.location.href = '/dashboard';
-            return;
-          }
-        } catch (authErr) {
-          console.warn('Remote authenticator route notice:', authErr);
-          // If remote Render API returns 404 for un-deployed route, authenticate using master admin credentials
-          if (authErr.response?.status === 404 || /^\d{6}$/.test(userId) || String(userId).startsWith('ADMIN-')) {
-            await login('masteradmin@tracknow.com', 'Nottodaybro@1');
+            loginWithAuthenticator(res.data.token, res.data.user);
             navigate('/dashboard');
             return;
           }
+        } catch (authErr) {
+          console.warn('Remote authenticator verification notice:', authErr);
           throw authErr;
         }
       }
@@ -54,7 +47,7 @@ const Login = () => {
       console.error(err);
       setError(
         err.response?.data?.message || 
-        'Login failed. Please verify your 6-Digit Daily User ID & Authenticator Code from the Master Authenticator App.'
+        'Login failed. Please enter the 6-Digit Daily User ID and Authenticator Code from your Master Authenticator App.'
       );
     } finally {
       setIsSubmitting(false);
