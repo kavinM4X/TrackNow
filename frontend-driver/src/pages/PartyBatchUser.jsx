@@ -79,7 +79,6 @@ export default function PartyBatchUser() {
   }, [batchId, partyId, navigate]);
 
   const entry = batch?.entries?.find((x) => String(x.partyId) === partyId);
-  const rate = batch?.effectiveRatePerKg || 0;
 
   const rowDetails = useMemo(() => {
     const normalize = (rows) =>
@@ -117,6 +116,24 @@ export default function PartyBatchUser() {
     };
   }, [rowDetails]);
 
+  const otherFarmersGoodSilk = useMemo(() => {
+    return (
+      batch?.entries
+        ?.filter((x) => String(x.partyId) !== partyId)
+        .reduce((sum, e) => sum + (Number(e.goodSilkKg) || 0), 0) || 0
+    );
+  }, [batch, partyId]);
+
+  const dynamicTotalGoodSilk = otherFarmersGoodSilk + totals.good.totalKg;
+
+  const dynamicBaseRate =
+    batch?.rentalAmount && dynamicTotalGoodSilk > 0
+      ? batch.rentalAmount / dynamicTotalGoodSilk
+      : 0;
+
+  const dynamicEffectiveRate =
+    Math.round((dynamicBaseRate + (Number(batch?.manualRateExtra) || 0)) * 100) / 100;
+
   const preview = useMemo(
     () =>
       calcSilkPreview(
@@ -130,9 +147,9 @@ export default function PartyBatchUser() {
           lotQty: form.lotQty,
           lotPrice: form.lotPrice
         },
-        rate
+        dynamicEffectiveRate
       ),
-    [totals, form.lotQty, form.lotPrice, rate]
+    [totals, form.lotQty, form.lotPrice, dynamicEffectiveRate]
   );
 
   const locked = batch?.locked;
@@ -371,9 +388,9 @@ export default function PartyBatchUser() {
             </span>
           </div>
 
-          {rate > 0 && (
+          {dynamicEffectiveRate > 0 && (
             <div className={styles.calcRow} style={{ marginTop: 4 }}>
-              <span>Rental Deduction ({totals.good.totalKg} kg × {formatINR(rate)})</span>
+              <span>Rental Deduction ({totals.good.totalKg} kg × {formatINR(dynamicEffectiveRate)}/kg)</span>
               <strong style={{ color: '#dc2626' }}>−{formatINR(preview.rental)}</strong>
             </div>
           )}

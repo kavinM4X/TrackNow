@@ -1251,9 +1251,8 @@ async function updateBatchPartyEntry(batch, partyId, body) {
     throw err;
   }
 
+  entry.completed = true;
   await refreshBatchRates(batch);
-  const rate = batch.effectiveRatePerKg;
-  Object.assign(entry, calcUserRentalEntry(entry, rate), { completed: true });
   await batch.save();
   return batch;
 }
