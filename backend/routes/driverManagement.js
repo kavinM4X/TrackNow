@@ -835,7 +835,12 @@ async function syncDriverEntryToClientBatch(entryId, reviewedBy, visible) {
     }
   };
 
-  let batch = await Batch.findOne({ driverSilkEntryId: full._id });
+  let batch = await Batch.findOne({
+    $or: [
+      { driverSilkEntryId: full._id },
+      { userId: new mongoose.Types.ObjectId(String(clientUserId)), date: full.date, location }
+    ]
+  });
   if (batch) {
     batch.set(batchPayload);
     batch.markModified('vehicleRental');
