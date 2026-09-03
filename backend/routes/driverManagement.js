@@ -1225,10 +1225,35 @@ async function updateBatchPartyEntry(batch, partyId, body) {
     wasteRatePerKg,
     doublesKg,
     doublesRatePerKg,
+    goodSilkRows,
+    wasteRows,
+    doublesRows,
     lotQty,
     lotPrice,
     lotAmount
   } = body;
+
+  if (Array.isArray(goodSilkRows)) {
+    entry.goodSilkRows = goodSilkRows.map(r => ({
+      kg: Number(r.kg) || 0,
+      rate: Number(r.rate) || 0,
+      amount: Math.round((Number(r.kg) || 0) * (Number(r.rate) || 0))
+    }));
+  }
+  if (Array.isArray(wasteRows)) {
+    entry.wasteRows = wasteRows.map(r => ({
+      kg: Number(r.kg) || 0,
+      rate: Number(r.rate) || 0,
+      amount: Math.round((Number(r.kg) || 0) * (Number(r.rate) || 0))
+    }));
+  }
+  if (Array.isArray(doublesRows)) {
+    entry.doublesRows = doublesRows.map(r => ({
+      kg: Number(r.kg) || 0,
+      rate: Number(r.rate) || 0,
+      amount: Math.round((Number(r.kg) || 0) * (Number(r.rate) || 0))
+    }));
+  }
 
   if (goodSilkKg != null) entry.goodSilkKg = Number(goodSilkKg) || 0;
   if (goodSilkRatePerKg != null) entry.goodSilkRatePerKg = Number(goodSilkRatePerKg) || 0;

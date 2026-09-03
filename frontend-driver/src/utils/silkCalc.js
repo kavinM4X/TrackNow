@@ -9,9 +9,9 @@ export function calcSilkPreview(fields, rate = 0) {
   const lotQty = Number(fields.lotQty) || 0;
   const lotPrice = Number(fields.lotPrice) || 0;
   const lotAmt = Math.round(lotQty * lotPrice);
-  const goodAmt = Math.round(good * gr);
-  const wasteAmt = Math.round(waste * wr);
-  const doublesAmt = Math.round(doubles * dr);
+  const goodAmt = fields.goodAmt != null ? Math.round(fields.goodAmt) : Math.round(good * gr);
+  const wasteAmt = fields.wasteAmt != null ? Math.round(fields.wasteAmt) : Math.round(waste * wr);
+  const doublesAmt = fields.doublesAmt != null ? Math.round(fields.doublesAmt) : Math.round(doubles * dr);
   const netSilk = goodAmt - wasteAmt - doublesAmt;
   const rental = Math.round(good * (Number(rate) || 0));
   const rentalTotal = rental + lotAmt;

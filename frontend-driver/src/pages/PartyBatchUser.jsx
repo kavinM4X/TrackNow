@@ -55,18 +55,33 @@ export default function PartyBatchUser() {
         if (e) {
           const lot = lotFieldsFromEntry(e);
           setForm({
-            goodSilk: [{
-              kg: e.goodSilkKg || '',
-              rate: e.goodSilkRatePerKg || rates.goodRate || ''
-            }],
-            waste: [{
-              kg: e.wasteKg || '',
-              rate: e.wasteRatePerKg || rates.wasteRate || ''
-            }],
-            doubles: [{
-              kg: e.doublesKg || '',
-              rate: e.doublesRatePerKg || rates.doubleRate || ''
-            }],
+            goodSilk: Array.isArray(e.goodSilkRows) && e.goodSilkRows.length > 0
+              ? e.goodSilkRows.map((r) => ({
+                  kg: r.kg != null && r.kg !== '' ? String(r.kg) : '',
+                  rate: r.rate != null && r.rate !== '' ? String(r.rate) : ''
+                }))
+              : [{
+                  kg: e.goodSilkKg ? String(e.goodSilkKg) : '',
+                  rate: e.goodSilkRatePerKg ? String(e.goodSilkRatePerKg) : (rates.goodRate ? String(rates.goodRate) : '')
+                }],
+            waste: Array.isArray(e.wasteRows) && e.wasteRows.length > 0
+              ? e.wasteRows.map((r) => ({
+                  kg: r.kg != null && r.kg !== '' ? String(r.kg) : '',
+                  rate: r.rate != null && r.rate !== '' ? String(r.rate) : ''
+                }))
+              : [{
+                  kg: e.wasteKg ? String(e.wasteKg) : '',
+                  rate: e.wasteRatePerKg ? String(e.wasteRatePerKg) : (rates.wasteRate ? String(rates.wasteRate) : '')
+                }],
+            doubles: Array.isArray(e.doublesRows) && e.doublesRows.length > 0
+              ? e.doublesRows.map((r) => ({
+                  kg: r.kg != null && r.kg !== '' ? String(r.kg) : '',
+                  rate: r.rate != null && r.rate !== '' ? String(r.rate) : ''
+                }))
+              : [{
+                  kg: e.doublesKg ? String(e.doublesKg) : '',
+                  rate: e.doublesRatePerKg ? String(e.doublesRatePerKg) : (rates.doubleRate ? String(rates.doubleRate) : '')
+                }],
             lotQty: lot.lotQty,
             lotPrice: lot.lotPrice
           });
@@ -101,10 +116,11 @@ export default function PartyBatchUser() {
 
   const totals = useMemo(() => {
     const aggregate = (rows) => {
-      const totalKg = rows.reduce((sum, row) => sum + row.kg, 0);
-      const totalAmt = rows.reduce((sum, row) => sum + row.amount, 0);
+      const totalKg = rows.reduce((sum, row) => sum + (Number(row.kg) || 0), 0);
+      const totalAmt = rows.reduce((sum, row) => sum + (Number(row.amount) || 0), 0);
       return {
         totalKg,
+        totalAmt,
         totalRate: totalKg > 0 ? Math.round(totalAmt / totalKg) : 0
       };
     };
@@ -140,10 +156,13 @@ export default function PartyBatchUser() {
         {
           goodSilkKg: totals.good.totalKg,
           goodSilkRatePerKg: totals.good.totalRate,
+          goodAmt: totals.good.totalAmt,
           wasteKg: totals.waste.totalKg,
           wasteRatePerKg: totals.waste.totalRate,
+          wasteAmt: totals.waste.totalAmt,
           doublesKg: totals.doubles.totalKg,
           doublesRatePerKg: totals.doubles.totalRate,
+          doublesAmt: totals.doubles.totalAmt,
           lotQty: form.lotQty,
           lotPrice: form.lotPrice
         },
@@ -167,6 +186,7 @@ export default function PartyBatchUser() {
         const totalKg = valid.reduce((sum, row) => sum + row.kg, 0);
         const totalAmt = valid.reduce((sum, row) => sum + row.kg * row.rate, 0);
         return {
+          rows: valid,
           totalKg,
           rate: totalKg > 0 ? Math.round(totalAmt / totalKg) : 0
         };
@@ -177,6 +197,9 @@ export default function PartyBatchUser() {
       const doubles = aggregateEntries(form.doubles);
 
       const payload = {
+        goodSilkRows: good.rows,
+        wasteRows: waste.rows,
+        doublesRows: doubles.rows,
         goodSilkKg: good.totalKg,
         goodSilkRatePerKg: good.rate,
         wasteKg: waste.totalKg,

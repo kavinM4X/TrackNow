@@ -1,10 +1,22 @@
 const mongoose = require('mongoose');
 
+const silkItemSchema = new mongoose.Schema(
+  {
+    kg: { type: Number, default: 0 },
+    rate: { type: Number, default: 0 },
+    amount: { type: Number, default: 0 }
+  },
+  { _id: false }
+);
+
 const partyEntrySchema = new mongoose.Schema(
   {
     partyId: { type: mongoose.Schema.Types.ObjectId, ref: 'DriverParty', required: true },
     partyName: String,
     phone: String,
+    goodSilkRows: { type: [silkItemSchema], default: [] },
+    wasteRows: { type: [silkItemSchema], default: [] },
+    doublesRows: { type: [silkItemSchema], default: [] },
     goodSilkKg: { type: Number, default: 0 },
     goodSilkRatePerKg: { type: Number, default: 0 },
     wasteKg: { type: Number, default: 0 },
