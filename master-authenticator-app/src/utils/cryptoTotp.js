@@ -1,7 +1,6 @@
 // Client-side TOTP & 6-Digit Daily User ID calculation utility
 const MASTER_SECRET = 
-  (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_MASTER_SECRET) ||
-  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_MASTER_SECRET) ||
+  (typeof process !== 'undefined' && (process.env?.EXPO_PUBLIC_MASTER_SECRET || process.env?.VITE_MASTER_SECRET)) ||
   'TRACKNOW_MASTER_SECRET_KEY_2026';
 const ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 
