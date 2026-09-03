@@ -1191,11 +1191,8 @@ function batchPayload(doc) {
 
 async function refreshBatchRates(batch) {
   const sumGoodSilk = batch.entries?.reduce((acc, e) => acc + (Number(e.goodSilkKg) || 0), 0) || 0;
-  if (!batch.totalSilkKg || batch.totalSilkKg <= 0 || batch.isAutoTotalSilkKg) {
-    if (sumGoodSilk > 0) {
-      batch.totalSilkKg = sumGoodSilk;
-      batch.isAutoTotalSilkKg = true;
-    }
+  if (sumGoodSilk > 0) {
+    batch.totalSilkKg = sumGoodSilk;
   }
 
   const rate = calcEffectiveRatePerKg(

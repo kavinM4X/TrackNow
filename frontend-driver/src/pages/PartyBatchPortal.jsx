@@ -20,7 +20,7 @@ export default function PartyBatchPortal() {
       .then((r) => {
         setBatch(r.data);
         const sum = r.data.entries?.reduce((acc, e) => acc + (Number(e.goodSilkKg) || 0), 0) || 0;
-        const initialTotal = r.data.totalSilkKg > 0 ? r.data.totalSilkKg : sum;
+        const initialTotal = sum > 0 ? sum : (r.data.totalSilkKg || 0);
         setTotalSilkKg(initialTotal > 0 ? String(initialTotal) : '');
         setManualExtra(String(r.data.manualRateExtra ?? ''));
         setError('');
@@ -38,7 +38,7 @@ export default function PartyBatchPortal() {
   const autoTotalGoodSilk =
     batch?.entries?.reduce((sum, e) => sum + (Number(e.goodSilkKg) || 0), 0) || 0;
 
-  const currentTotalSilkKg = Number(totalSilkKg) > 0 ? Number(totalSilkKg) : autoTotalGoodSilk;
+  const currentTotalSilkKg = autoTotalGoodSilk > 0 ? autoTotalGoodSilk : (Number(totalSilkKg) || 0);
 
   const saveSettings = async () => {
     const finalTotal = currentTotalSilkKg;
@@ -140,7 +140,7 @@ export default function PartyBatchPortal() {
                     min="0"
                     step="0.1"
                     className={styles.miniInput}
-                    value={totalSilkKg || (autoTotalGoodSilk > 0 ? String(autoTotalGoodSilk) : '')}
+                    value={autoTotalGoodSilk > 0 ? String(autoTotalGoodSilk) : totalSilkKg}
                     onChange={(e) => setTotalSilkKg(e.target.value)}
                     placeholder={autoTotalGoodSilk > 0 ? String(autoTotalGoodSilk) : '0.0'}
                   />
