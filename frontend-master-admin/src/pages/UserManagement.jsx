@@ -535,8 +535,8 @@ const UserManagement = () => {
                           <span>{u.name}</span>
                           {u.role === 'admin' && <Shield size={14} style={{ color: 'var(--accent-purple)' }} />}
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                          {u.email || 'No email registered'}
+                        <div style={{ fontSize: '0.75rem', color: u.email ? 'var(--text-muted)' : 'var(--text-dim)', fontStyle: u.email ? 'normal' : 'italic' }}>
+                          {u.email || 'No email (Optional)'}
                         </div>
                       </td>
 
@@ -719,7 +719,7 @@ const UserManagement = () => {
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.3rem' }}>
-                  Email Address
+                  Email Address <span style={{ color: 'var(--text-dim)', fontSize: '0.75rem' }}>(Optional)</span>
                 </label>
                 <div style={{ position: 'relative' }}>
                   <Mail size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)' }} />
@@ -727,7 +727,7 @@ const UserManagement = () => {
                     type="email"
                     className="form-input"
                     style={{ paddingLeft: '2.5rem' }}
-                    placeholder="e.g. admin@tracknow.com"
+                    placeholder="e.g. admin@tracknow.com (optional)"
                     value={editFormData.email}
                     onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
                   />
@@ -1388,7 +1388,7 @@ const UserManagement = () => {
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.3rem' }}>
-                  Email Address
+                  Email Address <span style={{ color: 'var(--text-dim)', fontSize: '0.75rem' }}>(Optional)</span>
                 </label>
                 <div style={{ position: 'relative' }}>
                   <Mail size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)' }} />
@@ -1396,7 +1396,7 @@ const UserManagement = () => {
                     type="email"
                     className="form-input"
                     style={{ paddingLeft: '2.5rem' }}
-                    placeholder="e.g. admin@tracknow.com"
+                    placeholder="e.g. user@tracknow.com (optional)"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
