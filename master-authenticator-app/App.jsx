@@ -11,7 +11,7 @@ import {
   AppState,
   Platform
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView, initialWindowMetrics } from 'react-native-safe-area-context';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { getDailyUserId, getAuthenticatorCode, getRemainingSeconds } from './src/utils/cryptoTotp';
 
@@ -93,6 +93,13 @@ export default function App() {
   const authenticateUser = async () => {
     setIsAuthenticating(true);
     try {
+      if (Platform.OS === 'web') {
+        setIsUnlocked(true);
+        triggerRevealAnimation();
+        setIsAuthenticating(false);
+        return;
+      }
+
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
 
@@ -161,14 +168,15 @@ export default function App() {
   const formattedTime = `00:${remainingSec < 10 ? '0' : ''}${remainingSec}`;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B0F19" />
+    <SafeAreaProvider initialMetrics={initialWindowMetrics} style={{ flex: 1, backgroundColor: '#0B0F19', minHeight: '100vh', width: '100%' }}>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor="#0B0F19" />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>MASTER AUTHENTICATOR</Text>
-        <Text style={styles.headerSubtitle}>TRACKNOW SECURITY KEEPER</Text>
-      </View>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>MASTER AUTHENTICATOR</Text>
+          <Text style={styles.headerSubtitle}>TRACKNOW SECURITY KEEPER</Text>
+        </View>
 
       {!isUnlocked ? (
         /* Hidden / Locked Screen State with Masked Codes */
@@ -256,21 +264,24 @@ export default function App() {
         <Text style={styles.footerText}>🔐 Hardware-Encrypted Master Key Synchronization</Text>
       </View>
     </SafeAreaView>
+  </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    minHeight: '100vh',
+    width: '100%',
     backgroundColor: '#0B0F19',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 40,
-    paddingHorizontal: 20
+    paddingVertical: 30,
+    paddingHorizontal: 16
   },
   header: {
     alignItems: 'center',
-    marginTop: 20
+    marginTop: 10
   },
   headerTitle: {
     color: '#FFFFFF',
@@ -286,14 +297,16 @@ const styles = StyleSheet.create({
     marginTop: 4
   },
   card: {
-    width: Math.min(width - 40, 420),
+    width: '100%',
+    maxWidth: 420,
     backgroundColor: '#111827',
     borderRadius: 24,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
     padding: 28,
     alignItems: 'center',
-    elevation: 8
+    elevation: 8,
+    marginVertical: 20
   },
   unlockButton: {
     backgroundColor: 'rgba(99, 102, 241, 0.15)',
