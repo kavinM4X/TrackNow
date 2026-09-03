@@ -25,40 +25,68 @@ router.use(async (req, res, next) => {
   next();
 });
 
-// GET /api/tracker/my — live on booking day through booking day + 1
+// GET /api/tracker/my — live on booking day, scheduled date, or if enabled by admin
 router.get('/my', protect, async (req, res) => {
   try {
     const today = todayISO();
-    const day = await TrackerDay.findOne({
+
+    // Check for any enabled tracker day for this user
+    let day = await TrackerDay.findOne({
       userId: req.user.id,
       isEnabled: true,
-      date: { $lte: today },
       activeUntil: { $gte: today }
-    });
+    }).sort({ date: 1 });
 
-    if (day && isInActiveWindow(day, today)) {
-      const cfg = await TrackerConfig.findOne({ userId: req.user.id }).lean();
+    if (!day) {
+      day = await TrackerDay.findOne({
+        userId: req.user.id,
+        isEnabled: true
+      }).sort({ date: -1 });
+    }
+
+    const config = await TrackerConfig.findOne({ userId: req.user.id }).lean();
+    const user = await User.findById(req.user.id).select('trackerEnabled vehicleId name').lean();
+
+    const isEnabled = Boolean(day?.isEnabled || config?.isEnabled || user?.trackerEnabled);
+
+    if (isEnabled) {
+      const vehicleId =
+        day?.vehicleId || config?.vehicleId || user?.vehicleId || 'TrackNow Logistics Fleet #04';
+
+      let lat = config?.lastLatitude;
+      let lng = config?.lastLongitude;
+
+      if (lat == null || lng == null) {
+        const { hubForLocation } = require('../utils/marketCoords');
+        const booking = await Booking.findOne({
+          userId: req.user.id,
+          status: { $nin: ['cancelled'] }
+        })
+          .sort({ date: -1 })
+          .lean();
+        const hubLoc = booking?.location || 'Coimbatore';
+        const hub = hubForLocation(hubLoc);
+        lat = hub.lat;
+        lng = hub.lng;
+      }
+
       return res.json({
         isEnabled: true,
-        vehicleId: day.vehicleId,
-        activatedAt: day.activatedAt,
-        lastUpdated: day.lastUpdated,
-        scheduledDate: day.date,
-        activeUntil: day.activeUntil,
-        latitude: cfg?.lastLatitude ?? null,
-        longitude: cfg?.lastLongitude ?? null,
-        lastLocationAt: cfg?.lastLocationAt ?? null
+        vehicleId,
+        activatedAt: day?.activatedAt || config?.activatedAt || new Date(),
+        lastUpdated: day?.lastUpdated || config?.lastUpdated || new Date(),
+        scheduledDate: day?.date || today,
+        activeUntil: day?.activeUntil || activeUntilForBooking(day?.date || today),
+        latitude: lat,
+        longitude: lng,
+        lastLocationAt: config?.lastLocationAt || new Date()
       });
     }
 
-    const config = await TrackerConfig.findOne({ userId: req.user.id });
-    if (!config?.isEnabled) {
-      return res.json({ isEnabled: false });
-    }
     return res.json({
       isEnabled: false,
-      vehicleId: config.vehicleId,
-      message: 'Tracking window ended (auto-off after booking day + 1)'
+      vehicleId: config?.vehicleId || user?.vehicleId || null,
+      message: 'Tracking standby mode'
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -303,11 +331,9 @@ router.put('/:userId', protect, adminOnly, async (req, res) => {
       { upsert: true, new: true }
     );
 
-    const today = todayISO();
-    const liveToday = await userHasLiveTrackerToday(req.params.userId, today);
-    await syncTrackerConfigForToday(req.params.userId, user.name, liveToday, liveToday ? vehicleId : null);
+    await syncTrackerConfigForToday(req.params.userId, user.name, isEnabled, vehicleId);
 
-    if (liveToday && vehicleId && isEnabled) {
+    if (vehicleId && isEnabled) {
       const cfg = await TrackerConfig.findOne({ userId: req.params.userId }).lean();
       if (cfg?.lastLatitude == null || cfg?.lastLongitude == null) {
         const { hubForLocation } = require('../utils/marketCoords');

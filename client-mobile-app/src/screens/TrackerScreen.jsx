@@ -1,31 +1,56 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  ActivityIndicator
+  ActivityIndicator,
+  RefreshControl
 } from 'react-native';
 import Badge from '../components/common/Badge';
-import { deduplicatedGet } from '../api/client';
+import api from '../api/client';
+import { formatDateShort } from '../utils/format';
 import { colors, radius, spacing, shadows } from '../styles/theme';
 
 export default function TrackerScreen() {
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchTracker = useCallback(async () => {
+    try {
+      const res = await api.get('/tracker/my');
+      setConfig(res.data);
+    } catch (err) {
+      console.error('Tracker error:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
-    deduplicatedGet('/tracker/my', {}, 10000)
-      .then((res) => setConfig(res.data))
-      .catch((err) => console.error('Tracker error:', err))
-      .finally(() => setLoading(false));
-  }, []);
+    fetchTracker();
+    const interval = setInterval(fetchTracker, 15000);
+    return () => clearInterval(interval);
+  }, [fetchTracker]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchTracker();
+  };
 
   const enabled = config?.isEnabled;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+      }
+    >
       {/* Header Banner */}
       <View style={styles.heroBanner}>
         <View>
@@ -39,7 +64,7 @@ export default function TrackerScreen() {
         )}
       </View>
 
-      {loading ? (
+      {loading && !refreshing ? (
         <ActivityIndicator color={colors.primary} size="large" style={{ marginVertical: 40 }} />
       ) : !enabled ? (
         /* Standby Card */
@@ -75,6 +100,11 @@ export default function TrackerScreen() {
               <Text style={styles.radarCoords}>
                 LAT: {config.latitude?.toFixed(4) || '11.0168'}° N · LNG: {config.longitude?.toFixed(4) || '76.9558'}° E
               </Text>
+              {config.scheduledDate ? (
+                <Text style={styles.radarDateBadge}>
+                  🗓️ Harvest Booking: {formatDateShort(config.scheduledDate)}
+                </Text>
+              ) : null}
             </View>
           </View>
 
@@ -101,7 +131,7 @@ export default function TrackerScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.driverName}>Assigned Driver: Murugan S.</Text>
-              <Text style={styles.driverVehicle}>Tata Ace Mini Truck • TN-38-AX-9941</Text>
+              <Text style={styles.driverVehicle}>{config.vehicleId || 'Tata Ace Mini Truck • TN-38-AX-9941'}</Text>
             </View>
             <TouchableOpacity style={styles.callBtn}>
               <Text style={styles.callBtnText}>📞 Call</Text>
@@ -253,6 +283,12 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#34d399',
     marginTop: 2
+  },
+  radarDateBadge: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#fbbf24',
+    marginTop: 3
   },
   telemetryGrid: {
     flexDirection: 'row',
