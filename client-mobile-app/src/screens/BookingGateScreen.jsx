@@ -14,6 +14,7 @@ import BrandLogo from '../components/common/BrandLogo';
 import Badge from '../components/common/Badge';
 import DatePickerCalendar from '../components/common/DatePickerCalendar';
 import api from '../api/client';
+import { storage } from '../utils/storage';
 import { formatDateShort, todayISO } from '../utils/format';
 import { colors, radius, spacing, shadows } from '../styles/theme';
 
@@ -64,6 +65,10 @@ export default function BookingGateScreen({ user, onCompleteGate }) {
         quantityKg: qty,
         notes: ''
       });
+
+      storage.setItem('has_active_booking', 'true');
+      storage.setItem('last_booking_date', date);
+      storage.setItem('last_location', location);
 
       setConfirmedBooking(res.data);
       setStep('success');
