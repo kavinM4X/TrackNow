@@ -415,14 +415,37 @@ const UserManagement = () => {
             Click any account to inspect role details (Farmer Bookings & Batch Harvest History, Driver Expenses & Parties, Admin Credentials).
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           <button onClick={fetchUsers} className="btn btn-secondary">
             <RefreshCw size={16} className={loading ? 'spin' : ''} />
             <span>Reload Registry</span>
           </button>
-          <button onClick={() => setShowAddModal(true)} className="btn btn-primary">
+          <button 
+            onClick={() => {
+              setFormData({ name: '', phone: '', email: '', password: '', role: 'admin' });
+              setShowAddModal(true);
+            }} 
+            className="btn btn-primary"
+            style={{ 
+              background: 'linear-gradient(135deg, #f59e0b, #d97706)', 
+              border: 'none', 
+              color: '#fff', 
+              fontWeight: 700,
+              boxShadow: '0 0 15px rgba(245, 158, 11, 0.4)'
+            }}
+          >
+            <Shield size={16} />
+            <span>+ Create New Admin</span>
+          </button>
+          <button 
+            onClick={() => {
+              setFormData({ name: '', phone: '', email: '', password: '', role: 'user' });
+              setShowAddModal(true);
+            }} 
+            className="btn btn-secondary"
+          >
             <UserPlus size={16} />
-            <span>Add Admin / User</span>
+            <span>+ Add Farmer / Driver</span>
           </button>
         </div>
       </div>
@@ -1257,10 +1280,38 @@ const UserManagement = () => {
         }}>
           <div className="glass-panel" style={{ width: '100%', maxWidth: '480px', padding: '2rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
-              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.35rem', fontWeight: 700 }}>
-                Provision New Platform User
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.35rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                {formData.role === 'admin' ? (
+                  <>
+                    <span style={{ color: '#f59e0b' }}>👑</span>
+                    <span>Provision New TrackNow Admin</span>
+                  </>
+                ) : (
+                  <>
+                    <span>👤</span>
+                    <span>Provision Platform User</span>
+                  </>
+                )}
               </h2>
+              <button onClick={() => setShowAddModal(false)} className="btn btn-secondary" style={{ padding: '0.35rem', borderRadius: '50%' }}>
+                <X size={16} />
+              </button>
             </div>
+
+            {formData.role === 'admin' && (
+              <div style={{
+                background: 'rgba(245, 158, 11, 0.12)',
+                border: '1px solid rgba(245, 158, 11, 0.3)',
+                color: '#fbbf24',
+                padding: '0.75rem 1rem',
+                borderRadius: '8px',
+                fontSize: '0.82rem',
+                marginBottom: '1rem',
+                lineHeight: 1.4
+              }}>
+                ⭐ <strong>TrackNow Admin Console Access</strong>: This Admin will be able to log in directly at <strong>http://localhost:5174/admin/login</strong> using their registered <strong>Phone Number & Password</strong>.
+              </div>
+            )}
 
             <form onSubmit={handleCreateUser} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
@@ -1271,9 +1322,9 @@ const UserManagement = () => {
                   className="form-input"
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  style={{ fontWeight: 600, color: 'var(--primary)' }}
+                  style={{ fontWeight: 600, color: formData.role === 'admin' ? '#f59e0b' : 'var(--primary)' }}
                 >
-                  <option value="admin">⭐ Admin Account (Full Portal Privileges)</option>
+                  <option value="admin">⭐ Admin Account (TrackNow Admin Portal)</option>
                   <option value="driver">🚛 Driver Account (Driver App)</option>
                   <option value="user">🌾 Client / Farmer Account (Client App)</option>
                   <option value="staff">📋 Staff Account</option>

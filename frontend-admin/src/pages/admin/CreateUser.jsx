@@ -166,11 +166,13 @@ export default function CreateUser() {
         <input className="field-input" type="email" {...register('email')} />
         <label className="field-label">Role</label>
         <select className="field-select" {...register('role')}>
-          <option value="user">user</option>
-          <option value="admin">admin</option>
-          <option value="driver">driver</option>
-          <option value="staff">staff</option>
+          <option value="user">🌾 Farmer (Client User)</option>
+          <option value="driver">🚛 Logistics Driver</option>
+          <option value="staff">📋 Operations Staff</option>
         </select>
+        <p style={{ fontSize: 11, color: '#888', margin: '-8px 0 12px' }}>
+          🔒 New Admin accounts must be created exclusively by Master Admin in the Master Admin Portal.
+        </p>
         <label className="field-label">Password</label>
         <input type="password" className="field-input" {...register('password', { required: true, minLength: 6 })} />
         <label className="field-label">Confirm Password</label>
