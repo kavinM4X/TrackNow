@@ -355,6 +355,124 @@
   font-size: 14px;
 }
 
+/* Bulk Action Bar & Toolbar */
+.bulkBar {
+  background: #ffffff;
+  border: 1px solid var(--card-border, #e0e0dc);
+  border-radius: 14px;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.bulkLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.selectAllLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkboxInput {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--green, #2e7d52);
+  cursor: pointer;
+}
+
+.bulkApproveBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--green, #2e7d52);
+  background: linear-gradient(135deg, #2e7d52 0%, #1e5a38 100%);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(46, 125, 82, 0.25);
+  transition: all 0.2s ease;
+}
+
+.bulkApproveBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(46, 125, 82, 0.35);
+  background: linear-gradient(135deg, #389663 0%, #236942 100%);
+}
+
+.bulkApproveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Floating Bottom Bulk Action Bar */
+.floatingBulkBar {
+  position: sticky;
+  bottom: 20px;
+  z-index: 100;
+  background: #1e293b;
+  color: #ffffff;
+  border-radius: 14px;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.floatingText {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.floatingActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.clearSelectBtn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clearSelectBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 /* Mobile Responsiveness Improvements (< 600px) */
 @media (max-width: 600px) {
   .tripHeroCard {
@@ -365,6 +483,27 @@
 
   .pendingBadge {
     align-self: flex-start;
+  }
+
+  .bulkBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .bulkApproveBtn {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .floatingBulkBar {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .floatingActions {
+    justify-content: space-between;
   }
 
   .summaryGrid {

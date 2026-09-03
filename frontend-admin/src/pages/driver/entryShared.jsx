@@ -61,6 +61,10 @@ export async function setEntryStatus(id, status) {
   return api.patch(`/admin/driver/entries/${id}/status`, { status });
 }
 
+export async function bulkApproveEntries(ids) {
+  return api.post('/admin/driver/entries/bulk-approve', { ids });
+}
+
 export function EntryUserRow({ entry, onApprove, onReject, onPublish, onViewHistory }) {
   const clientId =
     entry.clientUserId?._id || entry.clientUserId || entry.partyId?.clientUserId?._id || entry.partyId?.clientUserId;

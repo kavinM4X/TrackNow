@@ -930,25 +930,57 @@ adminRouter.patch('/entries/:id/status', protect, adminOnly, async (req, res) =>
   }
 });
 
-adminRouter.post('/entries/:id/publish', protect, adminOnly, async (req, res) => {
+adminRouter.post('/entries/bulk-approve', protect, adminOnly, async (req, res) => {
   try {
-    const entry = await DriverSilkEntry.findById(req.params.id);
-    if (!entry) return res.status(404).json({ error: 'Not found' });
-    if (entry.status !== 'approved') {
-      return res.status(400).json({ error: 'Approve the entry before publishing to client' });
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'Provide an array of entry IDs' });
     }
-    const result = await publishDriverEntryToClient(entry._id, req.user._id);
+
+    const results = [];
+    const errors = [];
+
+    for (const id of ids) {
+      try {
+        const existing = await DriverSilkEntry.findById(id).populate('partyId');
+        if (!existing) {
+          errors.push({ id, error: 'Entry not found' });
+          continue;
+        }
+
+        const entry = await DriverSilkEntry.findByIdAndUpdate(
+          id,
+          { status: 'approved', reviewedBy: req.user._id },
+          { new: true }
+        )
+          .populate('vehicleId', 'vehicleNumber driverName')
+          .populate('partyId', 'name phone clientUserId');
+
+        let clientBatch = null;
+        try {
+          clientBatch = await publishDriverEntryToClient(entry._id, req.user._id);
+        } catch (pubErr) {
+          console.error(`Bulk publish error for entry ${id}:`, pubErr.message);
+        }
+
+        results.push({
+          _id: entry._id,
+          status: 'approved',
+          clientUserName: clientBatch?.userName || entry.partyId?.name || null
+        });
+      } catch (entryErr) {
+        errors.push({ id, error: entryErr.message });
+      }
+    }
+
     res.json({
       ok: true,
-      clientBatchId: result.batch._id,
-      clientUserId: result.clientUserId,
-      clientUserName: result.userName,
-      batchDate: result.batch.date,
-      batchLocation: result.batch.location
+      approvedCount: results.length,
+      results,
+      errors
     });
   } catch (e) {
-    const status = e.statusCode || 500;
-    res.status(status).json({ error: e.message });
+    res.status(500).json({ error: e.message });
   }
 });
 

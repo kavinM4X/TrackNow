@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
 import api from '../../api/client';
 import {
+  bulkApproveEntries,
   filterTripEntries,
   publishEntry,
   setEntryStatus
@@ -17,7 +18,9 @@ export default function EntryGroupDetail() {
   const statusFilter = location.state?.filter ?? '';
 
   const [entries, setEntries] = useState([]);
+  const [selectedIds, setSelectedIds] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [bulkApproving, setBulkApproving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -44,11 +47,49 @@ export default function EntryGroupDetail() {
   );
 
   const driverName = tripEntries[0]?.vehicleId?.driverName || 'Logistics Driver';
-  const pendingCount = tripEntries.filter((e) => e.status === 'pending').length;
+  const pendingEntries = useMemo(
+    () => tripEntries.filter((e) => e.status === 'pending'),
+    [tripEntries]
+  );
+  const pendingCount = pendingEntries.length;
 
   const totalGoodKg = tripEntries.reduce((sum, e) => sum + (Number(e.goodKg) || 0), 0);
   const totalWasteKg = tripEntries.reduce((sum, e) => sum + (Number(e.wasteKg) || 0), 0);
   const totalTripPayout = tripEntries.reduce((sum, e) => sum + (Number(e.totalAmount) || 0), 0);
+
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const selectAllPending = () => {
+    if (selectedIds.length === pendingCount && pendingCount > 0) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(pendingEntries.map((e) => e._id));
+    }
+  };
+
+  const handleBulkApprove = async (targetIds = null) => {
+    const idsToApprove = targetIds || (selectedIds.length > 0 ? selectedIds : pendingEntries.map((e) => e._id));
+    if (!idsToApprove || idsToApprove.length === 0) return;
+
+    setMessage('');
+    setError('');
+    setBulkApproving(true);
+    try {
+      const res = await bulkApproveEntries(idsToApprove);
+      const count = res.data?.approvedCount || idsToApprove.length;
+      setMessage(`✓ Successfully approved and published ${count} farmer ${count === 1 ? 'entry' : 'entries'}!`);
+      setSelectedIds([]);
+      load();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Bulk approve failed');
+    } finally {
+      setBulkApproving(false);
+    }
+  };
 
   const publishToClient = async (id) => {
     setMessage('');
@@ -101,9 +142,21 @@ export default function EntryGroupDetail() {
             </div>
           </div>
 
-          {pendingCount > 0 && (
-            <span className={styles.pendingBadge}>⏳ {pendingCount} Pending</span>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {pendingCount > 0 && (
+              <span className={styles.pendingBadge}>⏳ {pendingCount} Pending</span>
+            )}
+            {pendingCount > 0 && (
+              <button
+                type="button"
+                className={styles.bulkApproveBtn}
+                disabled={bulkApproving}
+                onClick={() => handleBulkApprove()}
+              >
+                {bulkApproving ? 'Approving…' : `✓ Bulk Approve All (${pendingCount})`}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Live Trip Summary Bar */}
@@ -130,6 +183,52 @@ export default function EntryGroupDetail() {
           </div>
         </div>
 
+        {/* Bulk Action & Selection Toolbar */}
+        {pendingCount > 0 && (
+          <div className={styles.bulkBar}>
+            <div className={styles.bulkLeft}>
+              <label className={styles.selectAllLabel}>
+                <input
+                  type="checkbox"
+                  className={styles.checkboxInput}
+                  checked={selectedIds.length === pendingCount && pendingCount > 0}
+                  onChange={selectAllPending}
+                />
+                <span>
+                  {selectedIds.length > 0
+                    ? `${selectedIds.length} of ${pendingCount} selected`
+                    : `Select All Pending (${pendingCount})`}
+                </span>
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8 }}>
+              {selectedIds.length > 0 && (
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ fontSize: 12, padding: '6px 12px' }}
+                  onClick={() => setSelectedIds([])}
+                >
+                  Clear Selection
+                </button>
+              )}
+              <button
+                type="button"
+                className={styles.bulkApproveBtn}
+                disabled={bulkApproving || (selectedIds.length === 0 && pendingCount === 0)}
+                onClick={() => handleBulkApprove(selectedIds.length > 0 ? selectedIds : null)}
+              >
+                {bulkApproving
+                  ? 'Approving…'
+                  : selectedIds.length > 0
+                  ? `✓ Approve Selected (${selectedIds.length})`
+                  : `✓ Approve All (${pendingCount})`}
+              </button>
+            </div>
+          </div>
+        )}
+
         {message && <p className="form-success">{message}</p>}
         {error && <p className="form-error">{error}</p>}
 
@@ -146,6 +245,8 @@ export default function EntryGroupDetail() {
               const clientId =
                 e.clientUserId?._id || e.clientUserId || e.partyId?.clientUserId?._id || e.partyId?.clientUserId;
               const farmerName = e.partyId?.name || 'Farmer';
+              const isPending = e.status === 'pending';
+              const isSelected = selectedIds.includes(e._id);
               const statusClass =
                 e.status === 'pending'
                   ? styles.statusPending
@@ -154,9 +255,22 @@ export default function EntryGroupDetail() {
                   : styles.statusRejected;
 
               return (
-                <div key={e._id} className={styles.entryCard}>
+                <div
+                  key={e._id}
+                  className={styles.entryCard}
+                  style={isSelected ? { borderColor: 'var(--green, #2e7d52)', backgroundColor: '#fafffd' } : {}}
+                >
                   <div className={styles.entryHeader}>
                     <div className={styles.farmerInfo}>
+                      {isPending && (
+                        <input
+                          type="checkbox"
+                          className={styles.checkboxInput}
+                          checked={isSelected}
+                          onChange={() => toggleSelect(e._id)}
+                          aria-label={`Select ${farmerName}`}
+                        />
+                      )}
                       <div className={styles.avatarRing}>{initials(farmerName)}</div>
                       <h4 className={styles.farmerName}>{farmerName}</h4>
                     </div>
@@ -245,6 +359,32 @@ export default function EntryGroupDetail() {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Floating Bulk Action Bar for Selected Cards */}
+        {selectedIds.length > 0 && (
+          <div className={styles.floatingBulkBar}>
+            <div className={styles.floatingText}>
+              ✓ {selectedIds.length} farmer {selectedIds.length === 1 ? 'entry' : 'entries'} selected
+            </div>
+            <div className={styles.floatingActions}>
+              <button
+                type="button"
+                className={styles.clearSelectBtn}
+                onClick={() => setSelectedIds([])}
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                className={styles.bulkApproveBtn}
+                disabled={bulkApproving}
+                onClick={() => handleBulkApprove(selectedIds)}
+              >
+                {bulkApproving ? 'Approving…' : `✓ Approve Selected (${selectedIds.length})`}
+              </button>
+            </div>
           </div>
         )}
       </div>
