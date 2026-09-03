@@ -161,9 +161,10 @@ export default function BookingGate({ user }) {
         quantityKg: Number(data.quantityKg),
         notes: ''
       });
-      localStorage.setItem('has_active_booking', 'true');
-      localStorage.setItem('last_booking_date', data.date);
-      localStorage.setItem('last_location', data.location);
+      const uid = user?._id || user?.id || 'anon';
+      localStorage.setItem(`has_active_booking_${uid}`, 'true');
+      localStorage.setItem(`last_booking_date_${uid}`, data.date);
+      localStorage.setItem(`last_location_${uid}`, data.location);
       setConfirmedBooking(res.data);
       setStep('success');
     } catch (err) {

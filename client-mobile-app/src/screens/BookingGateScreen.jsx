@@ -66,9 +66,10 @@ export default function BookingGateScreen({ user, onCompleteGate }) {
         notes: ''
       });
 
-      storage.setItem('has_active_booking', 'true');
-      storage.setItem('last_booking_date', date);
-      storage.setItem('last_location', location);
+      const uid = user?._id || user?.id || 'anon';
+      storage.setItem(`has_active_booking_${uid}`, 'true');
+      storage.setItem(`last_booking_date_${uid}`, date);
+      storage.setItem(`last_location_${uid}`, location);
 
       setConfirmedBooking(res.data);
       setStep('success');
